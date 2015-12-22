@@ -29,13 +29,9 @@ function xinspect(o,i){
 var coffee = require('lib/coffee-script').CoffeeScript;
 alert(coffee.VERSION);
 
-var script = readfile('js/test.coffee');
+var script = readfile('js/tests/test.coffee');
 eval(coffee.compile(script))
 
 var minimist = require('lib/minimist');
 
 alert(xinspect(minimist('--help -a gldd'.split(' '))));
-
-var livescript = require('lib/livescript');
-alert(typeof livescript, xinspect(livescript))
-// var livescript = require('lib/livescript');
