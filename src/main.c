@@ -36,6 +36,11 @@ int readfile(duk_context *ctx)
 int main(int argc, char *argv[]) {
   duk_context *ctx = duk_create_heap_default();
 
+  if (!ctx) {
+    printf("Failed to create a Duktape heap.\n");
+    exit(EXIT_FAILURE);
+  }
+
   duk_push_global_object(ctx);
   duk_push_c_function(ctx, readfile, DUK_VARARGS);
   duk_put_prop_string(ctx, -2 /*idx:global*/, "readfile");
