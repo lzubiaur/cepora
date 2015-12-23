@@ -34,6 +34,7 @@ int readfile(duk_context *ctx)
 }
 
 int main(int argc, char *argv[]) {
+  // TODO use duk_create_heap() instead
   duk_context *ctx = duk_create_heap_default();
 
   if (!ctx) {
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
   }
 
   duk_push_global_object(ctx);
-  duk_push_c_function(ctx, readfile, DUK_VARARGS);
+  duk_push_c_function(ctx, readfile, 1); /* One argument */
   duk_put_prop_string(ctx, -2 /*idx:global*/, "readfile");
   duk_pop(ctx);  /* pop global */
 
