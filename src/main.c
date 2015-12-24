@@ -3,34 +3,32 @@
 
 #include "duktape.h"
 
+/* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
 {
   FILE *fp = NULL;
   char *str = NULL;
+  const char *filename = NULL;
   long fsize = 0;
 
-  /* It's not not mandatory to check the number of parameters passed to this
-  * function because it's guaranteed to be one (the stack will have one
-  * and only one value (see how the function is binded using
-  * `duk_push_c_function`)/
-  /*
-  if (duk_get_top(ctx) == 0) {
-    return DUK_RET_TYPE_ERROR;
-  }
-  */
-
   /* Throw `TypeError` if no arguments is given.
-  * Check if the parameter is either `null` or `undefined`. There is only one
-  * parameter so we can check the top of the stack (-1) */
+  * It's not not mandatory to check the number of parameters passed to this
+  * function using `duk_get_top` because it's guaranteed to be one (the stack will have one
+  * and only one value (see how the function is binded using
+  * `duk_push_c_function`).
+  * Instead we must check if the parameter is either `null` or `undefined`.
+  * There is only one parameter so we can check the top of the stack (-1).
+  */
   if (duk_is_null_or_undefined(ctx, -1)) {
-    return DUK_RET_TYPE_ERROR;
+    duk_push_undefined(ctx);
+    goto finished;
   }
 
-  const char *filename = duk_to_string(ctx, 0);
+  filename = duk_to_string(ctx, 0);
 
   if((fp = fopen(filename, "r")) == NULL) {
-    fclose(fp);
-    duk_error(ctx, 1, "Cannot find module %s", filename);
+    duk_push_undefined(ctx);
+    goto finished;
   }
   fseek(fp, 0, SEEK_END);
   fsize = ftell(fp);
@@ -38,12 +36,12 @@ duk_ret_t readfile(duk_context *ctx)
 
   str = malloc(fsize + 1);
   fread(str, fsize, 1, fp);
-  fclose(fp);
 
   str[fsize] = 0;
-
-  fclose(fp);
   duk_push_lstring(ctx, str, fsize);
+
+finished:
+  fclose(fp);
   return 1;  /* return one value */
 }
 
@@ -85,9 +83,12 @@ int main(int argc, char *argv[]) {
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
 
-  /* Run the script entry point */
+  /* Run the script entry point. Filename is taken from command line or
+  * will default to 'js/process.js'
+  */
+  const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
-  if (duk_peval_file(ctx, "js/process.js") != 0) {
+  if (duk_peval_file(ctx, filename) != 0) {
     printf("Error: %s\n", duk_safe_to_string(ctx, -1));
     goto finished;
   }
