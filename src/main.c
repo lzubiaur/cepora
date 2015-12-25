@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "duktape.h"
+#include "macros.h"
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
@@ -45,9 +46,16 @@ finished:
   return 1;  /* return one value */
 }
 
+void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
+{
+  FTL(ctx, "Fatal error: %s [%d]", msg, code);
+  exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[]) {
-  // TODO use duk_create_heap() instead
-  duk_context *ctx = duk_create_heap_default();
+  /* Create duktape VM heap */
+  duk_context *ctx = NULL;
+  ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
 
   if (!ctx) {
     printf("Failed to create a Duktape heap.\n");
@@ -89,9 +97,11 @@ int main(int argc, char *argv[]) {
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
   if (duk_peval_file(ctx, filename) != 0) {
-    printf("Error: %s\n", duk_safe_to_string(ctx, -1));
+    ERR(ctx, duk_safe_to_string(ctx, -1));
     goto finished;
   }
+  // TODO how to return code from javasctipt ?
+  // INF(ctx, "Script succeed with code: %s\n", duk_safe_to_string(ctx, -1));
   duk_pop(ctx);
 
 finished:
