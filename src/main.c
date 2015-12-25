@@ -54,11 +54,15 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
 
 int main(int argc, char *argv[]) {
   /* Create duktape VM heap */
+  /* TODO investigate memory management implementations like tcmalloc
+   * (https://github.com/gperftools/gperftools) and jmalloc
+   * (https://github.com/jemalloc/jemalloc).
+   */
   duk_context *ctx = NULL;
   ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
 
   if (!ctx) {
-    printf("Failed to create a Duktape heap.\n");
+    fprintf(stderr, "FATAL: Failed to create a Duktape heap.\n");
     exit(EXIT_FAILURE);
   }
 
