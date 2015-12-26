@@ -46,9 +46,21 @@ finished:
   return 1;  /* return one value */
 }
 
+/* Log the error stack trace. Check if index `idx` is valid and the object
+ * inherits from `error`.
+ */
+void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
+{
+  if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
+    ERR(ctx, duk_safe_to_string(ctx, -1));
+  }
+}
+
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
 {
-  FTL(ctx, "Fatal error: %s [%d]", msg, code);
+  FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
+  dump_stack_trace(ctx, -1);
+  /* Fatal handler should not return. */
   exit(EXIT_FAILURE);
 }
 
@@ -101,7 +113,7 @@ int main(int argc, char *argv[]) {
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
   if (duk_peval_file(ctx, filename) != 0) {
-    ERR(ctx, duk_safe_to_string(ctx, -1));
+    dump_stack_trace(ctx, -1);
     goto finished;
   }
   // TODO how to return code from javasctipt ?
