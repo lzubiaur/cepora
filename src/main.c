@@ -7,13 +7,7 @@
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
 {
-  FILE *fp = NULL;
-  char *str = NULL;
-  const char *filename = NULL;
-  long fsize = 0;
-
-  /* Throw `TypeError` if no arguments is given.
-  * It's not not mandatory to check the number of parameters passed to this
+  /* It's not not mandatory to check the number of parameters passed to this
   * function using `duk_get_top` because it's guaranteed to be one (the stack will have one
   * and only one value (see how the function is binded using
   * `duk_push_c_function`).
@@ -22,28 +16,32 @@ duk_ret_t readfile(duk_context *ctx)
   */
   if (duk_is_null_or_undefined(ctx, -1)) {
     duk_push_undefined(ctx);
-    goto finished;
+  } else {
+    duk_push_string_file(ctx, duk_to_string(ctx, 0));
   }
 
-  filename = duk_to_string(ctx, 0);
+  return 1;
+}
 
-  if((fp = fopen(filename, "r")) == NULL) {
-    duk_push_undefined(ctx);
-    goto finished;
+/* function (id, require, exports, module) */
+duk_ret_t require_handler(duk_context *ctx)
+{
+  const char *filename = duk_to_string(ctx, 0);
+  DBG(ctx, "Read module %s", filename);
+  char *dot = strrchr(filename, '.');
+  if (dot && !strcmp(dot, ".coffee")) {
+    DBG(ctx, "Compile CoffeeScript module %s", filename);
+    duk_get_global_string(ctx, "CoffeeScript");
+    duk_push_string(ctx, "compile");
+    duk_push_string_file(ctx, filename);
+    duk_pcall_prop(ctx, -3, 1);
+  } else {
+    duk_push_string_file(ctx, filename);
   }
-  fseek(fp, 0, SEEK_END);
-  fsize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
 
-  str = malloc(fsize + 1);
-  fread(str, fsize, 1, fp);
+  INF(ctx, duk_get_string(ctx, -1));
 
-  str[fsize] = 0;
-  duk_push_lstring(ctx, str, fsize);
-
-finished:
-  fclose(fp);
-  return 1;  /* return one value */
+  return 1;
 }
 
 /* Log the error stack trace. Check if index `idx` is valid and the object
@@ -107,12 +105,24 @@ int main(int argc, char *argv[]) {
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
 
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_c_function(ctx, require_handler, 4);
+  duk_put_prop_string(ctx, -2, "modSearch");
+  duk_pop(ctx);
+
+  if (duk_peval_file(ctx, "js/lib/coffee-script.js") != 0) {
+    dump_stack_trace(ctx, -1);
+    goto finished;
+  }
+
   /* Run the script entry point. Filename is taken from command line or
   * will default to 'js/process.js'
   */
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
-  if (duk_peval_file(ctx, filename) != 0) {
+  duk_get_global_string(ctx, "require");
+  duk_push_string(ctx, filename);
+  if (duk_pcall(ctx, 1) != 0) {
     dump_stack_trace(ctx, -1);
     goto finished;
   }
