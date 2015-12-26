@@ -23,6 +23,15 @@ duk_ret_t readfile(duk_context *ctx)
   return 1;
 }
 
+void set_C_log_level(duk_context *ctx, const char *level)
+{
+  duk_get_global_string(ctx, "Duktape");
+  duk_get_prop_string(ctx, -1, "Logger");
+  duk_get_prop_string(ctx, -1, "clog");
+  duk_push_string(ctx, level);
+  duk_put_prop_string(ctx, -2, "l");
+}
+
 /* function (id, require, exports, module) */
 duk_ret_t require_handler(duk_context *ctx)
 {
@@ -75,6 +84,9 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "FATAL: Failed to create a Duktape heap.\n");
     exit(EXIT_FAILURE);
   }
+
+  /* TODO set log level from command line */
+  set_C_log_level(ctx, "TRC");
 
   /* Note regarding function binding parameters.
   * The third argument of `duk_push_c_function` is the number of parameters the
