@@ -13,7 +13,7 @@
 void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
 {
   if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
-    ERR(ctx, "%s\n%s", duk_safe_to_string(ctx, -2) ,duk_safe_to_string(ctx, -1));
+    ERR(ctx, "\n%s", duk_safe_to_string(ctx, -1));
   }
 }
 
