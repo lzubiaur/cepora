@@ -13,7 +13,7 @@
 void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
 {
   if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
-    ERR(ctx, duk_safe_to_string(ctx, -1));
+    ERR(ctx, "%s\n%s", duk_safe_to_string(ctx, -2) ,duk_safe_to_string(ctx, -1));
   }
 }
 
@@ -66,13 +66,25 @@ duk_ret_t compile_coffee(duk_context *ctx)
   return 1;
 }
 
+/* Compile and eval a CoffeeScript file. Throw an error on IO and compilation
+ * errors (e.g. file not found, syntax error).
+ */
+duk_ret_t eval_coffee(duk_context *ctx)
+{
+  duk_get_global_string(ctx, "compile_coffee"); /* Get the CoffeeScript global compiler */
+  duk_insert(ctx, -2); /* Insert the compiler before the filename on the stack */
+  duk_call(ctx, 1); /* call the compiler on the CoffeeScript source */
+  duk_eval(ctx); /* Run the compiled JavaScript code */
+  return 0;
+}
+
 /* @javascript
  * @params id, require, exports, module
  */
 duk_ret_t require_handler(duk_context *ctx)
 {
   const char *filename = duk_to_string(ctx, 0);
-  DBG(ctx, "Read module %s", filename);
+  INF(ctx, "Read module %s", filename);
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
@@ -132,9 +144,11 @@ int main(int argc, char *argv[]) {
   duk_pop(ctx);  /* pop global */
 
   duk_push_global_object(ctx);
-  duk_push_c_function(ctx, compile_coffee, 1); /* C function with exactly one argument */
+  duk_push_c_function(ctx, compile_coffee, 1);
   duk_put_prop_string(ctx, -2 , "compile_coffee");
-  duk_pop(ctx);
+  duk_push_c_function(ctx, eval_coffee, 1);
+  duk_put_prop_string(ctx, -2 , "eval_coffee");
+  duk_pop(ctx); /*  pop global */
 
   /* Store command line arguments in the `Duktape` global object */
   duk_push_global_object(ctx);
@@ -165,7 +179,7 @@ int main(int argc, char *argv[]) {
   */
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
-  duk_get_global_string(ctx, "require");
+  duk_get_global_string(ctx, "eval_coffee");
   duk_push_string(ctx, filename);
   if (duk_pcall(ctx, 1) != 0) {
     dump_stack_trace(ctx, -1);
@@ -174,6 +188,8 @@ int main(int argc, char *argv[]) {
   // TODO how to return code from javasctipt ?
   // INF(ctx, "Script succeed with code: %s\n", duk_safe_to_string(ctx, -1));
   duk_pop(ctx);
+
+  INF(ctx, "Bye!");
 
 finished:
   duk_destroy_heap(ctx);
