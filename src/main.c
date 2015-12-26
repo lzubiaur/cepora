@@ -36,6 +36,9 @@ duk_ret_t readfile(duk_context *ctx)
   return 1;
 }
 
+/* Helper function to set logging level for C API. This can be changed in
+ * javascript by updating `Duktape.Logger.clog.l` to 'TRC', 'DBG', 'INF'...
+ */
 void set_C_log_level(duk_context *ctx, const char *level)
 {
   duk_get_global_string(ctx, "Duktape");
