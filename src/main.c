@@ -4,6 +4,19 @@
 #include "duktape.h"
 #include "macros.h"
 
+/* Error code (duktape error code starts at 1) */
+#define CPR_COFFEE_SCRIPT_ERROR 1
+
+/* Log the error stack trace. Check if index `idx` is valid and the object
+ * inherits from `error`.
+ */
+void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
+{
+  if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
+    ERR(ctx, duk_safe_to_string(ctx, -1));
+  }
+}
+
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
 {
@@ -32,36 +45,48 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_put_prop_string(ctx, -2, "l");
 }
 
-/* function (id, require, exports, module) */
+/* Compile a CoffeeScript file into JavaScript. Result is pushed at the top of
+ * the context.
+ * Throw an error on IO file access (e.g. file not found) or on compilation
+ * error (e.g. syntax error).
+ */
+duk_ret_t compile_coffee(duk_context *ctx)
+{
+  const char *filename = duk_to_string(ctx, -1);
+  if (duk_get_global_string(ctx, "CoffeeScript")) {
+    duk_push_string(ctx, "compile");
+    duk_push_string_file(ctx, filename);
+    duk_call_prop(ctx, -3, 1);
+  } else {
+    duk_error(ctx, CPR_COFFEE_SCRIPT_ERROR, "Can't find global CoffeeScript compiler object.");
+  }
+  return 1;
+}
+
+/* @javascript
+ * @params id, require, exports, module
+ */
 duk_ret_t require_handler(duk_context *ctx)
 {
   const char *filename = duk_to_string(ctx, 0);
   DBG(ctx, "Read module %s", filename);
+  /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
-    DBG(ctx, "Compile CoffeeScript module %s", filename);
-    duk_get_global_string(ctx, "CoffeeScript");
-    duk_push_string(ctx, "compile");
-    duk_push_string_file(ctx, filename);
-    duk_pcall_prop(ctx, -3, 1);
+    duk_get_global_string(ctx, "compile_coffee");
+    duk_push_string(ctx, filename);
+    if (duk_pcall(ctx, 1) != 0) {
+      // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
+      ERR(ctx, "Can't compile CoffeeScript %s", filename);
+      dump_stack_trace(ctx, -1);
+    }
   } else {
     duk_push_string_file(ctx, filename);
   }
 
-  INF(ctx, duk_get_string(ctx, -1));
-
   return 1;
 }
 
-/* Log the error stack trace. Check if index `idx` is valid and the object
- * inherits from `error`.
- */
-void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
-{
-  if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
-    ERR(ctx, duk_safe_to_string(ctx, -1));
-  }
-}
 
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
 {
@@ -102,6 +127,11 @@ int main(int argc, char *argv[]) {
   duk_push_c_function(ctx, readfile, 1); /* C function with exactly one argument */
   duk_put_prop_string(ctx, -2 /*index of global*/, "readfile");
   duk_pop(ctx);  /* pop global */
+
+  duk_push_global_object(ctx);
+  duk_push_c_function(ctx, compile_coffee, 1); /* C function with exactly one argument */
+  duk_put_prop_string(ctx, -2 , "compile_coffee");
+  duk_pop(ctx);
 
   /* Store command line arguments in the `Duktape` global object */
   duk_push_global_object(ctx);
