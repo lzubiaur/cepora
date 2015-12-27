@@ -14,6 +14,8 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
 {
   if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
     ERR(ctx, "\n%s", duk_safe_to_string(ctx, -1));
+  } else {
+    WRN(ctx, "Trying to dump stack trace but no error object at index %d.", idx);
   }
 }
 
@@ -86,9 +88,10 @@ duk_ret_t eval_script(duk_context *ctx)
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
-    duk_get_global_string(ctx, "eval_coffee");
     duk_push_string(ctx, filename);
-    duk_call(ctx, 1);
+    if(duk_safe_call(ctx, eval_coffee, 1, 1) == DUK_EXEC_ERROR) {
+      dump_stack_trace(ctx, -1);
+    }
   } else {
     duk_eval_file(ctx, filename);
   }
