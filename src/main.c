@@ -83,17 +83,14 @@ duk_ret_t eval_coffee(duk_context *ctx)
 /* Load and run JavaScript and CoffeeScript file.  */
 duk_ret_t eval_script(duk_context *ctx)
 {
-  const char *filename = duk_to_string(ctx, 0);
+  const char *filename = duk_to_string(ctx, -1);
   DBG(ctx, "Loading %s", filename);
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
+    duk_get_global_string(ctx, "eval_coffee");
     duk_push_string(ctx, filename);
-    /* Use duk_safe_call instead of duk_pcall to make protet C function call.
-     * Must request at least one return value to get the error object. */
-    if(duk_safe_call(ctx, eval_coffee, 1, 1) == DUK_EXEC_ERROR) {
-      dump_stack_trace(ctx, -1);
-    }
+    duk_call(ctx, 1);
   } else {
     duk_eval_file(ctx, filename);
   }
@@ -203,9 +200,12 @@ int main(int argc, char *argv[]) {
   */
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
-  duk_get_global_string(ctx, "eval_script");
   duk_push_string(ctx, filename);
-  if (duk_pcall(ctx, 1) != 0) {
+  if (duk_safe_call(ctx, eval_script, 1, 1)) {
+    /* If duk_safe_call fails the error object is at the top of the context.
+     * But we must request at least one return value to actually get the error
+     * object on the stack. */
+    ERR(ctx, "Can't run script %s", filename);
     dump_stack_trace(ctx, -1);
     goto finished;
   }
