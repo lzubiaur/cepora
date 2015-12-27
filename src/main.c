@@ -78,6 +78,23 @@ duk_ret_t eval_coffee(duk_context *ctx)
   return 0;
 }
 
+/* Load and run JavaScript and CoffeeScript file.  */
+duk_ret_t eval_script(duk_context *ctx)
+{
+  const char *filename = duk_to_string(ctx, 0);
+  DBG(ctx, "Loading %s", filename);
+  /* TODO Lazy file extension check  */
+  char *dot = strrchr(filename, '.');
+  if (dot && !strcmp(dot, ".coffee")) {
+    duk_get_global_string(ctx, "eval_coffee");
+    duk_push_string(ctx, filename);
+    duk_call(ctx, 1);
+  } else {
+    duk_eval_file(ctx, filename);
+  }
+  return 0;
+}
+
 /* @javascript
  * @params id, require, exports, module
  */
@@ -148,6 +165,8 @@ int main(int argc, char *argv[]) {
   duk_put_prop_string(ctx, -2 , "compile_coffee");
   duk_push_c_function(ctx, eval_coffee, 1);
   duk_put_prop_string(ctx, -2 , "eval_coffee");
+  duk_push_c_function(ctx, eval_script, 1);
+  duk_put_prop_string(ctx, -2 , "eval_script");
   duk_pop(ctx); /*  pop global */
 
   /* Store command line arguments in the `Duktape` global object */
@@ -179,7 +198,7 @@ int main(int argc, char *argv[]) {
   */
   const char *filename = argc > 1 ? argv[1] : "js/process.js";
 
-  duk_get_global_string(ctx, "eval_coffee");
+  duk_get_global_string(ctx, "eval_script");
   duk_push_string(ctx, filename);
   if (duk_pcall(ctx, 1) != 0) {
     dump_stack_trace(ctx, -1);
