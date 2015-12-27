@@ -89,6 +89,8 @@ duk_ret_t eval_script(duk_context *ctx)
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
     duk_push_string(ctx, filename);
+    /* Use duk_safe_call instead of duk_pcall to make protet C function call.
+     * Must request at least one return value to get the error object. */
     if(duk_safe_call(ctx, eval_coffee, 1, 1) == DUK_EXEC_ERROR) {
       dump_stack_trace(ctx, -1);
     }
