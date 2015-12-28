@@ -6,6 +6,10 @@
  */
 void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
 {
+  if (duk_is_valid_index(ctx, idx) == 0) {
+    WRN(ctx, "dump_stack_trace: Invalid index: %d", idx);
+    return;
+  }
   if (duk_is_error(ctx, idx)) {
     if(duk_get_prop_string(ctx, idx, "stack")) {
       ERR(ctx, duk_safe_to_string(ctx, -1));
