@@ -33,7 +33,7 @@ char *cpr_get_app_dir()
     char *path = NULL, *dir = NULL;
 #ifdef _WIN32
     char drive_buf[_MAX_DRIVE], dir_buf[_MAX_DIR];
-    if ((path = get_exec_path()) == NULL) goto end;
+    if ((path = cpr_get_exec_path()) == NULL) goto end;
     if(_splitpath_s(path, drive_buf, _MAX_DRIVE, dir_buf, _MAX_DIR, NULL, 0, NULL, 0) != 0) {
         perror("get_app_dir");
         goto end;
@@ -44,7 +44,7 @@ char *cpr_get_app_dir()
     }
 #else
     char *buf = NULL;
-    if ((path = get_exec_path()) == NULL) goto end;
+    if ((path = cpr_get_exec_path()) == NULL) goto end;
     /* dirname returns a pointer to internal storage space allocated on the first call */
     if ((buf = dirname(path)) == NULL) {
         perror("get_app_dir");
