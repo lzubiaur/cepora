@@ -2,50 +2,8 @@
 #include <stdio.h>
 
 #include "duktape.h"
-#include "macros.h"
-
-/* Error code (duktape error code starts at 1) */
-#define CPR_COFFEE_SCRIPT_ERROR 1
-
-/* Log the error stack trace. Check if index `idx` is valid and the object
- * inherits from `error`.
- */
-void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
-{
-  if (duk_is_error(ctx, idx)) {
-    if(duk_get_prop_string(ctx, idx, "stack")) {
-      ERR(ctx, duk_safe_to_string(ctx, -1));
-      if (duk_get_prop_string(ctx, idx, "cause")) {
-        ERR(ctx, "Caused by:");
-        dump_stack_trace(ctx, -1);
-      }
-      duk_pop(ctx);
-    } else {
-      ERR(ctx, duk_safe_to_string(ctx, idx));
-    }
-    duk_pop(ctx);
-  } else {
-    ERR(ctx, duk_safe_to_string(ctx, idx));
-  }
-}
-
-duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
-{
-  va_list ap;
-  duk_idx_t err_idx, norm_cause_idx;
-
-  /* normalize index so reversed index is supported. */
-  norm_cause_idx = duk_normalize_index(ctx, cause_idx);
-
-  va_start(ap, fmt);
-  err_idx = duk_push_error_object_va(ctx, err_code, fmt, ap);
-  va_end(ap);
-
-  duk_dup(ctx, norm_cause_idx);
-  duk_put_prop_string(ctx, err_idx, "cause");
-
-  return err_idx;
-}
+#include "cpr_macros.h"
+#include "cpr_error.h"
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
