@@ -199,11 +199,12 @@ int main(int argc, char *argv[])
   duk_put_prop_string(ctx, -2, "modSearch");
   duk_pop(ctx);
 
+  /* Get CoffeeScript compiler full path */
   duk_push_string(ctx, path);
   duk_push_string(ctx, "/js/lib/coffee-script.js");
   duk_concat(ctx, 2);
   full_path = duk_get_string(ctx, -1);
-  DBG(ctx, "Load CoffeeScript compiler: %s", full_path);
+  // DBG(ctx, "Load CoffeeScript compiler: %s", full_path);
 
   if (duk_peval_file(ctx, full_path) != 0) {
     ERR(ctx, "Error loading CoffeeScript compiler: %s", full_path);
