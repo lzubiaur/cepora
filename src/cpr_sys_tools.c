@@ -28,7 +28,7 @@
 #include <libgen.h> /* dirname */
 #endif
 
-char *cpr_get_app_dir()
+char *cpr_get_exec_dir()
 {
     char *path = NULL, *dir = NULL;
 #ifdef _WIN32

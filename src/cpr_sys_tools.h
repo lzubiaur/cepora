@@ -18,7 +18,7 @@ extern "C" {
 /* Get the directory absolute path of the executable.
  * The path string must be freed by the caller.
  */
-char *cpr_get_app_dir();
+char *cpr_get_exec_dir();
 /* Get the executable absolute path (no symbolic link, /./ or /../ components are resolved).
  * The string is dynamically allocated and must be freed by the caller.
  */
