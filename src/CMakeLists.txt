@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR})
 
-add_executable(${RUNTIME_NAME} main.c)
+add_executable(${RUNTIME_NAME} main.c cpr_error.c)
 add_dependencies(${RUNTIME_NAME} js)
 target_link_libraries(${RUNTIME_NAME} js)
 
