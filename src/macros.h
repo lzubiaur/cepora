@@ -1,5 +1,5 @@
-#ifndef CEPORA_MACROS_H
-#define CEPORA_MACROS_H
+#ifndef CPR_MACROS_H
+#define CPR_MACROS_H
 
 /* Logging macros */
 #define TRC(ctx, ...) duk_log(ctx, DUK_LOG_TRACE, __VA_ARGS__)
@@ -9,4 +9,4 @@
 #define ERR(ctx, ...) duk_log(ctx, DUK_LOG_ERROR, __VA_ARGS__)
 #define FTL(ctx, ...) duk_log(ctx, DUK_LOG_FATAL, __VA_ARGS__)
 
-#endif /* CEPORA_MACROS_H */
+#endif /* CPR_MACROS_H */
