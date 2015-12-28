@@ -1,3 +1,9 @@
+/*
+ * cpr_error.c
+ * Copyright (c) 2015 Laurent Zubiaur
+ * MIT License (http://opensource.org/licenses/MIT)
+ */
+ 
 #include "cpr_error.h"
 #include "cpr_macros.h"
 

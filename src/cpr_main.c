@@ -1,3 +1,9 @@
+/*
+ * cpr_main.c
+ * Copyright (c) 2015 Laurent Zubiaur
+ * MIT License (http://opensource.org/licenses/MIT)
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
