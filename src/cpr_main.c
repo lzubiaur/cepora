@@ -4,12 +4,14 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h> /* getenv */
+#include <unistd.h> /* chdir */
 
 #include "duktape.h"
 #include "cpr_macros.h"
 #include "cpr_error.h"
+#include "cpr_sys_tools.h"
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
@@ -122,13 +124,16 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
   exit(EXIT_FAILURE);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+  duk_context *ctx = NULL;
+  char *path = NULL;
+
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
    * (https://github.com/gperftools/gperftools) and jmalloc
    * (https://github.com/jemalloc/jemalloc).
    */
-  duk_context *ctx = NULL;
   ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
 
   if (!ctx) {
@@ -138,6 +143,20 @@ int main(int argc, char *argv[]) {
 
   /* TODO set log level from command line */
   set_C_log_level(ctx, "TRC");
+
+  /* Look for CPR_PATH environment variable and change to that directory.
+  * If CPR_PATH is not defined, try to retreive the process executable path and
+  * change to that directory.
+  */
+  if ((path = getenv("CPR_PATH")) != NULL && chdir(path) == 0) {
+    DBG(ctx, "CPR_PATH defined. Changed dir to : %s", path);
+  } else if ((path = cpr_get_exec_dir()) != NULL && chdir(path) == 0) {
+    DBG(ctx, "Changed dir to %s", path);
+    free(path);
+  } else {
+    FTL(ctx, "Can't change to path %s", path);
+    goto finished;
+  }
 
   /* Note regarding function binding parameters.
   * The third argument of `duk_push_c_function` is the number of parameters the
