@@ -20,6 +20,8 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
         dump_stack_trace(ctx, -1);
       }
       duk_pop(ctx);
+    } else {
+      ERR(ctx, duk_safe_to_string(ctx, idx));
     }
     duk_pop(ctx);
   } else {
@@ -27,7 +29,7 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
   }
 }
 
-duk_idx_t custom_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
+duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
 {
   va_list ap;
   duk_idx_t err_idx, norm_cause_idx;
@@ -233,7 +235,7 @@ int main(int argc, char *argv[]) {
      * object on the stack. */
     // dump_stack_trace_va(ctx, duk_get_top_index(ctx), "Can't run script %s", filename);
     duk_idx_t err_idx;
-    err_idx = custom_error(ctx, -1, CPR_COFFEE_SCRIPT_ERROR, "Can't run script %s", filename);
+    err_idx = push_cause_error(ctx, -1, CPR_COFFEE_SCRIPT_ERROR, "Can't run script %s", filename);
     dump_stack_trace(ctx, err_idx);
     goto finished;
   }
