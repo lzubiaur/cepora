@@ -177,6 +177,7 @@ int main(int argc, char *argv[]) {
   duk_pop(ctx);
 
   if (duk_peval_file(ctx, "js/lib/coffee-script.js") != 0) {
+    ERR(ctx, "Error loading CoffeeScript compiler.");
     dump_stack_trace(ctx, -1);
     goto finished;
   }
@@ -191,10 +192,8 @@ int main(int argc, char *argv[]) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    // dump_stack_trace_va(ctx, duk_get_top_index(ctx), "Can't run script %s", filename);
-    duk_idx_t err_idx;
-    err_idx = push_cause_error(ctx, -1, CPR_COFFEE_SCRIPT_ERROR, "Can't run script %s", filename);
-    dump_stack_trace(ctx, err_idx);
+    ERR(ctx, "Error processing script %s", filename);
+    dump_stack_trace(ctx, -1);
     goto finished;
   }
   // TODO how to return code from javasctipt ?
