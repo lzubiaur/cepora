@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
 {
   duk_context *ctx = NULL;
   char *path = NULL;
+  const char *full_path = NULL, *filename = NULL;
 
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
@@ -144,17 +145,14 @@ int main(int argc, char *argv[])
   /* TODO set log level from command line */
   set_C_log_level(ctx, "TRC");
 
-  /* Look for CPR_PATH environment variable and change to that directory.
-  * If CPR_PATH is not defined, try to retreive the process executable path and
-  * change to that directory.
+  /* Look for CPR_PATH environment variable. If CPR_PATH is not defined, try to
+  * retreive the process executable path.
   */
-  if ((path = getenv("CPR_PATH")) != NULL && chdir(path) == 0) {
-    DBG(ctx, "CPR_PATH defined. Changed dir to : %s", path);
-  } else if ((path = cpr_get_exec_dir()) != NULL && chdir(path) == 0) {
-    DBG(ctx, "Changed dir to %s", path);
-    free(path);
-  } else {
-    FTL(ctx, "Can't change to path %s", path);
+  if ((path = getenv("CPR_PATH")) != NULL) {
+    DBG(ctx, "CPR_PATH defined: %s", path);
+    path = strdup(path);
+  } else if ((path = cpr_get_exec_dir()) == NULL) {
+    FTL(ctx, "Can't retrieve executable path. Please set CPR_PATH to the install directory and try again.");
     goto finished;
   }
 
@@ -201,16 +199,23 @@ int main(int argc, char *argv[])
   duk_put_prop_string(ctx, -2, "modSearch");
   duk_pop(ctx);
 
-  if (duk_peval_file(ctx, "js/lib/coffee-script.js") != 0) {
-    ERR(ctx, "Error loading CoffeeScript compiler.");
+  duk_push_string(ctx, path);
+  duk_push_string(ctx, "/js/lib/coffee-script.js");
+  duk_concat(ctx, 2);
+  full_path = duk_get_string(ctx, -1);
+  DBG(ctx, "Load CoffeeScript compiler: %s", full_path);
+
+  if (duk_peval_file(ctx, full_path) != 0) {
+    ERR(ctx, "Error loading CoffeeScript compiler: %s", full_path);
     dump_stack_trace(ctx, -1);
     goto finished;
   }
+  duk_pop(ctx); /* pop full_path */
 
   /* Run the script entry point. Filename is taken from command line or
   * will default to 'js/process.js'
   */
-  const char *filename = argc > 1 ? argv[1] : "js/process.js";
+  filename = argc > 1 ? argv[1] : "js/process.js";
 
   duk_push_string(ctx, filename);
   if (duk_safe_call(ctx, eval_script, 1, 1)) {
