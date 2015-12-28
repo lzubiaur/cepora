@@ -12,11 +12,37 @@
  */
 void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
 {
-  if (duk_is_error(ctx, idx) && duk_get_prop_string(ctx, idx, "stack")) {
-    ERR(ctx, "\n%s", duk_safe_to_string(ctx, -1));
+  if (duk_is_error(ctx, idx)) {
+    if(duk_get_prop_string(ctx, idx, "stack")) {
+      ERR(ctx, duk_safe_to_string(ctx, -1));
+      if (duk_get_prop_string(ctx, idx, "cause")) {
+        ERR(ctx, "Caused by:");
+        dump_stack_trace(ctx, -1);
+      }
+      duk_pop(ctx);
+    }
+    duk_pop(ctx);
   } else {
-    WRN(ctx, "Trying to dump stack trace but no error object at index %d.", idx);
+    ERR(ctx, duk_safe_to_string(ctx, idx));
   }
+}
+
+duk_idx_t custom_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
+{
+  va_list ap;
+  duk_idx_t err_idx, norm_cause_idx;
+
+  /* normalize index so reversed index is supported. */
+  norm_cause_idx = duk_normalize_index(ctx, cause_idx);
+
+  va_start(ap, fmt);
+  err_idx = duk_push_error_object_va(ctx, err_code, fmt, ap);
+  va_end(ap);
+
+  duk_dup(ctx, norm_cause_idx);
+  duk_put_prop_string(ctx, err_idx, "cause");
+
+  return err_idx;
 }
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
@@ -205,8 +231,10 @@ int main(int argc, char *argv[]) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    ERR(ctx, "Can't run script %s", filename);
-    dump_stack_trace(ctx, -1);
+    // dump_stack_trace_va(ctx, duk_get_top_index(ctx), "Can't run script %s", filename);
+    duk_idx_t err_idx;
+    err_idx = custom_error(ctx, -1, CPR_COFFEE_SCRIPT_ERROR, "Can't run script %s", filename);
+    dump_stack_trace(ctx, err_idx);
     goto finished;
   }
   // TODO how to return code from javasctipt ?
