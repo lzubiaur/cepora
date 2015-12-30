@@ -132,7 +132,7 @@ void usage()
 
 void version()
 {
-  printf("Cepora %s\n", CPR_VERSION_STRING);
+  printf("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
   printf("Duktape %s\n", DUK_GIT_DESCRIBE);
   exit(EXIT_SUCCESS);
 }
@@ -152,9 +152,9 @@ int main(int argc, char *argv[])
   const char *full_path = NULL, *filename = NULL;
 
   if (argc > 1) {
-    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version")){
+    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0){
       version();
-    } else if (strcmp(argv[1], "-h") || strcmp(argv[1], "--help")) {
+    } else if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
       usage();
     }
   }
