@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
 execute_process(COMMAND git describe --always --dirty OUTPUT_VARIABLE CPR_GIT_DESCRIBE)
 execute_process(COMMAND git rev-parse HEAD OUTPUT_VARIABLE CPR_GIT_COMMIT)
+# Remove new line characters
+string(REPLACE "\n" "" CPR_GIT_DESCRIBE ${CPR_GIT_DESCRIBE})
+string(REPLACE "\n" "" CPR_GIT_COMMIT   ${CPR_GIT_COMMIT})
 # Read version from cpr_main.c
 file(STRINGS ${PROJECT_SOURCE_DIR}/src/cpr_main.c CPR_VERSION_STRING REGEX "#define CPR_VERSION_STRING.*")
 # Extract version string
@@ -16,6 +19,8 @@ list(GET CPR_VERSION_STRING 1 CPR_VERSION_MINOR)
 list(GET CPR_VERSION_STRING 2 CPR_VERSION_PATCH)
 
 message(STATUS "Building Cepora version ${CPR_VERSION_MAJOR}.${CPR_VERSION_MINOR}.${CPR_VERSION_PATCH}")
+message(STATUS "Git describe ${CPR_GIT_DESCRIBE}")
+message(STATUS "Git commit ${CPR_GIT_COMMIT}")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
