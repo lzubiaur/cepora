@@ -78,7 +78,7 @@ duk_ret_t eval_coffee(duk_context *ctx)
 duk_ret_t eval_script(duk_context *ctx)
 {
   const char *filename = duk_to_string(ctx, -1);
-  DBG(ctx, "Loading %s", filename);
+  DBG(ctx, "Loading script '%s'", filename);
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
@@ -97,7 +97,7 @@ duk_ret_t eval_script(duk_context *ctx)
 duk_ret_t require_handler(duk_context *ctx)
 {
   const char *filename = duk_to_string(ctx, 0);
-  INF(ctx, "Read module %s", filename);
+  INF(ctx, "Read module '%s'", filename);
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
@@ -105,7 +105,7 @@ duk_ret_t require_handler(duk_context *ctx)
     duk_push_string(ctx, filename);
     if (duk_pcall(ctx, 1) != 0) {
       // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
-      ERR(ctx, "Can't compile CoffeeScript %s", filename);
+      ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
     }
   } else {
@@ -149,10 +149,10 @@ int main(int argc, char *argv[])
   * retreive the process executable path.
   */
   if ((path = getenv("CPR_PATH")) != NULL) {
-    DBG(ctx, "CPR_PATH defined: %s", path);
+    DBG(ctx, "CPR_PATH defined: '%s'", path);
     path = strdup(path);
   } else if ((path = cpr_get_exec_dir()) == NULL) {
-    FTL(ctx, "Can't retrieve executable path. Please set CPR_PATH to the install directory and try again.");
+    FTL(ctx, "Cannot retrieve executable path. Please set 'CPR_PATH' to the install directory and try again.");
     goto finished;
   }
 
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
   // DBG(ctx, "Load CoffeeScript compiler: %s", full_path);
 
   if (duk_peval_file(ctx, full_path) != 0) {
-    ERR(ctx, "Error loading CoffeeScript compiler: %s", full_path);
+    ERR(ctx, "Error loading CoffeeScript compiler: '%s'", full_path);
     dump_stack_trace(ctx, -1);
     goto finished;
   }
@@ -216,14 +216,14 @@ int main(int argc, char *argv[])
   /* Run the script entry point. Filename is taken from command line or
   * will default to 'js/process.js'
   */
-  filename = argc > 1 ? argv[1] : "js/process.js";
+  filename = argc > 1 ? argv[1] : "./process.js";
 
   duk_push_string(ctx, filename);
   if (duk_safe_call(ctx, eval_script, 1, 1)) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    ERR(ctx, "Error processing script %s", filename);
+    ERR(ctx, "Error processing script '%s'", filename);
     dump_stack_trace(ctx, -1);
     goto finished;
   }
