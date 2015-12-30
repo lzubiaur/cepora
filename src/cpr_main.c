@@ -13,6 +13,7 @@
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
+#include "cpr_config.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
 
@@ -118,19 +119,22 @@ duk_ret_t require_handler(duk_context *ctx)
   return 1;
 }
 
+/* Usage inspired from Node.js */
 void usage()
 {
   printf("Usage: cepora [options] [-e script | script.js | script.coffee] [arguments]\n");
-  printf("Options:\n");
+  printf("\nOptions:\n");
   printf("-v, --version\tprint Cepora version\n");
-  printf("Environment variables:\n");
+  printf("\nEnvironment variables:\n");
   printf("CPR_PATH\t");
+  exit(EXIT_SUCCESS);
 }
 
 void version()
 {
   printf("Cepora %s\n", CPR_VERSION_STRING);
   printf("Duktape %s\n", DUK_GIT_DESCRIBE);
+  exit(EXIT_SUCCESS);
 }
 
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
