@@ -7,11 +7,14 @@
 #include <stdio.h>
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* chdir */
+#include <string.h> /* strcmp */
 
 #include "duktape.h"
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
+
+#define CPR_VERSION_STRING "v0.10.99"
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
@@ -115,6 +118,20 @@ duk_ret_t require_handler(duk_context *ctx)
   return 1;
 }
 
+void usage()
+{
+  printf("Usage: cepora [options] [-e script | script.js | script.coffee] [arguments]\n");
+  printf("Options:\n");
+  printf("-v, --version\tprint Cepora version\n");
+  printf("Environment variables:\n");
+  printf("CPR_PATH\t");
+}
+
+void version()
+{
+  printf("Cepora %s\n", CPR_VERSION_STRING);
+  printf("Duktape %s\n", DUK_GIT_DESCRIBE);
+}
 
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
 {
@@ -129,6 +146,14 @@ int main(int argc, char *argv[])
   duk_context *ctx = NULL;
   char *path = NULL;
   const char *full_path = NULL, *filename = NULL;
+
+  if (argc > 1) {
+    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version")){
+      version();
+    } else if (strcmp(argv[1], "-h") || strcmp(argv[1], "--help")) {
+      usage();
+    }
+  }
 
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
