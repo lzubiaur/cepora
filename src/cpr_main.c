@@ -17,6 +17,14 @@
 
 #define CPR_VERSION_STRING "v0.10.99"
 
+void log_raw(const char*fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+}
+
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
 duk_ret_t readfile(duk_context *ctx)
 {
@@ -122,11 +130,16 @@ duk_ret_t require_handler(duk_context *ctx)
 /* Usage inspired from Node.js */
 void usage()
 {
-  printf("Usage: cepora [options] [-e script | script.js | script.coffee] [arguments]\n");
-  printf("\nOptions:\n");
-  printf("-v, --version\tprint Cepora version\n");
-  printf("\nEnvironment variables:\n");
-  printf("CPR_PATH\t");
+  printf("Usage: cepora [options] [script.js | script.coffee] [arguments]\n");
+  printf("\n");
+  printf("Options:\n");
+  printf("  -v, --version    print version\n");
+  printf("  -h, --help       print this message\n");
+  printf("\n");
+  printf("Environment variables:\n");
+  printf("CPR_PATH           directory prefixed to the module search path. If not set the \n");
+  printf("                   executable path is used as default modules root directory.\n");
+  printf("\n");
   exit(EXIT_SUCCESS);
 }
 
@@ -159,6 +172,9 @@ int main(int argc, char *argv[])
     }
   }
 
+  /* Load script passed from command line or load './process.js' by default. */
+  filename = argc > 1 ? argv[1] : "./process.js";
+
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
    * (https://github.com/gperftools/gperftools) and jmalloc
@@ -167,7 +183,7 @@ int main(int argc, char *argv[])
   ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
 
   if (!ctx) {
-    fprintf(stderr, "FATAL: Failed to create a Duktape heap.\n");
+    log_raw("FATAL: Failed to create a Duktape heap.\n");
     exit(EXIT_FAILURE);
   }
 
@@ -209,15 +225,15 @@ int main(int argc, char *argv[])
   duk_put_prop_string(ctx, -2 , "eval_script");
   duk_pop(ctx); /*  pop global */
 
-  /* Store command line arguments in the `Duktape` global object */
+  /* Store command line arguments in the `Duktape` global object. */
   duk_push_global_object(ctx);
   duk_get_prop_string(ctx, -1, "Duktape");
-  duk_push_string(ctx, "argv");
+  duk_push_string(ctx, "arguments");
   duk_idx_t arr_idx = duk_push_array(ctx); /* push an empty array */
 
-  for (int i=0; i<argc; ++i) {
+  for (int i=2; i<argc; ++i) { /* Start at argument 2 (0: proccess, 1: script) */
     duk_push_string(ctx, argv[i]);
-    duk_put_prop_index(ctx, arr_idx, i);
+    duk_put_prop_index(ctx, arr_idx, i - 2);
   }
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
@@ -241,11 +257,6 @@ int main(int argc, char *argv[])
     goto finished;
   }
   duk_pop(ctx); /* pop full_path */
-
-  /* Run the script entry point. Filename is taken from command line or
-  * will default to 'js/process.js'
-  */
-  filename = argc > 1 ? argv[1] : "./process.js";
 
   duk_push_string(ctx, filename);
   if (duk_safe_call(ctx, eval_script, 1, 1)) {
