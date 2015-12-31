@@ -14,6 +14,7 @@
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
 #include "cpr_config.h"
+#include "cpr_mod_coffee.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
 
@@ -56,53 +57,6 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_put_prop_string(ctx, -2, "l");
 }
 
-/* Compile a CoffeeScript file into JavaScript. Result is pushed at the top of
- * the context.
- * Throw an error on IO file access (e.g. file not found) or on compilation
- * error (e.g. syntax error).
- */
-duk_ret_t compile_coffee(duk_context *ctx)
-{
-  const char *filename = duk_to_string(ctx, -1);
-  if (duk_get_global_string(ctx, "CoffeeScript")) {
-    duk_push_string(ctx, "compile");
-    duk_push_string_file(ctx, filename);
-    duk_call_prop(ctx, -3, 1);
-  } else {
-    duk_error(ctx, CPR_COFFEE_SCRIPT_ERROR, "Can't find global CoffeeScript compiler object.");
-  }
-  return 1;
-}
-
-/* Compile and eval a CoffeeScript file. Throw an error on IO and compilation
- * errors (e.g. file not found, syntax error).
- */
-duk_ret_t eval_coffee(duk_context *ctx)
-{
-  duk_get_global_string(ctx, "compile_coffee"); /* Get the CoffeeScript global compiler */
-  duk_insert(ctx, -2); /* Insert the compiler before the filename on the stack */
-  duk_call(ctx, 1); /* call the compiler on the CoffeeScript source */
-  duk_eval(ctx); /* Run the compiled JavaScript code */
-  return 0;
-}
-
-/* Load and run JavaScript and CoffeeScript file.  */
-duk_ret_t eval_script(duk_context *ctx)
-{
-  const char *filename = duk_to_string(ctx, -1);
-  DBG(ctx, "Loading script '%s'", filename);
-  /* TODO Lazy file extension check  */
-  char *dot = strrchr(filename, '.');
-  if (dot && !strcmp(dot, ".coffee")) {
-    duk_get_global_string(ctx, "eval_coffee");
-    duk_push_string(ctx, filename);
-    duk_call(ctx, 1);
-  } else {
-    duk_eval_file(ctx, filename);
-  }
-  return 0;
-}
-
 /* @javascript
  * @params id, require, exports, module
  */
@@ -113,9 +67,10 @@ duk_ret_t require_handler(duk_context *ctx)
   /* TODO Lazy file extension check  */
   char *dot = strrchr(filename, '.');
   if (dot && !strcmp(dot, ".coffee")) {
-    duk_get_global_string(ctx, "compile_coffee");
+    duk_get_global_string(ctx, "coffee");
+    duk_push_string(ctx, "compile_coffee");
     duk_push_string(ctx, filename);
-    if (duk_pcall(ctx, 1) != 0) {
+    if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
       // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
@@ -216,13 +171,11 @@ int main(int argc, char *argv[])
   duk_put_prop_string(ctx, -2 /*index of global*/, "readfile");
   duk_pop(ctx);  /* pop global */
 
+  /* Load module coffee */
   duk_push_global_object(ctx);
-  duk_push_c_function(ctx, compile_coffee, 1);
-  duk_put_prop_string(ctx, -2 , "compile_coffee");
-  duk_push_c_function(ctx, eval_coffee, 1);
-  duk_put_prop_string(ctx, -2 , "eval_coffee");
-  duk_push_c_function(ctx, eval_script, 1);
-  duk_put_prop_string(ctx, -2 , "eval_script");
+  duk_push_c_function(ctx, dukopen_coffee, 0);
+  duk_call(ctx, 0);
+  duk_put_global_string(ctx, "coffee");
   duk_pop(ctx); /*  pop global */
 
   /* Store command line arguments in the `Duktape` global object. */
@@ -258,8 +211,10 @@ int main(int argc, char *argv[])
   }
   duk_pop(ctx); /* pop full_path */
 
+  duk_get_global_string(ctx, "coffee");
+  duk_push_string(ctx, "eval_script");
   duk_push_string(ctx, filename);
-  if (duk_safe_call(ctx, eval_script, 1, 1)) {
+  if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */

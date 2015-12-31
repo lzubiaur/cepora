@@ -4,7 +4,7 @@ configure_file("cpr_config.h.in" "${PROJECT_BINARY_DIR}/src/cpr_config.h")
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
-add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c)
+add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c)
 add_dependencies(${RUNTIME_NAME} js)
 target_link_libraries(${RUNTIME_NAME} js)
 
