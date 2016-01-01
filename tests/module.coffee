@@ -7,9 +7,6 @@ require 'js/tests/test.coffee'
 io = require('libio.dylib')
 
 print io.DELAY
-print typeof io.read
-
-# Segmentation fault !?
 io.read()
 
 # Print currently loaded modules
