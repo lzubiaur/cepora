@@ -59,9 +59,10 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_pop_3(ctx);
 }
 
-void load_C_module(duk_context *ctx, const char *filename, const char *init_name)
+/* TODO figure out the init function from the module name */
+int load_C_module(duk_context *ctx, const char *filename, const char *init_name)
 {
-  void *handle;
+  void *handle = NULL;
   duk_c_function init;
   char *error;
 
@@ -71,20 +72,27 @@ void load_C_module(duk_context *ctx, const char *filename, const char *init_name
    * resolve references in subsequently loaded libraries */
   handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
-    log_raw(dlerror());
-    return;
+    ERR(ctx, "Cannot open C module '%s': %s", filename, dlerror());
+    goto error;
   }
 
+  /* Clear any existing previous error */
+  dlerror();
   /* Get the module's init function */
   init = (duk_c_function) dlsym(handle, init_name);
   if ((error = dlerror()) != NULL)  {
     log_raw(dlerror());
-    goto finished;
+    goto error;
   }
 
   /* Call the module's init function */
   duk_push_c_function(ctx, init, 0);
-  duk_call(ctx, 0);
+  if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS) {
+    ERR(ctx, "Cannot initialize module %s", filename);
+    dump_stack_trace(ctx, -1);
+    duk_pop(ctx); /* pop error object */
+    goto error;
+  }
 
   /* The init function should return (push) an object with the exported
    * functions/properties. Those exported functions are then copied to the
@@ -96,8 +104,14 @@ void load_C_module(duk_context *ctx, const char *filename, const char *init_name
   }
   duk_pop(ctx);  /* pop enum object */
 
-finished:
-  dlclose(handle);
+  /* Don't call `dlclose()` on success */
+  return 0;
+
+error:
+  if (handle) {
+    dlclose(handle); /* close module silently */
+  }
+  return -1;
 }
 
 /* @javascript
@@ -120,7 +134,7 @@ duk_ret_t require_handler(duk_context *ctx)
     }
   } else if (ext && strcmp(ext, ".dylib") == 0) {
     INF(ctx, "Load C module '%s'", filename);
-    load_C_module(ctx, filename, "dukopen_io");
+    load_C_module(ctx, filename, "dukopen_io"); /* TODO check return code and throw error */
     duk_push_undefined(ctx); /* Return undefined because no source code. */
   } else {
     INF(ctx, "Load Javascript module '%s'", filename);
