@@ -40,3 +40,13 @@ lyrics = while num -= 1
     One fell out and bumped his head."
 
 alert lyrics
+
+version = Duktape.version
+major = Math.floor version / 10000
+minor = Math.floor (version - major * 10000) / 100
+patch = version - major * 10000 - minor * 100
+
+print 'Duktape '.concat major, '.', minor, '.', patch
+
+for _,b of Duktape.argv
+  print b
