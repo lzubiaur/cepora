@@ -51,11 +51,12 @@ duk_ret_t readfile(duk_context *ctx)
  */
 void set_C_log_level(duk_context *ctx, const char *level)
 {
-  duk_get_global_string(ctx, "Duktape");
-  duk_get_prop_string(ctx, -1, "Logger");
-  duk_get_prop_string(ctx, -1, "clog");
-  duk_push_string(ctx, level);
-  duk_put_prop_string(ctx, -2, "l");
+  duk_get_global_string(ctx, "Duktape");  /* [ Duktape ] */
+  duk_get_prop_string(ctx, -1, "Logger"); /* [ Duktape Logger ] */
+  duk_get_prop_string(ctx, -1, "clog");   /* [ Duktape Logger clog ] */
+  duk_push_string(ctx, level);            /* [ Duktape Logger clog "level" ] */
+  duk_put_prop_string(ctx, -2, "l");      /* [ Duktape Logger clog ] */
+  duk_pop_3(ctx);
 }
 
 void load_C_module(duk_context *ctx, const char *filename, const char *init_name)
@@ -64,6 +65,10 @@ void load_C_module(duk_context *ctx, const char *filename, const char *init_name
   duk_c_function init;
   char *error;
 
+  /* From Linux man page:
+   * RTLD_NOW: all undefined symbols in the library are resolved before dlopen
+   * RTLD_LOCAL:  Symbols defined in this library are not made available to
+   * resolve references in subsequently loaded libraries */
   handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
     log_raw(dlerror());
