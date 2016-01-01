@@ -8,6 +8,7 @@
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* chdir */
 #include <string.h> /* strcmp */
+#include <dlfcn.h>
 
 #include "duktape.h"
 #include "cpr_macros.h"
@@ -57,16 +58,53 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_put_prop_string(ctx, -2, "l");
 }
 
+void load_C_module(duk_context *ctx, const char *filename, const char *init_name)
+{
+  void *handle;
+  duk_c_function init;
+  char *error;
+
+  handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
+  if (!handle) {
+    log_raw(dlerror());
+    return;
+  }
+
+  /* Get the module's init function */
+  init = (duk_c_function) dlsym(handle, init_name);
+  if ((error = dlerror()) != NULL)  {
+    log_raw(dlerror());
+    goto finished;
+  }
+
+  /* Call the module's init function */
+  duk_push_c_function(ctx, init, 0);
+  duk_call(ctx, 0);
+
+  /* The init function should return (push) an object with the exported
+   * functions/properties. Those exported functions are then copied to the
+   * `exports` table so they are available outside the C module.
+   */
+  duk_enum(ctx, -1, DUK_ENUM_INCLUDE_NONENUMERABLE | DUK_ENUM_OWN_PROPERTIES_ONLY | DUK_ENUM_INCLUDE_INTERNAL);
+  while (duk_next(ctx, -1 /*enum_index*/, 1 /*get_value*/)) {
+    duk_put_prop(ctx, 2); /* `exports` table is the third parameters (at idx 2 on the stack) */
+  }
+  duk_pop(ctx);  /* pop enum object */
+
+finished:
+  dlclose(handle);
+}
+
 /* @javascript
  * @params id, require, exports, module
  */
 duk_ret_t require_handler(duk_context *ctx)
 {
   const char *filename = duk_to_string(ctx, 0);
-  INF(ctx, "Read module '%s'", filename);
   /* TODO Lazy file extension check  */
-  char *dot = strrchr(filename, '.');
-  if (dot && !strcmp(dot, ".coffee")) {
+  char *ext = strrchr(filename, '.');
+  if (ext && strcmp(ext, ".coffee") == 0) {
+    INF(ctx, "Load CoffeeScript module '%s'", filename);
     duk_get_global_string(ctx, "coffee");
     duk_push_string(ctx, "compile_coffee");
     duk_push_string(ctx, filename);
@@ -75,7 +113,12 @@ duk_ret_t require_handler(duk_context *ctx)
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
     }
+  } else if (ext && strcmp(ext, ".dylib") == 0) {
+    INF(ctx, "Load C module '%s'", filename);
+    load_C_module(ctx, filename, "dukopen_io");
+    duk_push_undefined(ctx); /* Return undefined because no source code. */
   } else {
+    INF(ctx, "Load Javascript module '%s'", filename);
     duk_push_string_file(ctx, filename);
   }
 
@@ -218,7 +261,7 @@ int main(int argc, char *argv[])
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    ERR(ctx, "Error processing script '%s'", filename);
+    // ERR(ctx, "Error processing script '%s'", filename); /* Not revelant error message */
     dump_stack_trace(ctx, -1);
     goto finished;
   }
