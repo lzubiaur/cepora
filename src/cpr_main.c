@@ -257,6 +257,7 @@ int main(int argc, char *argv[])
     dump_stack_trace(ctx, -1);
     goto finished;
   }
+  duk_pop(ctx); /* pop duk_peval_file resul */
   duk_pop(ctx); /* pop full_path */
 
   duk_get_global_string(ctx, "coffee");
