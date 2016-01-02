@@ -15,7 +15,7 @@ target_link_libraries(${RUNTIME_NAME} duktape)
 # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
 # (http://lua-users.org/wiki/BuildingModules)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
-add_library(io SHARED cpr_mod_io.c)
+add_library(io SHARED cpr_io.c)
 # add_dependencies(io duktape_shared)
 # target_link_libraries(io duktape_shared)
 
