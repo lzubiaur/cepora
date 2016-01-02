@@ -16,6 +16,7 @@ target_link_libraries(${RUNTIME_NAME} duktape)
 # (http://lua-users.org/wiki/BuildingModules)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 add_library(io SHARED cpr_io.c)
+set_target_properties(io PROPERTIES PREFIX "" OUTPUT_NAME "io" SUFFIX ".so")
 # add_dependencies(io duktape_shared)
 # target_link_libraries(io duktape_shared)
 
