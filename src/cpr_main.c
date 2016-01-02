@@ -8,7 +8,8 @@
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* chdir */
 #include <string.h> /* strcmp */
-#include <dlfcn.h>
+#include <dlfcn.h>  /* dlopen... */
+#include <libgen.h> /* basename */
 
 #include "duktape.h"
 #include "cpr_macros.h"
@@ -59,29 +60,59 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_pop_3(ctx);
 }
 
-/* TODO figure out the init function from the module name */
-int load_C_module(duk_context *ctx, const char *filename, const char *init_name)
+/*
+ * @param filename passed as is to dlopen. The module "init" function is deduced from the module filename.
+ */
+#define BUF_SIZE 1024
+int load_C_module(duk_context *ctx, const char *filename)
 {
   void *handle = NULL;
   duk_c_function init;
   char *error;
+  char *pch = NULL, *bname = NULL;
+  char buf[BUF_SIZE];
+  size_t len = 0;
+
+  if ((len = strlen(filename)) > BUF_SIZE -1) {
+    ERR(ctx, "Module filename too long '%s'", filename);
+    goto error;
+  }
+
+  /* Duplicate ´filename´ because `basename` may modify it. */
+  memcpy(buf, filename, len);
+  buf[len] = '\0';
 
   /* From Linux man page:
    * RTLD_NOW: all undefined symbols in the library are resolved before dlopen
    * RTLD_LOCAL:  Symbols defined in this library are not made available to
    * resolve references in subsequently loaded libraries */
-  handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
+  handle = dlopen(buf, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
-    ERR(ctx, "Cannot open C module '%s': %s", filename, dlerror());
+    ERR(ctx, "Cannot open C module '%s': %s", buf, dlerror());
     goto error;
   }
+
+  if ((bname = basename(buf)) == NULL) {
+    ERR(ctx, "Invalid module name: '%s'"); /* TODO check errno */
+    goto error;
+  }
+  memmove(buf, bname, strlen(bname)+1);
+
+  /* Remove the extension */
+  if ((pch = strrchr(buf, '.')) != NULL) {
+    buf[pch - buf] = '\0';
+  }
+
+  /* Prefix the basename with "dukopen_" */
+  memmove(buf +8, buf, strlen(buf)+1);
+  memmove(buf, "dukopen_", 8);
 
   /* Clear any existing previous error */
   dlerror();
   /* Get the module's init function */
-  init = (duk_c_function) dlsym(handle, init_name);
+  init = (duk_c_function) dlsym(handle, buf);
   if ((error = dlerror()) != NULL)  {
-    log_raw(dlerror());
+    ERR(ctx, "Cannot call module init function '%s': %s", buf, dlerror());
     goto error;
   }
 
@@ -132,9 +163,9 @@ duk_ret_t require_handler(duk_context *ctx)
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
     }
-  } else if (ext && strcmp(ext, ".dylib") == 0) {
+  } else if (ext && strcmp(ext, ".so") == 0) {
     INF(ctx, "Load C module '%s'", filename);
-    load_C_module(ctx, filename, "dukopen_io"); /* TODO check return code and throw error */
+    load_C_module(ctx, filename); /* TODO check return code and throw error */
     duk_push_undefined(ctx); /* Return undefined because no source code. */
   } else {
     INF(ctx, "Load Javascript module '%s'", filename);
