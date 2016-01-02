@@ -1,4 +1,4 @@
-#include "cpr_mod_io.h"
+#include "cpr_io.h"
 #include "cpr_macros.h"
 
 /* Load and run JavaScript and CoffeeScript file.  */
