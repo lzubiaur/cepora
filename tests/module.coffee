@@ -4,7 +4,7 @@ print o for o in Duktape.arguments
 require 'js/tests/test.coffee'
 
 # Load C module
-io = require('libio.dylib')
+io = require('io.so')
 
 print io.DELAY
 io.read()
