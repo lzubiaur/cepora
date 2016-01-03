@@ -17,6 +17,7 @@
 #include "cpr_sys_tools.h"
 #include "cpr_config.h"
 #include "cpr_mod_coffee.h"
+#include "cpr_loadlib.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
 
@@ -61,100 +62,6 @@ void set_C_log_level(duk_context *ctx, const char *level)
   duk_pop_3(ctx);
 }
 
-/*
- * @param filename passed as is to dlopen. The module "init" function is deduced from the module filename.
- */
-#define INIT_PREFIX "dukopen_"
-#define INIT_PREFIX_LEN (sizeof(INIT_PREFIX)-1)
-/* Duktape module id buffer is 256 bytes long (see DUK_BI_COMMONJS_MODULE_ID_LIMIT) */
-#define BUF_SIZE 100
-int load_C_module(duk_context *ctx, const char *filename)
-{
-  void *handle = NULL;
-  duk_c_function init;
-  char *errmsg;
-  char *pch = NULL, *bname = NULL;
-  char buf[BUF_SIZE];
-  duk_idx_t err_idx = DUK_INVALID_INDEX;
-  size_t len = 0;
-
-  /* Check buffer size is big enough */
-  DBG(ctx, "filename %d",strlen(filename));
-  if ((len = strlen(filename)) + INIT_PREFIX_LEN + 1 > BUF_SIZE) {
-    err_idx = duk_push_error_object(ctx, CPR_INTERNAL_ERROR, "Module filename too long to fit into buffer '%s'", filename);
-    goto error;
-  }
-
-  /* Duplicate ´filename´ because `basename` may modify it. */
-  memcpy(buf, filename, len);
-  buf[len] = '\0';
-
-  /* From Linux man page:
-   * RTLD_NOW: all undefined symbols in the library are resolved before dlopen
-   * RTLD_LOCAL:  Symbols defined in this library are not made available to
-   * resolve references in subsequently loaded libraries */
-  handle = dlopen(buf, RTLD_NOW | RTLD_LOCAL);
-  if (!handle) {
-    err_idx = duk_push_error_object(ctx, CPR_INTERNAL_ERROR, "Cannot open C module '%s': '%s'", buf, dlerror());
-    goto error;
-  }
-
-  if ((bname = basename(buf)) == NULL) {
-    ERR(ctx, "Invalid module name: '%s'"); /* TODO check errno */
-    goto error;
-  }
-  memmove(buf, bname, strlen(bname)+1);
-
-  /* Remove the extension */
-  if ((pch = strrchr(buf, '.')) != NULL) {
-    buf[pch - buf] = '\0';
-  }
-
-  /* Prefix the basename with "dukopen_" */
-  memmove(buf + INIT_PREFIX_LEN, buf, strlen(buf)+1);
-  memmove(buf, INIT_PREFIX, INIT_PREFIX_LEN);
-
-  /* Clear any existing previous error */
-  dlerror();
-  /* Get the module's init function */
-  init = (duk_c_function) dlsym(handle, buf);
-  if ((errmsg = dlerror()) != NULL)  {
-    ERR(ctx, "Cannot call module init function '%s': %s", buf, errmsg);
-    goto error;
-  }
-
-  /* Call the module's init function */
-  duk_push_c_function(ctx, init, 0);
-  if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS) {
-    ERR(ctx, "Cannot initialize module %s", filename);
-    dump_stack_trace(ctx, -1);
-    duk_pop(ctx); /* pop error object */
-    goto error;
-  }
-
-  /* The init function should return (push) an object with the exported
-   * functions/properties. Those exported functions are then copied to the
-   * `exports` table so they are available outside the C module.
-   */
-  duk_enum(ctx, -1, DUK_ENUM_INCLUDE_NONENUMERABLE | DUK_ENUM_OWN_PROPERTIES_ONLY | DUK_ENUM_INCLUDE_INTERNAL);
-  while (duk_next(ctx, -1 /*enum_index*/, 1 /*get_value*/)) {
-    duk_put_prop(ctx, 2); /* `exports` table is the third parameters (at idx 2 on the stack) */
-  }
-  duk_pop(ctx);  /* pop enum object */
-
-  /* Don't call `dlclose()` on success */
-  return 0;
-
-error:
-  if (handle) {
-    dlclose(handle); /* close module silently */
-  }
-  if (err_idx != DUK_INVALID_INDEX) {
-    duk_throw(ctx);
-  }
-  return -1;
-}
-
 /* @javascript
  * @params id, require, exports, module
  */
@@ -175,7 +82,19 @@ duk_ret_t require_handler(duk_context *ctx)
     }
   } else if (ext && strcmp(ext, ".so") == 0) {
     INF(ctx, "Load C module '%s'", filename);
-    load_C_module(ctx, filename); /* TODO check return code and throw error */
+    duk_push_string(ctx, filename);
+    duk_safe_call(ctx, cpr_loadlib, 1, 1);
+    /* duk_replace(ctx, 2);*/  /* Replacing the "exports" table doesnt work */
+    /* The init function should return (push) an object with the exported
+    * functions/properties. Those exported functions are then copied to the
+    * `exports` table so they are available outside the C module.
+    */
+    duk_enum(ctx, -1, DUK_ENUM_INCLUDE_NONENUMERABLE | DUK_ENUM_OWN_PROPERTIES_ONLY | DUK_ENUM_INCLUDE_INTERNAL);
+    while (duk_next(ctx, -1 /*enum_index*/, 1 /*get_value*/)) {
+      duk_put_prop(ctx, 2); /* `exports` table is the third parameters (at idx 2 on the stack) */
+    }
+    duk_pop(ctx); /* pop enum object */
+    duk_pop(ctx); /* pop module result */
     duk_push_undefined(ctx); /* Return undefined because no source code. */
   } else {
     INF(ctx, "Load Javascript module '%s'", filename);
@@ -294,6 +213,10 @@ int main(int argc, char *argv[])
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
+
+  duk_push_c_function(ctx, dukopen_loadlib, 0);
+  duk_call(ctx, 0);
+  duk_put_global_string(ctx, "mod");
 
   duk_get_global_string(ctx, "Duktape");
   duk_push_c_function(ctx, require_handler, 4);
