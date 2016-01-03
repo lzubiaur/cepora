@@ -26,6 +26,7 @@ void log_raw(const char*fmt, ...)
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
   va_end(ap);
+  fflush(stderr);
 }
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
@@ -63,18 +64,24 @@ void set_C_log_level(duk_context *ctx, const char *level)
 /*
  * @param filename passed as is to dlopen. The module "init" function is deduced from the module filename.
  */
-#define BUF_SIZE 1024
+#define INIT_PREFIX "dukopen_"
+#define INIT_PREFIX_LEN (sizeof(INIT_PREFIX)-1)
+/* Duktape module id buffer is 256 bytes long (see DUK_BI_COMMONJS_MODULE_ID_LIMIT) */
+#define BUF_SIZE 100
 int load_C_module(duk_context *ctx, const char *filename)
 {
   void *handle = NULL;
   duk_c_function init;
-  char *error;
+  char *errmsg;
   char *pch = NULL, *bname = NULL;
   char buf[BUF_SIZE];
+  duk_idx_t err_idx = DUK_INVALID_INDEX;
   size_t len = 0;
 
-  if ((len = strlen(filename)) > BUF_SIZE -1) {
-    ERR(ctx, "Module filename too long '%s'", filename);
+  /* Check buffer size is big enough */
+  DBG(ctx, "filename %d",strlen(filename));
+  if ((len = strlen(filename)) + INIT_PREFIX_LEN + 1 > BUF_SIZE) {
+    err_idx = duk_push_error_object(ctx, CPR_INTERNAL_ERROR, "Module filename too long to fit into buffer '%s'", filename);
     goto error;
   }
 
@@ -88,7 +95,7 @@ int load_C_module(duk_context *ctx, const char *filename)
    * resolve references in subsequently loaded libraries */
   handle = dlopen(buf, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
-    ERR(ctx, "Cannot open C module '%s': %s", buf, dlerror());
+    err_idx = duk_push_error_object(ctx, CPR_INTERNAL_ERROR, "Cannot open C module '%s': '%s'", buf, dlerror());
     goto error;
   }
 
@@ -104,15 +111,15 @@ int load_C_module(duk_context *ctx, const char *filename)
   }
 
   /* Prefix the basename with "dukopen_" */
-  memmove(buf +8, buf, strlen(buf)+1);
-  memmove(buf, "dukopen_", 8);
+  memmove(buf + INIT_PREFIX_LEN, buf, strlen(buf)+1);
+  memmove(buf, INIT_PREFIX, INIT_PREFIX_LEN);
 
   /* Clear any existing previous error */
   dlerror();
   /* Get the module's init function */
   init = (duk_c_function) dlsym(handle, buf);
-  if ((error = dlerror()) != NULL)  {
-    ERR(ctx, "Cannot call module init function '%s': %s", buf, dlerror());
+  if ((errmsg = dlerror()) != NULL)  {
+    ERR(ctx, "Cannot call module init function '%s': %s", buf, errmsg);
     goto error;
   }
 
@@ -141,6 +148,9 @@ int load_C_module(duk_context *ctx, const char *filename)
 error:
   if (handle) {
     dlclose(handle); /* close module silently */
+  }
+  if (err_idx != DUK_INVALID_INDEX) {
+    duk_throw(ctx);
   }
   return -1;
 }
