@@ -7,6 +7,10 @@
 #include "duktape.h"
 #include "cpr_config.h"
 #include "cpr_loadlib.h"
+#include "cpr_macros.h"
+
+#define CPR_OPEN_PREFIX "dukopen_"
+#define CPR_OPEN_PREFIX_LEN (sizeof(INIT_PREFIX)-1)
 
 static void cpr_close_lib(void *handle);
 static void *cpr_open_lib(duk_context *ctx, const char *filename);
@@ -61,3 +65,61 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
 #else
 #error Dynamic library loading not supported on this platform
 #endif
+
+/* Low level library loading */
+duk_ret_t cpr_loadlib(duk_context *ctx)
+{
+  void *lib = NULL;
+  const char *dot = NULL;
+  const char *filename = NULL;
+  const char *modid = NULL;
+  duk_size_t len = 0;
+  duk_c_function init_func = NULL;
+
+  filename = duk_require_string(ctx, 0);
+  if ((lib = cpr_open_lib(ctx, filename)) == NULL) {
+    goto error;
+  }
+
+  if ((dot = strrchr(filename, '.')) == NULL) {
+    len = strlen(filename);
+  } else {
+    len = dot - filename;
+  }
+  duk_push_string(ctx, CPR_OPEN_PREFIX);
+  duk_push_lstring(ctx, filename, len);
+  duk_concat(ctx, 2);
+  if ((init_func = cpr_load_sym(ctx, lib, duk_get_string(ctx, -1))) == NULL) {
+    goto error;
+  }
+  /* Call the module's init function */
+  duk_push_c_function(ctx, init_func, 0);
+  if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS ) {
+    goto err_rethrow;
+  }
+  duk_dump_context_stdout(ctx);
+  return 1; /* Return the module init function result */
+
+error:
+  cpr_close_lib(lib);
+  duk_error(ctx, 1, duk_get_string(ctx, -1));
+  return 0; /* Not reachable */
+
+err_rethrow:
+  cpr_close_lib(lib);
+  duk_throw(ctx);
+  return 0; /* Not reachable */
+}
+
+static const duk_function_list_entry module_funcs[] = {
+    { "loadlib", cpr_loadlib, 1 },
+    { NULL, NULL, 0 }
+};
+
+duk_ret_t dukopen_loadlib(duk_context *ctx)
+{
+  duk_push_object(ctx);  /* module result */
+  duk_put_function_list(ctx, -1, module_funcs);
+
+  return 1;  /* return module value */
+}
