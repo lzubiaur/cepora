@@ -4,9 +4,17 @@ configure_file("cpr_config.h.in" "${PROJECT_BINARY_DIR}/src/cpr_config.h")
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/lib/duktape)
 
-add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c)
+add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c cpr_loadlib.c)
 add_dependencies(${RUNTIME_NAME} duktape)
 target_link_libraries(${RUNTIME_NAME} duktape)
+
+if (BUILD_OSX)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
+elseif (BUILD_LINUX)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1)
+elseif (BUILD_WINDOWS)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1)
+endif()
 
 # TODO Mac OS X only
 # Specify linker flags for shared library build
