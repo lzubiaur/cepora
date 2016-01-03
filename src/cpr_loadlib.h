@@ -8,5 +8,6 @@
 #define CPR_LOADLIB_H
 
 duk_ret_t dukopen_loadlib(duk_context *ctx);
+duk_ret_t cpr_loadlib(duk_context *ctx);
 
 #endif /* CPR_LOADLIB_H */
