@@ -8,22 +8,22 @@
 #include "cpr_config.h"
 #include "cpr_loadlib.h"
 
-static void cpr_unload_lib(void *handle);
-static void *cpr_load_lib(duk_context *ctx, const char *filename);
+static void cpr_close_lib(void *handle);
+static void *cpr_open_lib(duk_context *ctx, const char *filename);
 static duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym);
 
 #if defined(CPR_USE_DLOPEN)
 
 #include <dlfcn.h>
 
-void cpr_unload_lib(void *handle)
+void cpr_close_lib(void *handle)
 {
   if (handle) {
     dlclose(handle);
   }
 }
 
-void *cpr_load_lib(duk_context *ctx, const char *filename)
+void *cpr_open_lib(duk_context *ctx, const char *filename)
 {
   void *handle = NULL;
   /* From Linux man page:
@@ -36,6 +36,26 @@ void *cpr_load_lib(duk_context *ctx, const char *filename)
   }
 
   return handle;
+}
+
+duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
+{
+  duk_c_function func = NULL;
+  char *errmsg = NULL;
+
+  if (handle == NULL) {
+    duk_push_string(ctx, "Invalid library handle (NULL)");
+    return NULL;
+  }
+
+  /* Clear any existing previous error */
+  dlerror();
+  func = (duk_c_function) dlsym(handle, sym);
+  if ((errmsg = dlerror()) != NULL)  {
+    duk_push_string(ctx, errmsg);
+    return NULL;
+  }
+  return func;
 }
 
 #else
