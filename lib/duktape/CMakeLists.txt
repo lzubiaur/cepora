@@ -4,3 +4,7 @@ cmake_minimum_required(VERSION 3.3)
 include_directories(${PROJECT_SOURCE_DIR})
 add_library(duktape STATIC duktape.c)
 target_include_directories(duktape PUBLIC ${PROJECT_SOURCE_DIR})
+
+# target_compile_definitions(duktape PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
+# Enable Duktape debug logs
+# target_compile_definitions(duktape PRIVATE DUK_OPT_DEBUG=1 DUK_OPT_DPRINT=1 DUK_OPT_DPRINT_COLORS=1)

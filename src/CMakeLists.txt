@@ -7,8 +7,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${PROJEC
 add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c)
 add_dependencies(${RUNTIME_NAME} duktape)
 target_link_libraries(${RUNTIME_NAME} duktape)
-# Enable debugger support
-# target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 
 # TODO Mac OS X only
 # Specify linker flags for shared library build
