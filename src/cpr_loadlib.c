@@ -4,6 +4,12 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
+/* Module docs:
+ * https://github.com/svaarala/duktape/blob/master/doc/c-module-convention.rst
+ * https://github.com/svaarala/duktape/blob/master/doc/modules.rst
+ * http://wiki.duktape.org/HowtoModules.html
+ */
+
 #include "duktape.h"
 #include "cpr_config.h"
 #include "cpr_loadlib.h"
@@ -90,14 +96,15 @@ duk_ret_t cpr_loadlib(duk_context *ctx)
   duk_push_lstring(ctx, filename, len);
   duk_concat(ctx, 2);
   if ((init_func = cpr_load_sym(ctx, lib, duk_get_string(ctx, -1))) == NULL) {
+    duk_pop(ctx);
     goto error;
   }
+  duk_pop(ctx);
   /* Call the module's init function */
   duk_push_c_function(ctx, init_func, 0);
   if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS ) {
     goto err_rethrow;
   }
-  duk_dump_context_stdout(ctx);
   return 1; /* Return the module init function result */
 
 error:
