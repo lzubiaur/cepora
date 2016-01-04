@@ -72,6 +72,18 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
 #error Dynamic library loading not supported on this platform
 #endif
 
+static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id)
+{
+  duk_ret_t rc = 0;
+  duk_get_global_string(ctx, "Duktape");
+  duk_get_prop_string(ctx, -1, "modLoaded");
+  duk_push_string(ctx, mod_id);
+  rc = duk_has_prop(ctx, -2);
+  duk_pop_2(ctx);
+
+  return rc;
+}
+
 /* Low level library loading */
 duk_ret_t cpr_loadlib(duk_context *ctx)
 {
@@ -83,6 +95,11 @@ duk_ret_t cpr_loadlib(duk_context *ctx)
   duk_c_function init_func = NULL;
 
   filename = duk_require_string(ctx, 0);
+
+  if (cpr_is_mod_loaded(ctx, filename) == 1) {
+    INF(ctx, "already loaded: %s", filename);
+  }
+
   if ((lib = cpr_open_lib(ctx, filename)) == NULL) {
     goto error;
   }
