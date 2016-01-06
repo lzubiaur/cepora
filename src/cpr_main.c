@@ -4,6 +4,10 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
+/* because cpr_config.h selects feature selection defines (e.g. _POSIX_C_SOURCE)
+ * it must be included before any system headers are included */
+#include "cpr_config.h"
+
 #include <stdio.h>
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* chdir */
@@ -15,7 +19,6 @@
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
-#include "cpr_config.h"
 #include "cpr_mod_coffee.h"
 #include "cpr_loadlib.h"
 

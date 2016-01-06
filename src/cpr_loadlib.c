@@ -9,9 +9,10 @@
  * https://github.com/svaarala/duktape/blob/master/doc/modules.rst
  * http://wiki.duktape.org/HowtoModules.html
  */
+ 
+#include "cpr_config.h"
 
 #include "duktape.h"
-#include "cpr_config.h"
 #include "cpr_loadlib.h"
 #include "cpr_macros.h"
 
@@ -72,6 +73,7 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
 #error Dynamic library loading not supported on this platform
 #endif
 
+/* Check if the module `mod_id` is already loaded. */
 static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id)
 {
   duk_ret_t rc = 0;
@@ -90,7 +92,7 @@ duk_ret_t cpr_loadlib(duk_context *ctx)
   void *lib = NULL;
   const char *dot = NULL;
   const char *filename = NULL;
-  const char *modid = NULL;
+  // const char *modid = NULL;
   duk_size_t len = 0;
   duk_c_function init_func = NULL;
 
