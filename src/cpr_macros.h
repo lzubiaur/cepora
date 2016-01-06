@@ -3,9 +3,11 @@
  * Copyright (c) 2015 Laurent Zubiaur
  * MIT License (http://opensource.org/licenses/MIT)
  */
- 
+
 #ifndef CPR_MACROS_H
 #define CPR_MACROS_H
+
+#include "duktape.h"
 
 /* Logging macros */
 #define TRC(ctx, ...) duk_log(ctx, DUK_LOG_TRACE, __VA_ARGS__)

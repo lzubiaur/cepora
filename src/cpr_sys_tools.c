@@ -4,6 +4,7 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
+#include "cpr_config.h"
 #include "cpr_sys_tools.h"
 
 #include <stdio.h>

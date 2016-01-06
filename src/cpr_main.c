@@ -4,18 +4,23 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
+/* because cpr_config.h selects feature selection defines (e.g. _POSIX_C_SOURCE)
+ * it must be included before any system headers are included */
+#include "cpr_config.h"
+
 #include <stdio.h>
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* chdir */
 #include <string.h> /* strcmp */
-#include <dlfcn.h>
+#include <dlfcn.h>  /* dlopen... */
+#include <libgen.h> /* basename */
 
 #include "duktape.h"
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
-#include "cpr_config.h"
 #include "cpr_mod_coffee.h"
+#include "cpr_loadlib.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
 
@@ -25,6 +30,7 @@ void log_raw(const char*fmt, ...)
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
   va_end(ap);
+  fflush(stderr);
 }
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
@@ -51,48 +57,12 @@ duk_ret_t readfile(duk_context *ctx)
  */
 void set_C_log_level(duk_context *ctx, const char *level)
 {
-  duk_get_global_string(ctx, "Duktape");
-  duk_get_prop_string(ctx, -1, "Logger");
-  duk_get_prop_string(ctx, -1, "clog");
-  duk_push_string(ctx, level);
-  duk_put_prop_string(ctx, -2, "l");
-}
-
-void load_C_module(duk_context *ctx, const char *filename, const char *init_name)
-{
-  void *handle;
-  duk_c_function init;
-  char *error;
-
-  handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
-  if (!handle) {
-    log_raw(dlerror());
-    return;
-  }
-
-  /* Get the module's init function */
-  init = (duk_c_function) dlsym(handle, init_name);
-  if ((error = dlerror()) != NULL)  {
-    log_raw(dlerror());
-    goto finished;
-  }
-
-  /* Call the module's init function */
-  duk_push_c_function(ctx, init, 0);
-  duk_call(ctx, 0);
-
-  /* The init function should return (push) an object with the exported
-   * functions/properties. Those exported functions are then copied to the
-   * `exports` table so they are available outside the C module.
-   */
-  duk_enum(ctx, -1, DUK_ENUM_INCLUDE_NONENUMERABLE | DUK_ENUM_OWN_PROPERTIES_ONLY | DUK_ENUM_INCLUDE_INTERNAL);
-  while (duk_next(ctx, -1 /*enum_index*/, 1 /*get_value*/)) {
-    duk_put_prop(ctx, 2); /* `exports` table is the third parameters (at idx 2 on the stack) */
-  }
-  duk_pop(ctx);  /* pop enum object */
-
-finished:
-  dlclose(handle);
+  duk_get_global_string(ctx, "Duktape");  /* [ Duktape ] */
+  duk_get_prop_string(ctx, -1, "Logger"); /* [ Duktape Logger ] */
+  duk_get_prop_string(ctx, -1, "clog");   /* [ Duktape Logger clog ] */
+  duk_push_string(ctx, level);            /* [ Duktape Logger clog "level" ] */
+  duk_put_prop_string(ctx, -2, "l");      /* [ Duktape Logger clog ] */
+  duk_pop_3(ctx);
 }
 
 /* @javascript
@@ -113,9 +83,21 @@ duk_ret_t require_handler(duk_context *ctx)
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
     }
-  } else if (ext && strcmp(ext, ".dylib") == 0) {
+  } else if (ext && strcmp(ext, ".so") == 0) {
     INF(ctx, "Load C module '%s'", filename);
-    load_C_module(ctx, filename, "dukopen_io");
+    duk_push_string(ctx, filename);
+    duk_safe_call(ctx, cpr_loadlib, 1, 1);
+    /* duk_replace(ctx, 2);*/  /* Replacing the "exports" table doesnt work */
+    /* The init function should return (push) an object with the exported
+    * functions/properties. Those exported functions are then copied to the
+    * `exports` table so they are available outside the C module.
+    */
+    duk_enum(ctx, -1, DUK_ENUM_INCLUDE_NONENUMERABLE | DUK_ENUM_OWN_PROPERTIES_ONLY | DUK_ENUM_INCLUDE_INTERNAL);
+    while (duk_next(ctx, -1 /*enum_index*/, 1 /*get_value*/)) {
+      duk_put_prop(ctx, 2); /* `exports` table is the third parameters (at idx 2 on the stack) */
+    }
+    duk_pop(ctx); /* pop enum object */
+    duk_pop(ctx); /* pop module result */
     duk_push_undefined(ctx); /* Return undefined because no source code. */
   } else {
     INF(ctx, "Load Javascript module '%s'", filename);
@@ -235,6 +217,10 @@ int main(int argc, char *argv[])
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
 
+  duk_push_c_function(ctx, dukopen_loadlib, 0);
+  duk_call(ctx, 0);
+  duk_put_global_string(ctx, "mod");
+
   duk_get_global_string(ctx, "Duktape");
   duk_push_c_function(ctx, require_handler, 4);
   duk_put_prop_string(ctx, -2, "modSearch");
@@ -252,6 +238,7 @@ int main(int argc, char *argv[])
     dump_stack_trace(ctx, -1);
     goto finished;
   }
+  duk_pop(ctx); /* pop duk_peval_file resul */
   duk_pop(ctx); /* pop full_path */
 
   duk_get_global_string(ctx, "coffee");

@@ -1,3 +1,12 @@
+/*
+ * cpr_config.h
+ * Copyright (c) 2015 Laurent Zubiaur
+ * MIT License (http://opensource.org/licenses/MIT)
+ */
+
+#ifndef CPR_CONFIG_H
+#define CPR_CONFIG_H
+
 #define CPR_VERSION       @CPR_VERSION@
 #define CPR_VERSION_MAJOR "@CPR_VERSION_MAJOR@"
 #define CPR_VERSION_MINOR "@CPR_VERSION_MINOR@"
@@ -5,3 +14,16 @@
 
 #define CPR_GIT_DESCRIBE  "@CPR_GIT_DESCRIBE@"
 #define CPR_GIT_COMMIT    "@CPR_GIT_COMMIT@"
+
+#if defined(CPR_BUILD_OSX)
+#define CPR_USE_DLOPEN
+#endif
+
+#if defined(CPR_BUILD_LINUX)
+#define _POSIX_C_SOURCE 200809L
+#define CPR_USE_DLOPEN
+#endif
+
+/* TODO WINDOWS */
+
+#endif /* CPR_CONFIG_H */

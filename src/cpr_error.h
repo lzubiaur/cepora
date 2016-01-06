@@ -10,7 +10,8 @@
 #include "duktape.h"
 
 /* Error code (duktape error code starts at 1) */
-#define CPR_COFFEE_SCRIPT_ERROR 1
+#define CPR_INTERNAL_ERROR        1
+#define CPR_COFFEE_SCRIPT_ERROR   2
 
 void dump_stack_trace(duk_context *ctx, duk_idx_t idx);
 

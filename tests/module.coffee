@@ -1,15 +1,13 @@
 print o for o in Duktape.arguments
 
+# Load Javascript module
 require 'js/tests/test.coffee'
 
-io = require('libio.dylib')
+# Load C module
+io = require('io.so')
 
 print io.DELAY
-print typeof io.read
 io.read()
-
 
 # Print currently loaded modules
 print o for o in Duktape.modLoaded
-
-print o for o of this

@@ -4,24 +4,29 @@ configure_file("cpr_config.h.in" "${PROJECT_BINARY_DIR}/src/cpr_config.h")
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/lib/duktape)
 
-add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c)
+add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c cpr_loadlib.c)
 add_dependencies(${RUNTIME_NAME} duktape)
-
-if (BUILD_LINUX)
-  target_link_libraries(${RUNTIME_NAME} duktape dl m)
-  target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99)
-endif()
+target_link_libraries(${RUNTIME_NAME} duktape)
 
 # Enable debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 
-if (BUILD_MACOS)
-# Specify linker flags for shared library build
-# link with the option '-undefined dynamic_lookup' to avoid getting undefined references
-# (http://lua-users.org/wiki/BuildingModules)
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
-endif (BUILD_MACOS)
-add_library(io SHARED cpr_mod_io.c)
+if (BUILD_LINUX)
+  target_link_libraries(${RUNTIME_NAME} duktape dl m)
+  target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99 -pedantic-errors -pedantic)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1)
+elseif (BUILD_OSX)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
+  # Specify linker flags for shared library build
+  # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
+  # (http://lua-users.org/wiki/BuildingModules)
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
+elseif (BUILD_WINDOWS)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1)
+endif()
+
+add_library(io SHARED cpr_io.c)
+set_target_properties(io PROPERTIES PREFIX "" OUTPUT_NAME "io" SUFFIX ".so")
 # add_dependencies(io duktape_shared)
 # target_link_libraries(io duktape_shared)
 
