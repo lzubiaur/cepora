@@ -20,6 +20,7 @@
 #endif
 
 #if defined(CPR_BUILD_LINUX)
+#define _POSIX_C_SOURCE 200809L
 #define CPR_USE_DLOPEN
 #endif
 
