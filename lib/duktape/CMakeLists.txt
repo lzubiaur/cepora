@@ -5,6 +5,11 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_library(duktape STATIC duktape.c)
 target_include_directories(duktape PUBLIC ${PROJECT_SOURCE_DIR})
 
+# GCC/Clang flags
+# http://duktape.org/guide.html#compiling
+# Add -DDUK_OPT_DLL_BUILD when building shared library
+target_compile_options(duktape PUBLIC -std=c99 -Os -fomit-frame-pointer -fstrict-aliasing)
+
 # target_compile_definitions(duktape PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 # Enable Duktape debug logs
 # target_compile_definitions(duktape PRIVATE DUK_OPT_DEBUG=1 DUK_OPT_DPRINT=1 DUK_OPT_DPRINT_COLORS=1)
