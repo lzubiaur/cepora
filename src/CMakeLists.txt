@@ -8,6 +8,8 @@ add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_co
 add_dependencies(${RUNTIME_NAME} duktape)
 target_link_libraries(${RUNTIME_NAME} duktape)
 
+target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99 -pedantic-errors -pedantic)
+
 if (BUILD_OSX)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
 elseif (BUILD_LINUX)
