@@ -93,8 +93,14 @@ duk_ret_t cpr_loadlib(duk_context *ctx) {
 
   filename = duk_require_string(ctx, 0);
 
+  DBG(ctx, "cpr_loadlib: %s", filename);
+
   if (cpr_is_mod_loaded(ctx, filename) == 1) {
-    INF(ctx, "already loaded: %s", filename);
+    /* FIXME Checking it modLoaded has the property `filename` is not
+     * enough because:
+     * 1: the module id must be extract from the path
+     * 2: the property already exists when the require handler is called
+     */
   }
 
   if ((lib = cpr_open_lib(ctx, filename)) == NULL) {
