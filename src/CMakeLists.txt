@@ -4,9 +4,12 @@ configure_file("cpr_config.h.in" "${PROJECT_BINARY_DIR}/src/cpr_config.h")
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/lib/duktape)
 
-add_executable(${RUNTIME_NAME} cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c cpr_loadlib.c)
+set(core cpr_main.c cpr_error.c cpr_sys_tools.c cpr_mod_coffee.c cpr_loadlib.c)
+set(modules modules/glfw.c)
+
+add_executable(${RUNTIME_NAME} ${core} ${modules})
 add_dependencies(${RUNTIME_NAME} duktape)
-target_link_libraries(${RUNTIME_NAME} duktape)
+target_link_libraries(${RUNTIME_NAME} duktape glfw)
 
 # Enable debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
