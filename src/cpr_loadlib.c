@@ -96,6 +96,7 @@ duk_ret_t cpr_loadlib(duk_context *ctx) {
   DBG(ctx, "cpr_loadlib: %s", filename);
 
   if (cpr_is_mod_loaded(ctx, filename) == 1) {
+    WRN(ctx, "FIXME - Module already loaded: %s", filename);
     /* FIXME Checking it modLoaded has the property `filename` is not
      * enough because:
      * 1: the module id must be extract from the path
