@@ -29,8 +29,7 @@
 #include <libgen.h> /* dirname */
 #endif
 
-char *cpr_get_exec_dir()
-{
+char *cpr_get_exec_dir() {
     char *path = NULL, *dir = NULL;
 #ifdef _WIN32
     char drive_buf[_MAX_DRIVE], dir_buf[_MAX_DIR];
@@ -65,8 +64,7 @@ end:
 /*
  * http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe
  */
-char *cpr_get_exec_path()
-{
+char *cpr_get_exec_path() {
     char *full_path = NULL, *buf = NULL;
 #ifdef __APPLE__
     uint32_t size = 0;

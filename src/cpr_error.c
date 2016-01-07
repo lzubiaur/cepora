@@ -3,15 +3,14 @@
  * Copyright (c) 2015 Laurent Zubiaur
  * MIT License (http://opensource.org/licenses/MIT)
  */
- 
+
 #include "cpr_error.h"
 #include "cpr_macros.h"
 
 /* Log the error stack trace. Check if index `idx` is valid and the object
  * inherits from `error`.
  */
-void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
-{
+void dump_stack_trace(duk_context *ctx, duk_idx_t idx) {
   if (duk_is_valid_index(ctx, idx) == 0) {
     WRN(ctx, "dump_stack_trace: Invalid index: %d", idx);
     return;
@@ -41,8 +40,7 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx)
  * @param fmt the message format string.
  * @param ap variable argument list used with the format string.
  */
-duk_idx_t push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, va_list ap)
-{
+duk_idx_t push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, va_list ap) {
   duk_idx_t err_idx, norm_cause_idx;
 
   /* normalize index so reversed index is supported. */
@@ -56,8 +54,7 @@ duk_idx_t push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode
   return err_idx;
 }
 
-duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
-{
+duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
   duk_idx_t err_idx;
   va_list ap;
 
@@ -68,8 +65,7 @@ duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t 
   return err_idx;
 }
 
-duk_ret_t throw_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...)
-{
+duk_ret_t throw_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
   va_list ap;
 
   va_start(ap, fmt);

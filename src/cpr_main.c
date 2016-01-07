@@ -24,8 +24,7 @@
 
 #define CPR_VERSION_STRING "v0.10.99"
 
-void log_raw(const char*fmt, ...)
-{
+void log_raw(const char*fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -34,8 +33,7 @@ void log_raw(const char*fmt, ...)
 }
 
 /* @javascript: reads a file from disk, and returns a string or `undefined`. */
-duk_ret_t readfile(duk_context *ctx)
-{
+duk_ret_t readfile(duk_context *ctx) {
   /* It's not not mandatory to check the number of parameters passed to this
   * function using `duk_get_top` because it's guaranteed to be one (the stack will have one
   * and only one value (see how the function is binded using
@@ -55,8 +53,7 @@ duk_ret_t readfile(duk_context *ctx)
 /* Helper function to set logging level for C API. This can be changed in
  * javascript by updating `Duktape.Logger.clog.l` to 'TRC', 'DBG', 'INF'...
  */
-void set_C_log_level(duk_context *ctx, const char *level)
-{
+void set_C_log_level(duk_context *ctx, const char *level) {
   duk_get_global_string(ctx, "Duktape");  /* [ Duktape ] */
   duk_get_prop_string(ctx, -1, "Logger"); /* [ Duktape Logger ] */
   duk_get_prop_string(ctx, -1, "clog");   /* [ Duktape Logger clog ] */
@@ -68,8 +65,7 @@ void set_C_log_level(duk_context *ctx, const char *level)
 /* @javascript
  * @params id, require, exports, module
  */
-duk_ret_t require_handler(duk_context *ctx)
-{
+duk_ret_t require_handler(duk_context *ctx) {
   const char *filename = duk_to_string(ctx, 0);
   /* TODO Lazy file extension check  */
   char *ext = strrchr(filename, '.');
@@ -108,8 +104,7 @@ duk_ret_t require_handler(duk_context *ctx)
 }
 
 /* Usage inspired from Node.js */
-void usage()
-{
+void usage() {
   printf("Usage: cepora [options] [script.js | script.coffee] [arguments]\n");
   printf("\n");
   printf("Options:\n");
@@ -123,23 +118,20 @@ void usage()
   exit(EXIT_SUCCESS);
 }
 
-void version()
-{
+void version() {
   printf("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
   printf("Duktape %s\n", DUK_GIT_DESCRIBE);
   exit(EXIT_SUCCESS);
 }
 
-void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg)
-{
+void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
   dump_stack_trace(ctx, -1);
   /* Fatal handler should not return. */
   exit(EXIT_FAILURE);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   duk_context *ctx = NULL;
   char *path = NULL;
   const char *full_path = NULL, *filename = NULL;

@@ -21,8 +21,7 @@ const duk_number_list_entry module_consts[] = {
     { NULL, 0.0 }
 };
 
-duk_ret_t dukopen_io(duk_context *ctx)
-{
+duk_ret_t dukopen_io(duk_context *ctx) {
   DBG(ctx, "dukopen_io");
   duk_push_object(ctx);  /* module result */
   duk_put_function_list(ctx, -1, module_funcs);

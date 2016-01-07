@@ -13,8 +13,7 @@
  * Throw an error on IO file access (e.g. file not found) or on compilation
  * error (e.g. syntax error).
  */
-static duk_ret_t compile_coffee(duk_context *ctx)
-{
+static duk_ret_t compile_coffee(duk_context *ctx) {
   const char *filename = duk_to_string(ctx, -1);
   if (duk_get_global_string(ctx, "CoffeeScript")) {
     duk_push_string(ctx, "compile");
@@ -29,8 +28,7 @@ static duk_ret_t compile_coffee(duk_context *ctx)
 /* Compile and eval a CoffeeScript file. Throw an error on IO and compilation
  * errors (e.g. file not found, syntax error).
  */
-static duk_ret_t eval_coffee(duk_context *ctx)
-{
+static duk_ret_t eval_coffee(duk_context *ctx) {
   // duk_get_global_string(ctx, "compile_coffee"); /* Get the CoffeeScript global compiler */
   // duk_insert(ctx, -2); /* Insert the compiler before the filename on the stack */
   // duk_call(ctx, 1); /* call the compiler on the CoffeeScript source */
@@ -40,8 +38,7 @@ static duk_ret_t eval_coffee(duk_context *ctx)
 }
 
 /* Load and run JavaScript and CoffeeScript file.  */
-static duk_ret_t eval_script(duk_context *ctx)
-{
+static duk_ret_t eval_script(duk_context *ctx) {
   const char *filename = duk_to_string(ctx, -1);
   DBG(ctx, "Loading script '%s'", filename);
   /* TODO Lazy file extension check  */
@@ -64,8 +61,7 @@ static const duk_function_list_entry module_funcs[] = {
     { NULL, NULL, 0 }
 };
 
-duk_ret_t dukopen_coffee(duk_context *ctx)
-{
+duk_ret_t dukopen_coffee(duk_context *ctx) {
   duk_push_object(ctx);  /* module result */
   duk_put_function_list(ctx, -1, module_funcs);
 

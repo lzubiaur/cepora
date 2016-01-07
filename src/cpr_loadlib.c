@@ -9,7 +9,7 @@
  * https://github.com/svaarala/duktape/blob/master/doc/modules.rst
  * http://wiki.duktape.org/HowtoModules.html
  */
- 
+
 #include "cpr_config.h"
 
 #include "duktape.h"
@@ -27,15 +27,13 @@ static duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *s
 
 #include <dlfcn.h>
 
-void cpr_close_lib(void *handle)
-{
+void cpr_close_lib(void *handle) {
   if (handle) {
     dlclose(handle);
   }
 }
 
-void *cpr_open_lib(duk_context *ctx, const char *filename)
-{
+void *cpr_open_lib(duk_context *ctx, const char *filename) {
   void *handle = NULL;
   /* From Linux man page:
   * RTLD_NOW: all undefined symbols in the library are resolved before dlopen
