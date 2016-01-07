@@ -3,3 +3,4 @@ project(lib)
 
 # Add third-party libraries
 add_subdirectory(duktape)
+add_subdirectory(glfw)
