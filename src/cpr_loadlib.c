@@ -47,8 +47,7 @@ void *cpr_open_lib(duk_context *ctx, const char *filename) {
   return handle;
 }
 
-duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
-{
+duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
   duk_c_function func = NULL;
   char *errmsg = NULL;
 
@@ -59,14 +58,7 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
 
   /* Clear any existing previous error */
   dlerror();
-#if defined(__GNUC__)
-  /* ISO C doesnt allow casting from void * to function. When compiling using GCC with -pedantic 
-   * flag it generate a warning. The gnu __extension__ keyword avoid that warning. 
-   */
-  func = (__extension__ (duk_c_function) dlsym(handle, sym));
-#else
   func = (duk_c_function) dlsym(handle, sym);
-#endif
   if ((errmsg = dlerror()) != NULL)  {
     duk_push_string(ctx, errmsg);
     return NULL;
@@ -79,8 +71,7 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym)
 #endif
 
 /* Check if the module `mod_id` is already loaded. */
-static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id)
-{
+static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id) {
   duk_ret_t rc = 0;
   duk_get_global_string(ctx, "Duktape");
   duk_get_prop_string(ctx, -1, "modLoaded");
@@ -92,8 +83,7 @@ static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id)
 }
 
 /* Low level library loading */
-duk_ret_t cpr_loadlib(duk_context *ctx)
-{
+duk_ret_t cpr_loadlib(duk_context *ctx) {
   void *lib = NULL;
   const char *dot = NULL;
   const char *filename = NULL;
@@ -147,8 +137,7 @@ static const duk_function_list_entry module_funcs[] = {
     { NULL, NULL, 0 }
 };
 
-duk_ret_t dukopen_loadlib(duk_context *ctx)
-{
+duk_ret_t dukopen_loadlib(duk_context *ctx) {
   duk_push_object(ctx);  /* module result */
   duk_put_function_list(ctx, -1, module_funcs);
 
