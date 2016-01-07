@@ -81,8 +81,9 @@ duk_ret_t require_handler(duk_context *ctx) {
     }
   } else if (ext && strcmp(ext, ".so") == 0) {
     INF(ctx, "Load C module '%s'", filename);
+    duk_push_c_function(ctx, cpr_loadlib, 1);
     duk_push_string(ctx, filename);
-    duk_safe_call(ctx, cpr_loadlib, 1, 1);
+    duk_call(ctx, 1);
     /* duk_replace(ctx, 2);*/  /* Replacing the "exports" table doesnt work */
     /* The init function should return (push) an object with the exported
     * functions/properties. Those exported functions are then copied to the
