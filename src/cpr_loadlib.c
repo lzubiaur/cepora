@@ -117,13 +117,14 @@ duk_ret_t cpr_loadlib(duk_context *ctx) {
   duk_push_lstring(ctx, filename, len);
   duk_concat(ctx, 2);
   if ((init_func = cpr_load_sym(ctx, lib, duk_get_string(ctx, -1))) == NULL) {
-    duk_pop(ctx);
+    /* TODO test error */
     goto error;
   }
   duk_pop(ctx);
   /* Call the module's init function */
   duk_push_c_function(ctx, init_func, 0);
   if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS ) {
+    /* TODO test error */
     goto err_rethrow;
   }
   return 1; /* Return the module init function result */
