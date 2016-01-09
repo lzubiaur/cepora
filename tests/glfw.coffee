@@ -8,7 +8,7 @@ error_handler = (err, message) -> print err, message
 
 key_handler = (window, key, scancode, action, mods) ->
   # if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-  glfw.setWindowShouldClose window, true if key == glfw.GLFW_KEY_ESCAPE
+  glfw.setWindowShouldClose window, true if key == glfw.KEY_ESCAPE
   print key, scancode, action, mods
 
 main_loop = (window) ->
@@ -16,6 +16,8 @@ main_loop = (window) ->
   glfw.swapBuffers window
 
 try
+  inf 'GLFW version ', glfw.VERSION_MAJOR + '.' + glfw.VERSION_MINOR + '.' + glfw.VERSION_REVISION
+
   rc = glfw.init()
   throw new Error 'Cannot initialize GLFW library' if not rc
 
@@ -24,7 +26,18 @@ try
   window = glfw.createWindow(640, 480, "test")
   throw new Error 'error window' if not window
 
+  ## Context handling ##
+  # glfwMakeContextCurrent
   glfw.makeContextCurrent window
+  # glfwGetCurrentContext
+  inf glfw.getCurrentContext(), window
+  # glfwSwapInterval
+  glfw.swapInterval 1
+  # Manual extension loading
+  if glfw.extensionSupported?
+    inf '' if glfw.extensionSupported 'WGL_EXT_swap_control_tear'
+    # glfwGetProcAddress
+    inf glfw.getProcAddress 'glGetDebugMessageLogARB'
 
   glfw.setKeyCallback window, key_handler
 
