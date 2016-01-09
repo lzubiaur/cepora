@@ -15,6 +15,11 @@
 extern "C" {
 #endif
 
+/* TODO check GLFW cmake options (GLFW_USE_CHDIR) or directive (_GLFW_USE_CHDIR)
+ * when building OSX release because glfwInit will change current directory
+ * to the bundle `resource` folder automaticaly.
+ */
+
 /* Get the directory absolute path of the executable.
  * The path string must be freed by the caller.
  */
