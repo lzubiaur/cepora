@@ -15,6 +15,7 @@
 
 /* global reference to the duktape context. Required for GLFW callbacks */
 /* XXX is there any workaround to avoid keeping a global reference to the context? */
+/* TODO use duk_get_heapptr + duk_push_heapptr for performance */
 static duk_context *_ctx = NULL;
 
 static duk_ret_t glfw_init(duk_context *ctx) {
@@ -125,27 +126,27 @@ static duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
 }
 
 static const duk_function_list_entry module_funcs[] = {
-    { "init",                 glfw_init,                    0 },
-    { "terminate",            glfw_terminate,               0 },
-    { "createWindow",         glfw_create_window,           3 },
-    { "makeContextCurrent",   glfw_make_context_current,    1 },
-    { "setErrorCallBack",     glfw_set_error_callback,      1 },
-    { "windowShouldClose",    glfw_window_should_close,     1 },
-    { "destroyWindow",        glfw_destroy_window,          1 },
-    { "swapBuffers",          glfw_swap_buffers,            1 },
-    { "poolEvents",           glfw_pool_events,             0 },
-    { "setKeyCallback",       glfw_set_key_callback,        2 },
-    { "setWindowShouldClose", glfw_set_window_should_close, 2 },
-    { NULL, NULL, 0 }
+  { "init",                 glfw_init,                    0 },
+  { "terminate",            glfw_terminate,               0 },
+  { "createWindow",         glfw_create_window,           3 },
+  { "makeContextCurrent",   glfw_make_context_current,    1 },
+  { "setErrorCallBack",     glfw_set_error_callback,      1 },
+  { "windowShouldClose",    glfw_window_should_close,     1 },
+  { "destroyWindow",        glfw_destroy_window,          1 },
+  { "swapBuffers",          glfw_swap_buffers,            1 },
+  { "poolEvents",           glfw_pool_events,             0 },
+  { "setKeyCallback",       glfw_set_key_callback,        2 },
+  { "setWindowShouldClose", glfw_set_window_should_close, 2 },
+  { NULL, NULL, 0 }
 };
 
 const duk_number_list_entry module_consts[] = {
-    { "GLFW_RELEASE",       0   },
-    { "GLFW_PRESS",         1   },
-    { "GLFW_REPEAT",        2   },
-    { "GLFW_KEY_UNKNOWN",   -1  },
-    { "GLFW_KEY_ESCAPE",    256 },
-    { NULL, 0.0 }
+  { "GLFW_RELEASE",       (double)0   },
+  { "GLFW_PRESS",         (double)1   },
+  { "GLFW_REPEAT",        (double)2   },
+  { "GLFW_KEY_UNKNOWN",   (double)-1  },
+  { "GLFW_KEY_ESCAPE",    (double)256 },
+  { NULL, 0.0 }
 };
 
 duk_ret_t dukopen_glfw(duk_context *ctx) {
