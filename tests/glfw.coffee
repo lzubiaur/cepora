@@ -39,6 +39,10 @@ try
     # glfwGetProcAddress
     inf glfw.getProcAddress 'glGetDebugMessageLogARB'
 
+  # Version
+  inf glfw.getVersionString()
+  inf glfw.getVersion()
+
   glfw.setKeyCallback window, key_handler
 
   main_loop window while not glfw.windowShouldClose window
