@@ -125,12 +125,13 @@ static duk_ret_t glfw_get_version_string(duk_context *ctx) {
 /* Window handling */
 
 duk_ret_t glfw_default_window_hints(duk_context *ctx) {
-  /* void glfwDefaultWindowHints(void); */
+  glfwDefaultWindowHints();
   return 0;
 }
 
 duk_ret_t glfw_window_hint(duk_context *ctx) {
-  /* void glfwWindowHint(int target, int hint); */
+  glfwWindowHint(duk_require_int(ctx, 0)/* target */,
+                 duk_require_int(ctx, 1)/* hint*/);
   return 0;
 }
 
@@ -139,12 +140,16 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   int width = 0;
   int height = 0;
   const char *title = NULL;
+  GLFWmonitor * monitor = NULL;
+  GLFWwindow * share = NULL;
 
   width = duk_require_int(ctx, 0);
   height = duk_require_int(ctx, 1);
   title = duk_require_string(ctx, 2);
+  monitor =  duk_get_pointer(ctx, 3);
+  share = duk_get_pointer(ctx, 4);
 
-  window = glfwCreateWindow(width, height, title, NULL, NULL);
+  window = glfwCreateWindow(width, height, title, monitor, share);
   duk_push_pointer(ctx, window);
   return 1;
 }
@@ -326,7 +331,7 @@ duk_ret_t glfw_get_monitors(duk_context *ctx) {
 }
 
 duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
-  /* GLFWmonitor* glfwGetPrimaryMonitor(void); */
+  duk_push_pointer(ctx, glfwGetPrimaryMonitor());
   return 1;
 }
 

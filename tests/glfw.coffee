@@ -23,7 +23,10 @@ try
 
   glfw.setErrorCallBack error_handler
 
-  window = glfw.createWindow(640, 480, "test")
+  # Window handling
+  glfw.windowHint glfw.RESIZABLE, 0
+
+  window = glfw.createWindow 640, 480, 'my window', glfw.getPrimaryMonitor()
   throw new Error 'error window' if not window
 
   ## Context handling ##
