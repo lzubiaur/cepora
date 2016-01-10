@@ -49,16 +49,37 @@ static duk_ret_t glfw_get_proc_address(duk_context *ctx) {
 }
 #endif
 
+/* Initialization */
+
 static duk_ret_t glfw_init(duk_context *ctx) {
-  int rc;
-  rc = glfwInit();
-  duk_push_boolean(ctx, rc);
+  duk_push_boolean(ctx, glfwInit());
   return 1;
 }
 
 static duk_ret_t glfw_terminate(duk_context *ctx) {
   glfwTerminate();
   return 0;
+}
+
+/* Version */
+
+/* Returns an array with major, minor and revision */
+static duk_ret_t glfw_get_version(duk_context *ctx) {
+  int major = 0, minor = 0, rev = 0;
+  glfwGetVersion(&major, &minor, &rev);
+  duk_push_array(ctx);
+  duk_push_int(ctx, major);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, minor);
+  duk_put_prop_index(ctx, -2, 1);
+  duk_push_int(ctx, rev);
+  duk_put_prop_index(ctx, -2, 2);
+  return 1;
+}
+
+static duk_ret_t glfw_get_version_string(duk_context *ctx) {
+  duk_push_string(ctx, glfwGetVersionString());
+  return 1;
 }
 
 static duk_ret_t glfw_create_window(duk_context *ctx) {
@@ -157,8 +178,12 @@ static const duk_function_list_entry module_funcs[] = {
   { "extensionSupported",   glfw_extension_supported,     1 },
   { "getProcAddress",       glfw_get_proc_address,        1 },
 #endif
+  /* Initialization */
   { "init",                 glfw_init,                    0 },
   { "terminate",            glfw_terminate,               0 },
+  /* Version */
+  { "getVersion",           glfw_get_version,             0 },
+  { "getVersionString",     glfw_get_version_string,      0 },
   { "createWindow",         glfw_create_window,           3 },
   { "setErrorCallBack",     glfw_set_error_callback,      1 },
   { "windowShouldClose",    glfw_window_should_close,     1 },
