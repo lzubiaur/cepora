@@ -10,7 +10,15 @@
 
 #include "cpr_macros.h"
 
+/* Enable some binding features
+ * CPR__GLFW_VERSION_BIND
+ * CPR__GLFW_MANUAL_EXT_LOADING_BIND
+ * CPR__GLFW_ERROR_HANDLING_BIND
+ */
+
+#if defined(CPR__GLFW_ERROR_HANDLING_BIND)
 #define GLFW_ERR_CALLBACK_STASH_KEY "glfwErrCallbackKey"
+#endif
 #define GLFW_KEY_CALLBACK_STASH_KEY "glfwKeyCallbackKey"
 
 /* global reference to the duktape context. Required for GLFW callbacks */
@@ -37,7 +45,7 @@ static duk_ret_t glfw_swap_interval(duk_context *ctx) {
   return 0;
 }
 
-#if defined(CPR__GLFW_MANUAL_EXT_LOADING)
+#if defined(CPR__GLFW_MANUAL_EXT_LOADING_BIND)
 static duk_ret_t glfw_extension_supported(duk_context *ctx) {
   duk_push_boolean(ctx, glfwExtensionSupported(duk_get_string(ctx, 0)));
   return 1;
@@ -61,8 +69,37 @@ static duk_ret_t glfw_terminate(duk_context *ctx) {
   return 0;
 }
 
+#if defined(CPR__GLFW_ERROR_HANDLING_BIND)
+void error_callback(int error, const char* description)
+{
+  duk_push_global_stash(_ctx);
+  duk_get_prop_string(_ctx, -1, GLFW_ERR_CALLBACK_STASH_KEY);
+  duk_push_int(_ctx, error);
+  duk_push_string(_ctx, description);
+  duk_call(_ctx, 2);
+}
+
+static duk_ret_t glfw_set_error_callback(duk_context *ctx) {
+  if (duk_is_undefined(ctx, 0)) {
+    glfwSetErrorCallback(NULL);
+    return 0;
+  }
+
+  if (duk_is_function(ctx, 0) == 0) {
+    duk_error(ctx, DUK_ERR_TYPE_ERROR, "not a function");
+  }
+  duk_push_global_stash(ctx);
+  duk_dup(ctx, 0); /* Push the error function callback  */
+  duk_put_prop_string(ctx, -2, GLFW_ERR_CALLBACK_STASH_KEY);
+
+  glfwSetErrorCallback(error_callback);
+  return 0;
+}
+#endif /* CPR__GLFW_ERROR_HANDLING_BIND */
+
 /* Version */
 
+#if defined(CPR__GLFW_VERSION_BIND)
 /* Returns an array with major, minor and revision */
 static duk_ret_t glfw_get_version(duk_context *ctx) {
   int major = 0, minor = 0, rev = 0;
@@ -81,6 +118,9 @@ static duk_ret_t glfw_get_version_string(duk_context *ctx) {
   duk_push_string(ctx, glfwGetVersionString());
   return 1;
 }
+#endif
+
+/* Window handling */
 
 static duk_ret_t glfw_create_window(duk_context *ctx) {
   GLFWwindow* window = NULL;
@@ -95,27 +135,6 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   window = glfwCreateWindow(width, height, title, NULL, NULL);
   duk_push_pointer(ctx, window);
   return 1;
-}
-
-void error_callback(int error, const char* description)
-{
-  duk_push_global_stash(_ctx);
-  duk_get_prop_string(_ctx, -1, GLFW_ERR_CALLBACK_STASH_KEY);
-  duk_push_int(_ctx, error);
-  duk_push_string(_ctx, description);
-  duk_call(_ctx, 2);
-}
-
-static duk_ret_t glfw_set_error_callback(duk_context *ctx) {
-  if (duk_is_function(ctx, 0) == 0) {
-    duk_error(ctx, DUK_ERR_TYPE_ERROR, "not a function");
-  }
-  duk_push_global_stash(ctx);
-  duk_dup(ctx, 0); /* Push the error function callback  */
-  duk_put_prop_string(ctx, -2, GLFW_ERR_CALLBACK_STASH_KEY);
-
-  glfwSetErrorCallback(error_callback);
-  return 0;
 }
 
 static duk_ret_t glfw_window_should_close(duk_context *ctx) {
@@ -174,23 +193,27 @@ static const duk_function_list_entry module_funcs[] = {
   { "makeContextCurrent",   glfw_make_context_current,    1 },
   { "getCurrentContext",    glfw_get_current_context,     0 },
   { "swapInterval",         glfw_swap_interval,           1 },
-#if defined(CPR__GLFW_MANUAL_EXT_LOADING)
+#if defined(CPR__GLFW_MANUAL_EXT_LOADING_BIND)
   { "extensionSupported",   glfw_extension_supported,     1 },
   { "getProcAddress",       glfw_get_proc_address,        1 },
 #endif
   /* Initialization */
   { "init",                 glfw_init,                    0 },
   { "terminate",            glfw_terminate,               0 },
+#if defined(CPR__GLFW_ERROR_HANDLING_BIND)
+  { "setErrorCallBack",     glfw_set_error_callback,      1 },
+#endif
   /* Version */
+#if defined(CPR__GLFW_VERSION_BIND)
   { "getVersion",           glfw_get_version,             0 },
   { "getVersionString",     glfw_get_version_string,      0 },
+#endif
   { "createWindow",         glfw_create_window,           3 },
-  { "setErrorCallBack",     glfw_set_error_callback,      1 },
+  { "setKeyCallback",       glfw_set_key_callback,        2 },
   { "windowShouldClose",    glfw_window_should_close,     1 },
   { "destroyWindow",        glfw_destroy_window,          1 },
   { "swapBuffers",          glfw_swap_buffers,            1 },
   { "poolEvents",           glfw_pool_events,             0 },
-  { "setKeyCallback",       glfw_set_key_callback,        2 },
   { "setWindowShouldClose", glfw_set_window_should_close, 2 },
   { NULL, NULL, 0 }
 };
@@ -357,6 +380,8 @@ const duk_number_list_entry module_consts[] = {
   { "JOYSTICK_15",                 (double) GLFW_JOYSTICK_15 },
   { "JOYSTICK_16",                 (double) GLFW_JOYSTICK_16 },
   { "JOYSTICK_LAST",               (double) GLFW_JOYSTICK_LAST },
+  /* Error codes */
+#if defined(CPR__GLFW_ERROR_HANDLING_BIND)
   { "NOT_INITIALIZED",             (double) GLFW_NOT_INITIALIZED },
   { "NO_CURRENT_CONTEXT",          (double) GLFW_NO_CURRENT_CONTEXT },
   { "INVALID_ENUM",                (double) GLFW_INVALID_ENUM },
@@ -366,6 +391,8 @@ const duk_number_list_entry module_consts[] = {
   { "VERSION_UNAVAILABLE",         (double) GLFW_VERSION_UNAVAILABLE },
   { "PLATFORM_ERROR",              (double) GLFW_PLATFORM_ERROR },
   { "FORMAT_UNAVAILABLE",          (double) GLFW_FORMAT_UNAVAILABLE },
+#endif
+  /* End of Error codes */
   { "FOCUSED",                     (double) GLFW_FOCUSED },
   { "ICONIFIED",                   (double) GLFW_ICONIFIED },
   { "RESIZABLE",                   (double) GLFW_RESIZABLE },
