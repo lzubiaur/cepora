@@ -95,12 +95,14 @@ const duk_number_list_entry module_consts[] = {
 
 /* GLFW functions */
 ''')
+    # Function binding skeleton
     for p in procs:
         return_count = 1 if p['rt'] != 'void' else 0
-        f.write('\nduk_ret_t cpr_{0[name]}(duk_context *ctx) {{'.format(p).encode('utf-8'))
+        f.write('\nduk_ret_t {0[name]}(duk_context *ctx) {{'.format(p).encode('utf-8'))
         f.write('\n  /* {0[rt]} {0[cname]}({0[param]}); */'.format(p).encode('utf-8'))
         f.write('\n  return {0};\n}}\n'.format(return_count).encode('utf-8'))
 
+    # Functions list
     for p in procs:
         param_count = p['param'].count(',') + 1 if p['param'] != 'void' else 0
         f.write('  {{ {0:<30} {1:<35} {2:<3} }},\n'.format('"'+p['jsname']+'",', p['name']+',', param_count).encode('utf-8'))
