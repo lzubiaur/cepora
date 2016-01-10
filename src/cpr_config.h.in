@@ -26,4 +26,7 @@
 
 /* TODO WINDOWS */
 
+/* GLFW binding configuration */
+#define CPR_GLFW_ERROR_HANDLING
+
 #endif /* CPR_CONFIG_H */
