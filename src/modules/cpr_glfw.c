@@ -4,15 +4,19 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
-#include "duktape.h"
+#include "cpr_config.h"
 #include "cpr_glfw.h"
-#include "GLFW/glfw3.h"
+#include "GLFW/glfw3.h" /* GLFW library header */
 
 /* Enable some binding features
  * CPR__GLFW_VERSION_BIND
  * CPR__GLFW_MANUAL_EXT_LOADING_BIND
  * CPR__GLFW_ERROR_HANDLING_BIND
  */
+
+#if defined(CPR_GLFW_ERROR_HANDLING)
+#define CPR__GLFW_ERROR_HANDLING_BIND
+#endif
 
 #if defined(CPR__GLFW_ERROR_HANDLING_BIND)
 #define GLFW_ERR_CALLBACK_STASH_KEY "glfwErrCallbackKey"
@@ -152,7 +156,7 @@ static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t glfw_pool_events(duk_context *ctx) {
+static duk_ret_t glfw_poll_events(duk_context *ctx) {
   glfwPollEvents();
   return 0;
 }
@@ -186,33 +190,410 @@ static duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
   return 0;
 }
 
+duk_ret_t glfw_get_monitors(duk_context *ctx) {
+  /* GLFWmonitor** glfwGetMonitors(int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
+  /* GLFWmonitor* glfwGetPrimaryMonitor(void); */
+  return 1;
+}
+
+duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
+  /* void glfwGetMonitorPos(GLFWmonitor* monitor, int* xpos, int* ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
+  /* void glfwGetMonitorPhysicalSize(GLFWmonitor* monitor, int* widthMM, int* heightMM); */
+  return 0;
+}
+
+duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
+  /* const char* glfwGetMonitorName(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
+  /* GLFWmonitorfun glfwSetMonitorCallback(GLFWmonitorfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_get_video_modes(duk_context *ctx) {
+  /* const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_video_mode(duk_context *ctx) {
+  /* const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_gamma(duk_context *ctx) {
+  /* void glfwSetGamma(GLFWmonitor* monitor, float gamma); */
+  return 0;
+}
+
+duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
+  /* const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
+  /* void glfwSetGammaRamp(GLFWmonitor* monitor, const GLFWgammaramp* ramp); */
+  return 0;
+}
+
+duk_ret_t glfw_default_window_hints(duk_context *ctx) {
+  /* void glfwDefaultWindowHints(void); */
+  return 0;
+}
+
+duk_ret_t glfw_window_hint(duk_context *ctx) {
+  /* void glfwWindowHint(int target, int hint); */
+  return 0;
+}
+
+duk_ret_t glfw_set_window_title(duk_context *ctx) {
+  /* void glfwSetWindowTitle(GLFWwindow* window, const char* title); */
+  return 0;
+}
+
+duk_ret_t glfw_get_window_pos(duk_context *ctx) {
+  /* void glfwGetWindowPos(GLFWwindow* window, int* xpos, int* ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_set_window_pos(duk_context *ctx) {
+  /* void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_get_window_size(duk_context *ctx) {
+  /* void glfwGetWindowSize(GLFWwindow* window, int* width, int* height); */
+  return 0;
+}
+
+duk_ret_t glfw_set_window_size(duk_context *ctx) {
+  /* void glfwSetWindowSize(GLFWwindow* window, int width, int height); */
+  return 0;
+}
+
+duk_ret_t glfw_get_framebuffer_size(duk_context *ctx) {
+  /* void glfwGetFramebufferSize(GLFWwindow* window, int* width, int* height); */
+  return 0;
+}
+
+duk_ret_t glfw_get_window_frame_size(duk_context *ctx) {
+  /* void glfwGetWindowFrameSize(GLFWwindow* window, int* left, int* top, int* right, int* bottom); */
+  return 0;
+}
+
+duk_ret_t glfw_iconify_window(duk_context *ctx) {
+  /* void glfwIconifyWindow(GLFWwindow* window); */
+  return 0;
+}
+
+duk_ret_t glfw_restore_window(duk_context *ctx) {
+  /* void glfwRestoreWindow(GLFWwindow* window); */
+  return 0;
+}
+
+duk_ret_t glfw_show_window(duk_context *ctx) {
+  /* void glfwShowWindow(GLFWwindow* window); */
+  return 0;
+}
+
+duk_ret_t glfw_hide_window(duk_context *ctx) {
+  /* void glfwHideWindow(GLFWwindow* window); */
+  return 0;
+}
+
+duk_ret_t glfw_get_window_monitor(duk_context *ctx) {
+  /* GLFWmonitor* glfwGetWindowMonitor(GLFWwindow* window); */
+  return 1;
+}
+
+duk_ret_t glfw_get_window_attrib(duk_context *ctx) {
+  /* int glfwGetWindowAttrib(GLFWwindow* window, int attrib); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_user_pointer(duk_context *ctx) {
+  /* void glfwSetWindowUserPointer(GLFWwindow* window, void* pointer); */
+  return 0;
+}
+
+duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
+  /* void* glfwGetWindowUserPointer(GLFWwindow* window); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
+  /* GLFWwindowposfun glfwSetWindowPosCallback(GLFWwindow* window, GLFWwindowposfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
+  /* GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
+  /* GLFWwindowclosefun glfwSetWindowCloseCallback(GLFWwindow* window, GLFWwindowclosefun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
+  /* GLFWwindowrefreshfun glfwSetWindowRefreshCallback(GLFWwindow* window, GLFWwindowrefreshfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
+  /* GLFWwindowfocusfun glfwSetWindowFocusCallback(GLFWwindow* window, GLFWwindowfocusfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
+  /* GLFWwindowiconifyfun glfwSetWindowIconifyCallback(GLFWwindow* window, GLFWwindowiconifyfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
+  /* GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_wait_events(duk_context *ctx) {
+  /* void glfwWaitEvents(void); */
+  return 0;
+}
+
+duk_ret_t glfw_post_empty_event(duk_context *ctx) {
+  /* void glfwPostEmptyEvent(void); */
+  return 0;
+}
+
+duk_ret_t glfw_get_input_mode(duk_context *ctx) {
+  /* int glfwGetInputMode(GLFWwindow* window, int mode); */
+  return 1;
+}
+
+duk_ret_t glfw_set_input_mode(duk_context *ctx) {
+  /* void glfwSetInputMode(GLFWwindow* window, int mode, int value); */
+  return 0;
+}
+
+duk_ret_t glfw_get_key(duk_context *ctx) {
+  /* int glfwGetKey(GLFWwindow* window, int key); */
+  return 1;
+}
+
+duk_ret_t glfw_get_mouse_button(duk_context *ctx) {
+  /* int glfwGetMouseButton(GLFWwindow* window, int button); */
+  return 1;
+}
+
+duk_ret_t glfw_get_cursor_pos(duk_context *ctx) {
+  /* void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_set_cursor_pos(duk_context *ctx) {
+  /* void glfwSetCursorPos(GLFWwindow* window, double xpos, double ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_create_cursor(duk_context *ctx) {
+  /* GLFWcursor* glfwCreateCursor(const GLFWimage* image, int xhot, int yhot); */
+  return 1;
+}
+
+duk_ret_t glfw_create_standard_cursor(duk_context *ctx) {
+  /* GLFWcursor* glfwCreateStandardCursor(int shape); */
+  return 1;
+}
+
+duk_ret_t glfw_destroy_cursor(duk_context *ctx) {
+  /* void glfwDestroyCursor(GLFWcursor* cursor); */
+  return 0;
+}
+
+duk_ret_t glfw_set_cursor(duk_context *ctx) {
+  /* void glfwSetCursor(GLFWwindow* window, GLFWcursor* cursor); */
+  return 0;
+}
+
+duk_ret_t glfw_set_char_callback(duk_context *ctx) {
+  /* GLFWcharfun glfwSetCharCallback(GLFWwindow* window, GLFWcharfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
+  /* GLFWcharmodsfun glfwSetCharModsCallback(GLFWwindow* window, GLFWcharmodsfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_mouse_button_callback(duk_context *ctx) {
+  /* GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_cursor_pos_callback(duk_context *ctx) {
+  /* GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_cursor_enter_callback(duk_context *ctx) {
+  /* GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcursorenterfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_scroll_callback(duk_context *ctx) {
+  /* GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
+  /* GLFWdropfun glfwSetDropCallback(GLFWwindow* window, GLFWdropfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_joystick_present(duk_context *ctx) {
+  /* int glfwJoystickPresent(int joy); */
+  return 1;
+}
+
+duk_ret_t glfw_get_joystick_axes(duk_context *ctx) {
+  /* const float* glfwGetJoystickAxes(int joy, int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_joystick_buttons(duk_context *ctx) {
+  /* const unsigned char* glfwGetJoystickButtons(int joy, int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
+  /* const char* glfwGetJoystickName(int joy); */
+  return 1;
+}
+
+duk_ret_t glfw_set_clipboard_string(duk_context *ctx) {
+  /* void glfwSetClipboardString(GLFWwindow* window, const char* string); */
+  return 0;
+}
+
+duk_ret_t glfw_get_clipboard_string(duk_context *ctx) {
+  /* const char* glfwGetClipboardString(GLFWwindow* window); */
+  return 1;
+}
+
+duk_ret_t glfw_get_time(duk_context *ctx) {
+  /* double glfwGetTime(void); */
+  return 1;
+}
+
+duk_ret_t glfw_set_time(duk_context *ctx) {
+  /* void glfwSetTime(double time); */
+  return 0;
+}
+
 static const duk_function_list_entry module_funcs[] = {
   /* Context handling */
-  { "makeContextCurrent",   glfw_make_context_current,    1 },
-  { "getCurrentContext",    glfw_get_current_context,     0 },
-  { "swapInterval",         glfw_swap_interval,           1 },
+  { "makeContextCurrent",          glfw_make_context_current,          1   },
+  { "getCurrentContext",           glfw_get_current_context,           0   },
+  { "swapInterval",                glfw_swap_interval,                 1   },
+  { "swapInterval",                glfw_swap_interval,                 1   },
 #if defined(CPR__GLFW_MANUAL_EXT_LOADING_BIND)
-  { "extensionSupported",   glfw_extension_supported,     1 },
-  { "getProcAddress",       glfw_get_proc_address,        1 },
+  { "extensionSupported",          glfw_extension_supported,           1   },
+  { "getProcAddress",              glfw_get_proc_address,              1   },
 #endif
   /* Initialization */
-  { "init",                 glfw_init,                    0 },
-  { "terminate",            glfw_terminate,               0 },
+  { "init",                        glfw_init,                          0   },
+  { "terminate",                   glfw_terminate,                     0   },
 #if defined(CPR__GLFW_ERROR_HANDLING_BIND)
-  { "setErrorCallBack",     glfw_set_error_callback,      1 },
+  { "setErrorCallBack",            glfw_set_error_callback,            1   },
 #endif
   /* Version */
 #if defined(CPR__GLFW_VERSION_BIND)
-  { "getVersion",           glfw_get_version,             0 },
-  { "getVersionString",     glfw_get_version_string,      0 },
+  { "getVersion",                  glfw_get_version,                   0   },
+  { "getVersionString",            glfw_get_version_string,            0   },
 #endif
-  { "createWindow",         glfw_create_window,           3 },
-  { "setKeyCallback",       glfw_set_key_callback,        2 },
-  { "windowShouldClose",    glfw_window_should_close,     1 },
-  { "destroyWindow",        glfw_destroy_window,          1 },
-  { "swapBuffers",          glfw_swap_buffers,            1 },
-  { "poolEvents",           glfw_pool_events,             0 },
-  { "setWindowShouldClose", glfw_set_window_should_close, 2 },
+  /* Window handling */
+  { "createWindow",                glfw_create_window,                 5   },
+  { "defaultWindowHints",          glfw_default_window_hints,          0   },
+  { "windowHint",                  glfw_window_hint,                   2   },
+  { "destroyWindow",               glfw_destroy_window,                1   },
+  { "windowShouldClose",           glfw_window_should_close,           1   },
+  { "setWindowShouldClose",        glfw_set_window_should_close,       2   },
+  { "setWindowTitle",              glfw_set_window_title,              2   },
+  { "getWindowPos",                glfw_get_window_pos,                3   },
+  { "setWindowPos",                glfw_set_window_pos,                3   },
+  { "getWindowSize",               glfw_get_window_size,               3   },
+  { "setWindowSize",               glfw_set_window_size,               3   },
+  { "getFramebufferSize",          glfw_get_framebuffer_size,          3   },
+  { "getWindowFrameSize",          glfw_get_window_frame_size,         5   },
+  { "iconifyWindow",               glfw_iconify_window,                1   },
+  { "restoreWindow",               glfw_restore_window,                1   },
+  { "showWindow",                  glfw_show_window,                   1   },
+  { "hideWindow",                  glfw_hide_window,                   1   },
+  { "getWindowMonitor",            glfw_get_window_monitor,            1   },
+  { "getWindowAttrib",             glfw_get_window_attrib,             2   },
+  { "setWindowUserPointer",        glfw_set_window_user_pointer,       2   },
+  { "getWindowUserPointer",        glfw_get_window_user_pointer,       1   },
+  { "setWindowPosCallback",        glfw_set_window_pos_callback,       2   },
+  { "setWindowSizeCallback",       glfw_set_window_size_callback,      2   },
+  { "setWindowCloseCallback",      glfw_set_window_close_callback,     2   },
+  { "setWindowRefreshCallback",    glfw_set_window_refresh_callback,   2   },
+  { "setWindowFocusCallback",      glfw_set_window_focus_callback,     2   },
+  { "setWindowIconifyCallback",    glfw_set_window_iconify_callback,   2   },
+  { "setFramebufferSizeCallback",  glfw_set_framebuffer_size_callback, 2   },
+  { "pollEvents",                  glfw_poll_events,                   0   },
+  { "waitEvents",                  glfw_wait_events,                   0   },
+  { "postEmptyEvent",              glfw_post_empty_event,              0   },
+  { "swapBuffers",                 glfw_swap_buffers,                  1   },
+
+  { "getMonitors",                 glfw_get_monitors,                  1   },
+  { "getPrimaryMonitor",           glfw_get_primary_monitor,           0   },
+  { "getMonitorPos",               glfw_get_monitor_pos,               3   },
+  { "getMonitorPhysicalSize",      glfw_get_monitor_physical_size,     3   },
+  { "getMonitorName",              glfw_get_monitor_name,              1   },
+  { "setMonitorCallback",          glfw_set_monitor_callback,          1   },
+  { "getVideoModes",               glfw_get_video_modes,               2   },
+  { "getVideoMode",                glfw_get_video_mode,                1   },
+  { "setGamma",                    glfw_set_gamma,                     2   },
+  { "getGammaRamp",                glfw_get_gamma_ramp,                1   },
+  { "setGammaRamp",                glfw_set_gamma_ramp,                2   },
+  { "getInputMode",                glfw_get_input_mode,                2   },
+  { "setInputMode",                glfw_set_input_mode,                3   },
+  { "getKey",                      glfw_get_key,                       2   },
+  { "getMouseButton",              glfw_get_mouse_button,              2   },
+  { "getCursorPos",                glfw_get_cursor_pos,                3   },
+  { "setCursorPos",                glfw_set_cursor_pos,                3   },
+  { "createCursor",                glfw_create_cursor,                 3   },
+  { "createStandardCursor",        glfw_create_standard_cursor,        1   },
+  { "destroyCursor",               glfw_destroy_cursor,                1   },
+  { "setCursor",                   glfw_set_cursor,                    2   },
+  { "setKeyCallback",              glfw_set_key_callback,              2   },
+  { "setCharCallback",             glfw_set_char_callback,             2   },
+  { "setCharModsCallback",         glfw_set_char_mods_callback,        2   },
+  { "setMouseButtonCallback",      glfw_set_mouse_button_callback,     2   },
+  { "setCursorPosCallback",        glfw_set_cursor_pos_callback,       2   },
+  { "setCursorEnterCallback",      glfw_set_cursor_enter_callback,     2   },
+  { "setScrollCallback",           glfw_set_scroll_callback,           2   },
+  { "setDropCallback",             glfw_set_drop_callback,             2   },
+  { "joystickPresent",             glfw_joystick_present,              1   },
+  { "getJoystickAxes",             glfw_get_joystick_axes,             2   },
+  { "getJoystickButtons",          glfw_get_joystick_buttons,          2   },
+  { "getJoystickName",             glfw_get_joystick_name,             1   },
+  { "setClipboardString",          glfw_set_clipboard_string,          2   },
+  { "getClipboardString",          glfw_get_clipboard_string,          1   },
+  { "getTime",                     glfw_get_time,                      0   },
+  { "setTime",                     glfw_set_time,                      1   },
+  { "makeContextCurrent",          glfw_make_context_current,          1   },
+  { "getCurrentContext",           glfw_get_current_context,           0   },
   { NULL, NULL, 0 }
 };
 
