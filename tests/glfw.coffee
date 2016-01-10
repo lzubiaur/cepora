@@ -12,7 +12,7 @@ key_handler = (window, key, scancode, action, mods) ->
   print key, scancode, action, mods
 
 main_loop = (window) ->
-  glfw.poolEvents()
+  glfw.pollEvents()
   glfw.swapBuffers window
 
 try
