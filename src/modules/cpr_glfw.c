@@ -124,6 +124,16 @@ static duk_ret_t glfw_get_version_string(duk_context *ctx) {
 
 /* Window handling */
 
+duk_ret_t glfw_default_window_hints(duk_context *ctx) {
+  /* void glfwDefaultWindowHints(void); */
+  return 0;
+}
+
+duk_ret_t glfw_window_hint(duk_context *ctx) {
+  /* void glfwWindowHint(int target, int hint); */
+  return 0;
+}
+
 static duk_ret_t glfw_create_window(duk_context *ctx) {
   GLFWwindow* window = NULL;
   int width = 0;
@@ -139,6 +149,11 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t glfw_destroy_window(duk_context *ctx) {
+  glfwDestroyWindow(duk_require_pointer(ctx, 0));
+  return 0;
+}
+
 static duk_ret_t glfw_window_should_close(duk_context *ctx) {
   int rc = 0;
   rc = glfwWindowShouldClose(duk_require_pointer(ctx ,0));
@@ -146,112 +161,8 @@ static duk_ret_t glfw_window_should_close(duk_context *ctx) {
   return 1;
 }
 
-static duk_ret_t glfw_destroy_window(duk_context *ctx) {
-  glfwDestroyWindow(duk_require_pointer(ctx, 0));
-  return 0;
-}
-
-static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
-  glfwSwapBuffers(duk_require_pointer(ctx, 0));
-  return 0;
-}
-
-static duk_ret_t glfw_poll_events(duk_context *ctx) {
-  glfwPollEvents();
-  return 0;
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  duk_push_global_stash(_ctx);
-  duk_get_prop_string(_ctx, -1, GLFW_KEY_CALLBACK_STASH_KEY);
-  duk_push_pointer(_ctx, window);
-  duk_push_int(_ctx, key);
-  duk_push_int(_ctx, scancode);
-  duk_push_int(_ctx, action);
-  duk_push_int(_ctx, mods);
-  duk_call(_ctx, 5);
-}
-
-static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
-  if (duk_is_function(ctx, 1) == 0) {
-    duk_error(ctx, DUK_ERR_TYPE_ERROR, "not a function");
-  }
-  duk_push_global_stash(ctx);
-  duk_dup(ctx, 1); /* Push the callback function */
-  duk_put_prop_string(ctx, -2, GLFW_KEY_CALLBACK_STASH_KEY);
-
-  glfwSetKeyCallback(duk_require_pointer(ctx, 0), key_callback);
-  return 0;
-}
-
 static duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
   glfwSetWindowShouldClose(duk_require_pointer(ctx, 0), duk_require_boolean(ctx, 1));
-  return 0;
-}
-
-duk_ret_t glfw_get_monitors(duk_context *ctx) {
-  /* GLFWmonitor** glfwGetMonitors(int* count); */
-  return 1;
-}
-
-duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
-  /* GLFWmonitor* glfwGetPrimaryMonitor(void); */
-  return 1;
-}
-
-duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
-  /* void glfwGetMonitorPos(GLFWmonitor* monitor, int* xpos, int* ypos); */
-  return 0;
-}
-
-duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
-  /* void glfwGetMonitorPhysicalSize(GLFWmonitor* monitor, int* widthMM, int* heightMM); */
-  return 0;
-}
-
-duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
-  /* const char* glfwGetMonitorName(GLFWmonitor* monitor); */
-  return 1;
-}
-
-duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
-  /* GLFWmonitorfun glfwSetMonitorCallback(GLFWmonitorfun cbfun); */
-  return 1;
-}
-
-duk_ret_t glfw_get_video_modes(duk_context *ctx) {
-  /* const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count); */
-  return 1;
-}
-
-duk_ret_t glfw_get_video_mode(duk_context *ctx) {
-  /* const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* monitor); */
-  return 1;
-}
-
-duk_ret_t glfw_set_gamma(duk_context *ctx) {
-  /* void glfwSetGamma(GLFWmonitor* monitor, float gamma); */
-  return 0;
-}
-
-duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
-  /* const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor); */
-  return 1;
-}
-
-duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
-  /* void glfwSetGammaRamp(GLFWmonitor* monitor, const GLFWgammaramp* ramp); */
-  return 0;
-}
-
-duk_ret_t glfw_default_window_hints(duk_context *ctx) {
-  /* void glfwDefaultWindowHints(void); */
-  return 0;
-}
-
-duk_ret_t glfw_window_hint(duk_context *ctx) {
-  /* void glfwWindowHint(int target, int hint); */
   return 0;
 }
 
@@ -365,6 +276,11 @@ duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t glfw_poll_events(duk_context *ctx) {
+  glfwPollEvents();
+  return 0;
+}
+
 duk_ret_t glfw_wait_events(duk_context *ctx) {
   /* void glfwWaitEvents(void); */
   return 0;
@@ -372,6 +288,90 @@ duk_ret_t glfw_wait_events(duk_context *ctx) {
 
 duk_ret_t glfw_post_empty_event(duk_context *ctx) {
   /* void glfwPostEmptyEvent(void); */
+  return 0;
+}
+
+static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
+  glfwSwapBuffers(duk_require_pointer(ctx, 0));
+  return 0;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  duk_push_global_stash(_ctx);
+  duk_get_prop_string(_ctx, -1, GLFW_KEY_CALLBACK_STASH_KEY);
+  duk_push_pointer(_ctx, window);
+  duk_push_int(_ctx, key);
+  duk_push_int(_ctx, scancode);
+  duk_push_int(_ctx, action);
+  duk_push_int(_ctx, mods);
+  duk_call(_ctx, 5);
+}
+
+static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
+  if (duk_is_function(ctx, 1) == 0) {
+    duk_error(ctx, DUK_ERR_TYPE_ERROR, "not a function");
+  }
+  duk_push_global_stash(ctx);
+  duk_dup(ctx, 1); /* Push the callback function */
+  duk_put_prop_string(ctx, -2, GLFW_KEY_CALLBACK_STASH_KEY);
+
+  glfwSetKeyCallback(duk_require_pointer(ctx, 0), key_callback);
+  return 0;
+}
+
+duk_ret_t glfw_get_monitors(duk_context *ctx) {
+  /* GLFWmonitor** glfwGetMonitors(int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
+  /* GLFWmonitor* glfwGetPrimaryMonitor(void); */
+  return 1;
+}
+
+duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
+  /* void glfwGetMonitorPos(GLFWmonitor* monitor, int* xpos, int* ypos); */
+  return 0;
+}
+
+duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
+  /* void glfwGetMonitorPhysicalSize(GLFWmonitor* monitor, int* widthMM, int* heightMM); */
+  return 0;
+}
+
+duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
+  /* const char* glfwGetMonitorName(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
+  /* GLFWmonitorfun glfwSetMonitorCallback(GLFWmonitorfun cbfun); */
+  return 1;
+}
+
+duk_ret_t glfw_get_video_modes(duk_context *ctx) {
+  /* const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count); */
+  return 1;
+}
+
+duk_ret_t glfw_get_video_mode(duk_context *ctx) {
+  /* const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_gamma(duk_context *ctx) {
+  /* void glfwSetGamma(GLFWmonitor* monitor, float gamma); */
+  return 0;
+}
+
+duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
+  /* const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor); */
+  return 1;
+}
+
+duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
+  /* void glfwSetGammaRamp(GLFWmonitor* monitor, const GLFWgammaramp* ramp); */
   return 0;
 }
 
@@ -522,9 +522,9 @@ static const duk_function_list_entry module_funcs[] = {
   { "getVersionString",            glfw_get_version_string,            0   },
 #endif
   /* Window handling */
-  { "createWindow",                glfw_create_window,                 5   },
   { "defaultWindowHints",          glfw_default_window_hints,          0   },
   { "windowHint",                  glfw_window_hint,                   2   },
+  { "createWindow",                glfw_create_window,                 5   },
   { "destroyWindow",               glfw_destroy_window,                1   },
   { "windowShouldClose",           glfw_window_should_close,           1   },
   { "setWindowShouldClose",        glfw_set_window_should_close,       2   },
