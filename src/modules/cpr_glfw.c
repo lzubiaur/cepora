@@ -5,10 +5,8 @@
  */
 
 #include "duktape.h"
-#include "glfw.h"
+#include "cpr_glfw.h"
 #include "GLFW/glfw3.h"
-
-#include "cpr_macros.h"
 
 /* Enable some binding features
  * CPR__GLFW_VERSION_BIND

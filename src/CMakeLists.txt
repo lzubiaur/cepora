@@ -41,7 +41,7 @@ set_target_properties(io PROPERTIES PREFIX "" OUTPUT_NAME "io" SUFFIX ".so")
 # add_dependencies(io duktape_shared)
 # target_link_libraries(io duktape_shared)
 
-add_library(mod_glfw SHARED modules/glfw.c)
+add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX ".so")
 target_link_libraries(mod_glfw glfw)
 
