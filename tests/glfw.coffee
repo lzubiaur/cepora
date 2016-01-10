@@ -33,15 +33,16 @@ try
   inf glfw.getCurrentContext(), window
   # glfwSwapInterval
   glfw.swapInterval 1
-  # Manual extension loading
+  # Test manual extension loading if enabled
   if glfw.extensionSupported?
-    inf '' if glfw.extensionSupported 'WGL_EXT_swap_control_tear'
+    inf 'swap control tear is supported' if glfw.extensionSupported 'WGL_EXT_swap_control_tear'
     # glfwGetProcAddress
     inf glfw.getProcAddress 'glGetDebugMessageLogARB'
 
-  # Version
-  inf glfw.getVersionString()
-  inf glfw.getVersion()
+  # Test version binding if enabled
+  if glfw.getVersion?
+    inf glfw.getVersionString()
+    inf glfw.getVersion()
 
   glfw.setKeyCallback window, key_handler
 
