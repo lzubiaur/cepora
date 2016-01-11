@@ -4,14 +4,21 @@ err = () -> log.error.apply log, arguments
 
 glfw = require 'glfw.so'
 
-error_handler = (code, message) -> err code, message
+errorHandler = (code, message) -> err code, message
 
-key_handler = (window, key, scancode, action, mods) ->
+keyHandler = (window, key, scancode, action, mods) ->
   # if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   glfw.setWindowShouldClose window, true if key == glfw.KEY_ESCAPE
   inf key, scancode, action, mods
 
-main_loop = (window) ->
+windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
+windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
+windowCloseHandler = (window) -> inf 'Window will close'
+windowRefreshHandler = (window) -> inf 'Window refresh'
+windowFocusHandler = (window, focused) -> inf 'Window focus:', focused
+windowIconifyHandler = (window, iconified) -> inf 'Window iconify:', iconified
+
+mainLoop = (window) ->
   glfw.pollEvents()
   glfw.swapBuffers window
 
@@ -21,10 +28,10 @@ try
   rc = glfw.init()
   throw new Error 'Cannot initialize GLFW library' if not rc
 
-  glfw.setErrorCallBack error_handler
+  glfw.setErrorCallBack errorHandler
 
   #### Window handling ####
-  glfw.windowHint glfw.RESIZABLE, 0
+  # glfw.windowHint glfw.RESIZABLE, 0
   # glfwCreateWindow
   window = glfw.createWindow 480, 320, 'my window'
   # Full screen
@@ -61,7 +68,13 @@ try
   glfw.setWindowUserPointer window, str
   inf glfw.getWindowUserPointer window
 
-  # TODO test glfwGetWindowUserPointer/glfwSetWindowUserPointer
+  # glfwSetWindowPosCallback
+  glfw.setWindowPosCallback window, windowPosHandler
+  glfw.setWindowSizeCallback window, windowSizeHandler
+  glfw.setWindowCloseCallback window, windowCloseHandler
+  glfw.setWindowRefreshCallback window, windowRefreshHandler
+  glfw.setWindowFocusCallback window, windowFocusHandler
+  glfw.setWindowIconifyCallback window, windowIconifyHandler
 
   #### Context handling ####
   # glfwMakeContextCurrent
@@ -82,9 +95,9 @@ try
     inf glfw.getVersionString()
     inf glfw.getVersion()
 
-  glfw.setKeyCallback window, key_handler
+  glfw.setKeyCallback window, keyHandler
 
-  main_loop window while not glfw.windowShouldClose window
+  mainLoop window while not glfw.windowShouldClose window
 
 catch error
   err error.stack
