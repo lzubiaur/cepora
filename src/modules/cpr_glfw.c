@@ -21,6 +21,7 @@ typedef struct cpr_user_data {
   void *window_refresh_callback_ptr;
   void *window_focus_callback_ptr;
   void *window_iconify_callback_ptr;
+  void *framebuffer_size_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -432,8 +433,24 @@ duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
   return 1;
 }
 
+void cpr__framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->framebuffer_size_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, width);
+  duk_push_int(u->ctx, height);
+  duk_call(u->ctx, 3);
+}
+
 duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
-  /* GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->framebuffer_size_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetFramebufferSizeCallback(window, cpr__framebuffer_size_callback);
+  duk_push_heapptr(ctx, u->framebuffer_size_callback_ptr);
   return 1;
 }
 
@@ -443,12 +460,12 @@ static duk_ret_t glfw_poll_events(duk_context *ctx) {
 }
 
 duk_ret_t glfw_wait_events(duk_context *ctx) {
-  /* void glfwWaitEvents(void); */
+  glfwWaitEvents();
   return 0;
 }
 
 duk_ret_t glfw_post_empty_event(duk_context *ctx) {
-  /* void glfwPostEmptyEvent(void); */
+  glfwPostEmptyEvent();
   return 0;
 }
 
