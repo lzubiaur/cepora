@@ -23,17 +23,26 @@ try
 
   glfw.setErrorCallBack error_handler
 
-  # Window handling
+  #### Window handling ####
   glfw.windowHint glfw.RESIZABLE, 0
-
-  window = glfw.createWindow 640, 480, 'my window', glfw.getPrimaryMonitor()
+  # glfwCreateWindow
+  window = glfw.createWindow 640, 480, 'my window'
+  # Full screen
+  # window = glfw.createWindow 640, 480, 'my window', glfw.getPrimaryMonitor()
   throw new Error 'error window' if not window
+  # glfwSetWindowTitle
+  glfw.setWindowTitle window, 'another title'
+  # glfwGetWindowPos
+  inf 'getWindowPos:', glfw.getWindowPos window
 
-  ## Context handling ##
+
+  #### Context handling ####
   # glfwMakeContextCurrent
   glfw.makeContextCurrent window
   # glfwGetCurrentContext
-  inf glfw.getCurrentContext(), window
+  inf 'getCurrentContext:', glfw.getCurrentContext(), window
+  # glfwSetWindowPos
+  glfw.setWindowPos window, 100, 200
   # glfwSwapInterval
   glfw.swapInterval 1
   # Test manual extension loading if enabled
