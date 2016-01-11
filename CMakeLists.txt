@@ -4,6 +4,8 @@ set(RUNTIME_NAME ${PROJECT_NAME})
 project(${PROJECT_NAME} C)
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
+# TODO GLFW compile options http://www.glfw.org/docs/latest/compile.html#compile_options_osx
+
 execute_process(COMMAND git describe --always --dirty OUTPUT_VARIABLE CPR_GIT_DESCRIBE)
 execute_process(COMMAND git rev-parse HEAD OUTPUT_VARIABLE CPR_GIT_COMMIT)
 # Remove new line characters
