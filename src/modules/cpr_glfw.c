@@ -498,8 +498,18 @@ static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
   return 1;
 }
 
+/* Monitor handling */
+/* http://www.glfw.org/docs/latest/group__monitor.html */
+
 duk_ret_t glfw_get_monitors(duk_context *ctx) {
-  /* GLFWmonitor** glfwGetMonitors(int* count); */
+  int i, count = 0;
+  GLFWmonitor **monitors;
+  monitors = glfwGetMonitors(&count);
+  duk_push_array(ctx);
+  for (i=0; i<count; ++i) {
+    duk_push_pointer(ctx, monitors[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
   return 1;
 }
 
@@ -509,23 +519,35 @@ duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
 }
 
 duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
-  /* void glfwGetMonitorPos(GLFWmonitor* monitor, int* xpos, int* ypos); */
-  return 0;
+  int xpos = 0, ypos = 0;
+  glfwGetMonitorPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
+  duk_push_array(ctx);
+  duk_push_int(ctx, xpos);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, ypos);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
-  /* void glfwGetMonitorPhysicalSize(GLFWmonitor* monitor, int* widthMM, int* heightMM); */
-  return 0;
+  int width = 0, height = 0;
+  glfwGetMonitorPhysicalSize(duk_require_pointer(ctx, 0), &width, &height);
+  duk_push_array(ctx);
+  duk_push_int(ctx, width);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, height);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
-  /* const char* glfwGetMonitorName(GLFWmonitor* monitor); */
+  duk_push_string(ctx, glfwGetMonitorName(duk_require_pointer(ctx, 0)));
   return 1;
 }
 
+/* TODO implement glfw_set_monitor_callback */
 duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
-  /* GLFWmonitorfun glfwSetMonitorCallback(GLFWmonitorfun cbfun); */
-  return 1;
+  return 0;
 }
 
 duk_ret_t glfw_get_video_modes(duk_context *ctx) {
