@@ -4,9 +4,21 @@
  * MIT License (http://opensource.org/licenses/MIT)
  */
 
+/* Include cepora configuration if compiling inside Cepora project */
+#if defined(CPR_COMPILING_CEPORA)
 #include "cpr_config.h"
+#endif
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
+
+typedef struct cpr_user_data {
+  duk_context *ctx;
+  /* Callback pointers */
+  void *window_pos_callback_ptr;
+  /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
+  void *user_ptr;
+} cpr_user_data;
+
 
 /* Enable some binding features
  * CPR__GLFW_VERSION_BIND
@@ -136,12 +148,15 @@ duk_ret_t glfw_window_hint(duk_context *ctx) {
 }
 
 static duk_ret_t glfw_create_window(duk_context *ctx) {
+  cpr_user_data *user;
   GLFWwindow* window = NULL;
   int width = 0;
   int height = 0;
   const char *title = NULL;
   GLFWmonitor * monitor = NULL;
   GLFWwindow * share = NULL;
+
+  user = (cpr_user_data*)malloc(sizeof(cpr_user_data));
 
   width = duk_require_int(ctx, 0);
   height = duk_require_int(ctx, 1);
@@ -150,11 +165,14 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   share = duk_get_pointer(ctx, 4);
 
   window = glfwCreateWindow(width, height, title, monitor, share);
+  glfwSetWindowUserPointer(window, user);
   duk_push_pointer(ctx, window);
+
   return 1;
 }
 
 static duk_ret_t glfw_destroy_window(duk_context *ctx) {
+  free((cpr_user_data *)glfwGetWindowUserPointer(duk_require_pointer(ctx, 0)));
   glfwDestroyWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
@@ -195,67 +213,112 @@ duk_ret_t glfw_set_window_pos(duk_context *ctx) {
 }
 
 duk_ret_t glfw_get_window_size(duk_context *ctx) {
-  /* void glfwGetWindowSize(GLFWwindow* window, int* width, int* height); */
-  return 0;
+  int width = 0, height = 0;
+  glfwGetWindowSize(duk_require_pointer(ctx, 0), &width, &height);
+  duk_push_array(ctx);
+  duk_push_int(ctx, width);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, height);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_set_window_size(duk_context *ctx) {
-  /* void glfwSetWindowSize(GLFWwindow* window, int width, int height); */
+  glfwSetWindowSize(duk_require_pointer(ctx, 0),
+                    duk_require_int(ctx, 1),
+                    duk_require_int(ctx, 2));
   return 0;
 }
 
 duk_ret_t glfw_get_framebuffer_size(duk_context *ctx) {
-  /* void glfwGetFramebufferSize(GLFWwindow* window, int* width, int* height); */
-  return 0;
+  int width = 0, height = 0;
+  glfwGetFramebufferSize(duk_require_pointer(ctx, 0), &width, &height);
+  duk_push_array(ctx);
+  duk_push_int(ctx, width);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, height);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_get_window_frame_size(duk_context *ctx) {
   /* void glfwGetWindowFrameSize(GLFWwindow* window, int* left, int* top, int* right, int* bottom); */
-  return 0;
+  int left, top, right, bottom;
+  glfwGetWindowFrameSize(duk_require_pointer(ctx, 0), &left, &top, &right, &bottom);
+  duk_push_array(ctx);
+  duk_push_int(ctx, left);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, top);
+  duk_put_prop_index(ctx, -2, 1);
+  duk_push_int(ctx, right);
+  duk_put_prop_index(ctx, -2, 2);
+  duk_push_int(ctx, bottom);
+  duk_put_prop_index(ctx, -2, 3);
+  return 1;
 }
 
 duk_ret_t glfw_iconify_window(duk_context *ctx) {
-  /* void glfwIconifyWindow(GLFWwindow* window); */
+  glfwIconifyWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
 duk_ret_t glfw_restore_window(duk_context *ctx) {
-  /* void glfwRestoreWindow(GLFWwindow* window); */
+  glfwRestoreWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
 duk_ret_t glfw_show_window(duk_context *ctx) {
-  /* void glfwShowWindow(GLFWwindow* window); */
+  glfwShowWindow(duk_require_pointer(ctx ,0));
   return 0;
 }
 
 duk_ret_t glfw_hide_window(duk_context *ctx) {
-  /* void glfwHideWindow(GLFWwindow* window); */
+  glfwHideWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
 duk_ret_t glfw_get_window_monitor(duk_context *ctx) {
-  /* GLFWmonitor* glfwGetWindowMonitor(GLFWwindow* window); */
+  duk_push_pointer(ctx, glfwGetWindowMonitor(duk_require_pointer(ctx, 0)));
   return 1;
 }
 
 duk_ret_t glfw_get_window_attrib(duk_context *ctx) {
-  /* int glfwGetWindowAttrib(GLFWwindow* window, int attrib); */
+  int value = 0;
+  value = glfwGetWindowAttrib(duk_require_pointer(ctx, 0), duk_require_int(ctx ,1));
+  duk_push_int(ctx, value);
   return 1;
 }
 
 duk_ret_t glfw_set_window_user_pointer(duk_context *ctx) {
-  /* void glfwSetWindowUserPointer(GLFWwindow* window, void* pointer); */
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(duk_require_pointer(ctx ,0));
+  u->user_ptr = duk_get_heapptr(ctx ,1);
   return 0;
 }
 
 duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
-  /* void* glfwGetWindowUserPointer(GLFWwindow* window); */
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(duk_require_pointer(ctx, 0));
+  duk_push_heapptr(ctx, u->user_ptr);
   return 1;
 }
 
+void window_pos_callback(GLFWwindow *window, int x, int y) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_pos_callback_ptr);
+  duk_push_int(u->ctx, x);
+  duk_push_int(u->ctx, y);
+  duk_call(u->ctx, 2);
+}
+
 duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
-  /* GLFWwindowposfun glfwSetWindowPosCallback(GLFWwindow* window, GLFWwindowposfun cbfun); */
+  cpr_user_data *u;
+  GLFWwindow *window;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_pos_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowPosCallback(window, window_pos_callback);
   return 1;
 }
 
@@ -544,10 +607,10 @@ static const duk_function_list_entry module_funcs[] = {
   { "setWindowTitle",              glfw_set_window_title,              2   },
   { "getWindowPos",                glfw_get_window_pos,                1   },
   { "setWindowPos",                glfw_set_window_pos,                3   },
-  { "getWindowSize",               glfw_get_window_size,               3   },
+  { "getWindowSize",               glfw_get_window_size,               1   },
   { "setWindowSize",               glfw_set_window_size,               3   },
-  { "getFramebufferSize",          glfw_get_framebuffer_size,          3   },
-  { "getWindowFrameSize",          glfw_get_window_frame_size,         5   },
+  { "getFramebufferSize",          glfw_get_framebuffer_size,          1   },
+  { "getWindowFrameSize",          glfw_get_window_frame_size,         1   },
   { "iconifyWindow",               glfw_iconify_window,                1   },
   { "restoreWindow",               glfw_restore_window,                1   },
   { "showWindow",                  glfw_show_window,                   1   },
@@ -785,6 +848,7 @@ const duk_number_list_entry module_consts[] = {
   { "FORMAT_UNAVAILABLE",          (double) GLFW_FORMAT_UNAVAILABLE },
 #endif
   /* End of Error codes */
+  /* Window related attributes */
   { "FOCUSED",                     (double) GLFW_FOCUSED },
   { "ICONIFIED",                   (double) GLFW_ICONIFIED },
   { "RESIZABLE",                   (double) GLFW_RESIZABLE },
@@ -792,6 +856,7 @@ const duk_number_list_entry module_consts[] = {
   { "DECORATED",                   (double) GLFW_DECORATED },
   { "AUTO_ICONIFY",                (double) GLFW_AUTO_ICONIFY },
   { "FLOATING",                    (double) GLFW_FLOATING },
+
   { "RED_BITS",                    (double) GLFW_RED_BITS },
   { "GREEN_BITS",                  (double) GLFW_GREEN_BITS },
   { "BLUE_BITS",                   (double) GLFW_BLUE_BITS },
@@ -808,6 +873,7 @@ const duk_number_list_entry module_consts[] = {
   { "SRGB_CAPABLE",                (double) GLFW_SRGB_CAPABLE },
   { "REFRESH_RATE",                (double) GLFW_REFRESH_RATE },
   { "DOUBLEBUFFER",                (double) GLFW_DOUBLEBUFFER },
+  /* Context related attributes */
   { "CLIENT_API",                  (double) GLFW_CLIENT_API },
   { "CONTEXT_VERSION_MAJOR",       (double) GLFW_CONTEXT_VERSION_MAJOR },
   { "CONTEXT_VERSION_MINOR",       (double) GLFW_CONTEXT_VERSION_MINOR },
@@ -825,6 +891,7 @@ const duk_number_list_entry module_consts[] = {
   { "OPENGL_ANY_PROFILE",          (double) GLFW_OPENGL_ANY_PROFILE },
   { "OPENGL_CORE_PROFILE",         (double) GLFW_OPENGL_CORE_PROFILE },
   { "OPENGL_COMPAT_PROFILE",       (double) GLFW_OPENGL_COMPAT_PROFILE },
+
   { "CURSOR",                      (double) GLFW_CURSOR },
   { "STICKY_KEYS",                 (double) GLFW_STICKY_KEYS },
   { "STICKY_MOUSE_BUTTONS",        (double) GLFW_STICKY_MOUSE_BUTTONS },
