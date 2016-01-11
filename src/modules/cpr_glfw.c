@@ -22,6 +22,7 @@ typedef struct cpr_user_data {
   void *window_focus_callback_ptr;
   void *window_iconify_callback_ptr;
   void *framebuffer_size_callback_ptr;
+  void *key_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -40,7 +41,6 @@ typedef struct cpr_user_data {
 #if defined(CPR__GLFW_ERROR_HANDLING_BIND)
 #define GLFW_ERR_CALLBACK_STASH_KEY "glfwErrCallbackKey"
 #endif
-#define GLFW_KEY_CALLBACK_STASH_KEY "glfwKeyCallbackKey"
 
 /* global reference to the duktape context. Required for GLFW callbacks */
 /* XXX is there any workaround to avoid keeping a global reference to the context? */
@@ -474,28 +474,28 @@ static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
   return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-  duk_push_global_stash(_ctx);
-  duk_get_prop_string(_ctx, -1, GLFW_KEY_CALLBACK_STASH_KEY);
-  duk_push_pointer(_ctx, window);
-  duk_push_int(_ctx, key);
-  duk_push_int(_ctx, scancode);
-  duk_push_int(_ctx, action);
-  duk_push_int(_ctx, mods);
-  duk_call(_ctx, 5);
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->key_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, key);
+  duk_push_int(u->ctx, scancode);
+  duk_push_int(u->ctx, action);
+  duk_push_int(u->ctx, mods);
+  duk_call(u->ctx, 5);
 }
 
 static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
-  if (duk_is_function(ctx, 1) == 0) {
-    duk_error(ctx, DUK_ERR_TYPE_ERROR, "not a function");
-  }
-  duk_push_global_stash(ctx);
-  duk_dup(ctx, 1); /* Push the callback function */
-  duk_put_prop_string(ctx, -2, GLFW_KEY_CALLBACK_STASH_KEY);
-
-  glfwSetKeyCallback(duk_require_pointer(ctx, 0), key_callback);
-  return 0;
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->key_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetKeyCallback(window, cpr__key_callback);
+  duk_push_heapptr(ctx, u->key_callback_ptr);
+  return 1;
 }
 
 duk_ret_t glfw_get_monitors(duk_context *ctx) {
