@@ -17,6 +17,7 @@ windowCloseHandler = (window) -> inf 'Window will close'
 windowRefreshHandler = (window) -> inf 'Window refresh'
 windowFocusHandler = (window, focused) -> inf 'Window focus:', focused
 windowIconifyHandler = (window, iconified) -> inf 'Window iconify:', iconified
+frameBufferSizeHandler = (window, w, h) -> inf 'New framebuffer size:', w, h
 
 mainLoop = (window) ->
   glfw.pollEvents()
@@ -75,6 +76,7 @@ try
   glfw.setWindowRefreshCallback window, windowRefreshHandler
   glfw.setWindowFocusCallback window, windowFocusHandler
   glfw.setWindowIconifyCallback window, windowIconifyHandler
+  glfw.setFramebufferSizeCallback window, frameBufferSizeHandler
 
   #### Context handling ####
   # glfwMakeContextCurrent
