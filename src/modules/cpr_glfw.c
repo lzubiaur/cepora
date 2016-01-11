@@ -172,17 +172,25 @@ static duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
 }
 
 duk_ret_t glfw_set_window_title(duk_context *ctx) {
-  /* void glfwSetWindowTitle(GLFWwindow* window, const char* title); */
+  glfwSetWindowTitle(duk_require_pointer(ctx, 0), duk_require_string(ctx, 1));
   return 0;
 }
 
 duk_ret_t glfw_get_window_pos(duk_context *ctx) {
-  /* void glfwGetWindowPos(GLFWwindow* window, int* xpos, int* ypos); */
-  return 0;
+  int xpos = 0, ypos = 0;
+  glfwGetWindowPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
+  duk_push_array(ctx);
+  duk_push_int(ctx, xpos);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, ypos);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_set_window_pos(duk_context *ctx) {
-  /* void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos); */
+  glfwSetWindowPos(duk_require_pointer(ctx, 0),
+                   duk_require_int(ctx, 1),
+                   duk_require_int(ctx, 2));
   return 0;
 }
 
@@ -534,7 +542,7 @@ static const duk_function_list_entry module_funcs[] = {
   { "windowShouldClose",           glfw_window_should_close,           1   },
   { "setWindowShouldClose",        glfw_set_window_should_close,       2   },
   { "setWindowTitle",              glfw_set_window_title,              2   },
-  { "getWindowPos",                glfw_get_window_pos,                3   },
+  { "getWindowPos",                glfw_get_window_pos,                1   },
   { "setWindowPos",                glfw_set_window_pos,                3   },
   { "getWindowSize",               glfw_get_window_size,               3   },
   { "setWindowSize",               glfw_set_window_size,               3   },
