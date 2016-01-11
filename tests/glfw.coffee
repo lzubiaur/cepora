@@ -78,6 +78,12 @@ try
   glfw.setWindowIconifyCallback window, windowIconifyHandler
   glfw.setFramebufferSizeCallback window, frameBufferSizeHandler
 
+  #### Monitor handling ####
+  inf 'Monitors:', glfw.getMonitors()
+  inf 'Monitor position:', glfw.getMonitorPos glfw.getPrimaryMonitor()
+  inf 'Monitor physical size:', glfw.getMonitorPhysicalSize glfw.getPrimaryMonitor()
+  inf 'Monitor name:', glfw.getMonitorName glfw.getPrimaryMonitor()
+
   #### Context handling ####
   # glfwMakeContextCurrent
   glfw.makeContextCurrent window
