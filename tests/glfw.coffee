@@ -4,12 +4,12 @@ err = () -> log.error.apply log, arguments
 
 glfw = require 'glfw.so'
 
-error_handler = (err, message) -> print err, message
+error_handler = (code, message) -> err code, message
 
 key_handler = (window, key, scancode, action, mods) ->
   # if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   glfw.setWindowShouldClose window, true if key == glfw.KEY_ESCAPE
-  print key, scancode, action, mods
+  inf key, scancode, action, mods
 
 main_loop = (window) ->
   glfw.pollEvents()
@@ -26,23 +26,49 @@ try
   #### Window handling ####
   glfw.windowHint glfw.RESIZABLE, 0
   # glfwCreateWindow
-  window = glfw.createWindow 640, 480, 'my window'
+  window = glfw.createWindow 480, 320, 'my window'
   # Full screen
   # window = glfw.createWindow 640, 480, 'my window', glfw.getPrimaryMonitor()
   throw new Error 'error window' if not window
   # glfwSetWindowTitle
   glfw.setWindowTitle window, 'another title'
+  # glfwSetWindowSize
+  glfw.setWindowSize window, 640, 480
+  # glfwSetWindowPos
+  glfw.setWindowPos window, 100, 200
   # glfwGetWindowPos
-  inf 'getWindowPos:', glfw.getWindowPos window
+  inf 'Window position:', glfw.getWindowPos window
+  # glfwGetWindowSize
+  inf 'Window size:', glfw.getWindowSize window
+  # glfwGetWindowSize
+  inf 'Framebuffer size:', glfw.getFramebufferSize window
+  # glfwGetWindowFrameSize
+  inf 'Window Frame size', glfw.getWindowFrameSize window
+  # glfwIconifyWindow
+  glfw.iconifyWindow window
+  # glfwRestoreWindow
+  glfw.restoreWindow window
+  # glfwHideWindow
+  glfw.hideWindow window
+  # glfwShowWindow
+  glfw.showWindow window
+  # glfwGetWindowMonitor
+  inf 'Window monitor (null if not fullscreen): ', glfw.getWindowMonitor window
+  # glfwGetWindowAttrib
+  inf 'Window is resizable: ', glfw.getWindowAttrib window, glfw.RESIZABLE
+  # glfwSetWindowUserPointer/glfwGetWindowUserPointer
+  str = 'my user data'
+  glfw.setWindowUserPointer window, str
+  inf glfw.getWindowUserPointer window
 
+  # TODO test glfwGetWindowUserPointer/glfwSetWindowUserPointer
 
   #### Context handling ####
   # glfwMakeContextCurrent
   glfw.makeContextCurrent window
   # glfwGetCurrentContext
   inf 'getCurrentContext:', glfw.getCurrentContext(), window
-  # glfwSetWindowPos
-  glfw.setWindowPos window, 100, 200
+
   # glfwSwapInterval
   glfw.swapInterval 1
   # Test manual extension loading if enabled
@@ -63,5 +89,5 @@ try
 catch error
   err error.stack
 finally
-  print 'clean up...'
+  inf 'clean up...'
   glfw.terminate()
