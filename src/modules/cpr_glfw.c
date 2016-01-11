@@ -7,6 +7,7 @@
 /* Include cepora configuration if compiling inside Cepora project */
 #if defined(CPR_COMPILING_CEPORA)
 #include "cpr_config.h"
+#include "cpr_macros.h"
 #endif
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
@@ -15,6 +16,11 @@ typedef struct cpr_user_data {
   duk_context *ctx;
   /* Callback pointers */
   void *window_pos_callback_ptr;
+  void *window_size_callback_ptr;
+  void *window_close_callback_ptr;
+  void *window_refresh_callback_ptr;
+  void *window_focus_callback_ptr;
+  void *window_iconify_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -148,7 +154,7 @@ duk_ret_t glfw_window_hint(duk_context *ctx) {
 }
 
 static duk_ret_t glfw_create_window(duk_context *ctx) {
-  cpr_user_data *user;
+  cpr_user_data *u;
   GLFWwindow* window = NULL;
   int width = 0;
   int height = 0;
@@ -156,7 +162,8 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   GLFWmonitor * monitor = NULL;
   GLFWwindow * share = NULL;
 
-  user = (cpr_user_data*)malloc(sizeof(cpr_user_data));
+  u = (cpr_user_data*)malloc(sizeof(cpr_user_data));
+  u->ctx = ctx;
 
   width = duk_require_int(ctx, 0);
   height = duk_require_int(ctx, 1);
@@ -165,7 +172,7 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   share = duk_get_pointer(ctx, 4);
 
   window = glfwCreateWindow(width, height, title, monitor, share);
-  glfwSetWindowUserPointer(window, user);
+  glfwSetWindowUserPointer(window, u);
   duk_push_pointer(ctx, window);
 
   return 1;
@@ -303,47 +310,125 @@ duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
   return 1;
 }
 
-void window_pos_callback(GLFWwindow *window, int x, int y) {
+/* FIXME window_pos_callback is not called */
+void cpr__window_pos_callback(GLFWwindow *window, int x, int y) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_pos_callback_ptr);
+  duk_push_pointer(u->ctx, window);
   duk_push_int(u->ctx, x);
   duk_push_int(u->ctx, y);
-  duk_call(u->ctx, 2);
+  duk_call(u->ctx, 3);
 }
 
 duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
-  cpr_user_data *u;
   GLFWwindow *window;
+  cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
   u->window_pos_callback_ptr = duk_get_heapptr(ctx, 1);
-  glfwSetWindowPosCallback(window, window_pos_callback);
+  glfwSetWindowPosCallback(window, cpr__window_pos_callback);
+  duk_push_heapptr(ctx, u->window_pos_callback_ptr);
   return 1;
+}
+
+void cpr__window_size_callback(GLFWwindow *window, int width, int height) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_size_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, width);
+  duk_push_int(u->ctx, height);
+  duk_call(u->ctx, 3);
 }
 
 duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
-  /* GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_size_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowSizeCallback(window, cpr__window_size_callback);
+  duk_push_heapptr(ctx, u->window_size_callback_ptr);
   return 1;
+}
+
+void cpr__window_close_callback(GLFWwindow *window) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_close_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_call(u->ctx, 1);
 }
 
 duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
-  /* GLFWwindowclosefun glfwSetWindowCloseCallback(GLFWwindow* window, GLFWwindowclosefun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_close_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowCloseCallback(window, cpr__window_close_callback);
+  duk_push_heapptr(ctx, u->window_close_callback_ptr);
   return 1;
+}
+
+/* TODO check refresh callback is actually called */
+void cpr__window_refresh_callback(GLFWwindow *window) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_refresh_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_call(u->ctx, 1);
 }
 
 duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
-  /* GLFWwindowrefreshfun glfwSetWindowRefreshCallback(GLFWwindow* window, GLFWwindowrefreshfun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_refresh_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowRefreshCallback(window, cpr__window_refresh_callback);
+  duk_push_heapptr(ctx, u->window_refresh_callback_ptr);
   return 1;
+}
+
+void cpr__window_focus_callback(GLFWwindow *window, int focused) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_focus_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_boolean(u->ctx, focused);
+  duk_call(u->ctx, 2);
 }
 
 duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
-  /* GLFWwindowfocusfun glfwSetWindowFocusCallback(GLFWwindow* window, GLFWwindowfocusfun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_focus_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowFocusCallback(window, cpr__window_focus_callback);
+  duk_push_heapptr(ctx, u->window_focus_callback_ptr);
   return 1;
 }
 
+void cpr__window_iconify_callback(GLFWwindow *window, int iconified) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->window_iconify_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_boolean(u->ctx, iconified);
+  duk_call(u->ctx, 2);
+}
+
 duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
-  /* GLFWwindowiconifyfun glfwSetWindowIconifyCallback(GLFWwindow* window, GLFWwindowiconifyfun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  u->window_iconify_callback_ptr = duk_get_heapptr(ctx, 1);
+  glfwSetWindowIconifyCallback(window, cpr__window_iconify_callback);
+  duk_push_heapptr(ctx, u->window_iconify_callback_ptr);
   return 1;
 }
 
