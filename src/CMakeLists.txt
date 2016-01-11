@@ -24,16 +24,16 @@ add_dependencies(${RUNTIME_NAME} duktape)
 if (BUILD_LINUX)
   target_link_libraries(${RUNTIME_NAME} duktape dl m)
   target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99 -pedantic-errors -pedantic)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1 CPR_COMPILING_CEPORA=1)
 elseif (BUILD_OSX)
   target_link_libraries(${RUNTIME_NAME} duktape)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1 CPR_COMPILING_CEPORA=1)
   # Specify linker flags for shared library build
   # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
   # (http://lua-users.org/wiki/BuildingModules)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WINDOWS)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
 endif()
 
 add_library(io SHARED cpr_io.c)
@@ -44,6 +44,7 @@ set_target_properties(io PROPERTIES PREFIX "" OUTPUT_NAME "io" SUFFIX ".so")
 add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX ".so")
 target_link_libraries(mod_glfw glfw)
+target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
 
 install(TARGETS ${RUNTIME_NAME} io mod_glfw
     BUNDLE  DESTINATION "." COMPONENT Runtime
