@@ -116,10 +116,10 @@ try
 
   # TODO test createCursor with actual 32bits pixel data
   # Create a plain buffer of 8 bytes
-  buffer = Duktape.Buffer 64
+  buffer = Duktape.Buffer 256
   # Fill it using index properties
   buffer[i] = 0x0f +i for i in [i..buffer.length]
-  cursor = glfw.createCursor buffer, 32, 32, 0, 0
+  cursor = glfw.createCursor buffer, 16, 16, 0, 0
   glfw.setCursor window, cursor
 
   #### Context handling ####
