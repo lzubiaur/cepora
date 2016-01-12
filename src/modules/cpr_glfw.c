@@ -492,7 +492,11 @@ static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->key_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->key_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetKeyCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetKeyCallback(window, cpr__key_callback);
   duk_push_heapptr(ctx, u->key_callback_ptr);
   return 1;
