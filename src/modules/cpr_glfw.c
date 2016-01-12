@@ -734,13 +734,17 @@ rethrow:
   return 0; /* Not reachable */
 }
 
+/* Input handling */
+
 duk_ret_t glfw_get_input_mode(duk_context *ctx) {
-  /* int glfwGetInputMode(GLFWwindow* window, int mode); */
+  duk_push_int(ctx, glfwGetInputMode(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
 duk_ret_t glfw_set_input_mode(duk_context *ctx) {
-  /* void glfwSetInputMode(GLFWwindow* window, int mode, int value); */
+  glfwSetInputMode(duk_require_pointer(ctx, 0),
+                   duk_require_int(ctx, 1),
+                   duk_require_int(ctx, 2));
   return 0;
 }
 
@@ -913,7 +917,7 @@ static const duk_function_list_entry module_funcs[] = {
   { "waitEvents",                  glfw_wait_events,                   0   },
   { "postEmptyEvent",              glfw_post_empty_event,              0   },
   { "swapBuffers",                 glfw_swap_buffers,                  1   },
-
+  /* Monitor handling */
   { "getMonitors",                 glfw_get_monitors,                  1   },
   { "getPrimaryMonitor",           glfw_get_primary_monitor,           0   },
   { "getMonitorPos",               glfw_get_monitor_pos,               3   },
@@ -925,6 +929,7 @@ static const duk_function_list_entry module_funcs[] = {
   { "setGamma",                    glfw_set_gamma,                     2   },
   { "getGammaRamp",                glfw_get_gamma_ramp,                1   },
   { "setGammaRamp",                glfw_set_gamma_ramp,                2   },
+  /* Input handling */
   { "getInputMode",                glfw_get_input_mode,                2   },
   { "setInputMode",                glfw_set_input_mode,                3   },
   { "getKey",                      glfw_get_key,                       2   },
@@ -960,9 +965,11 @@ const duk_number_list_entry module_consts[] = {
   { "VERSION_MAJOR",               (double) GLFW_VERSION_MAJOR },
   { "VERSION_MINOR",               (double) GLFW_VERSION_MINOR },
   { "VERSION_REVISION",            (double) GLFW_VERSION_REVISION },
+  /* Key and button actions */
   { "RELEASE",                     (double) GLFW_RELEASE },
   { "PRESS",                       (double) GLFW_PRESS },
   { "REPEAT",                      (double) GLFW_REPEAT },
+  /* Key codes */
   { "KEY_UNKNOWN",                 (double) GLFW_KEY_UNKNOWN },
   { "KEY_SPACE",                   (double) GLFW_KEY_SPACE },
   { "KEY_APOSTROPHE",              (double) GLFW_KEY_APOSTROPHE },
@@ -1174,13 +1181,15 @@ const duk_number_list_entry module_consts[] = {
   { "OPENGL_ANY_PROFILE",          (double) GLFW_OPENGL_ANY_PROFILE },
   { "OPENGL_CORE_PROFILE",         (double) GLFW_OPENGL_CORE_PROFILE },
   { "OPENGL_COMPAT_PROFILE",       (double) GLFW_OPENGL_COMPAT_PROFILE },
-
+  /* Input modes (set/getInputMode) */
   { "CURSOR",                      (double) GLFW_CURSOR },
   { "STICKY_KEYS",                 (double) GLFW_STICKY_KEYS },
   { "STICKY_MOUSE_BUTTONS",        (double) GLFW_STICKY_MOUSE_BUTTONS },
+  /* Cursor modes */
   { "CURSOR_NORMAL",               (double) GLFW_CURSOR_NORMAL },
   { "CURSOR_HIDDEN",               (double) GLFW_CURSOR_HIDDEN },
   { "CURSOR_DISABLED",             (double) GLFW_CURSOR_DISABLED },
+
   { "ANY_RELEASE_BEHAVIOR",        (double) GLFW_ANY_RELEASE_BEHAVIOR },
   { "RELEASE_BEHAVIOR_FLUSH",      (double) GLFW_RELEASE_BEHAVIOR_FLUSH },
   { "RELEASE_BEHAVIOR_NONE",       (double) GLFW_RELEASE_BEHAVIOR_NONE },
