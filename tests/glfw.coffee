@@ -9,12 +9,13 @@ errorHandler = (code, message) -> err code, message
 keyHandler = (window, key, scancode, action, mods) ->
   # if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   glfw.setWindowShouldClose window, true if key == glfw.KEY_ESCAPE
-  inf key, scancode, action, mods
+  inf '[keyHandler]:', key, scancode, action, mods
   # test remove key callback
   glfw.setKeyCallback window, null
 
 # XXX print unicode character instead of its code
-charHandler = (window, character) -> inf 'Input char:', character
+charHandler = (window, character) -> inf '[charHandler]:', character
+charModsHandler = (window, character) -> inf '[charModsHandler]:', character
 
 windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
 windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
@@ -128,6 +129,7 @@ try
   ### Keyboard ###
   glfw.setKeyCallback window, keyHandler
   glfw.setCharCallback window, charHandler
+  glfw.setCharModsCallback window, charModsHandler
 
   ### Joystick ###
   inf '[joystickPresent] 0:', glfw.joystickPresent 0
