@@ -13,6 +13,9 @@ keyHandler = (window, key, scancode, action, mods) ->
   # test remove key callback
   glfw.setKeyCallback window, null
 
+# XXX print unicode character instead of its code
+charHandler = (window, character) -> inf 'Input char:', character
+
 windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
 windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
 windowCloseHandler = (window) -> inf 'Window will close'
@@ -122,6 +125,15 @@ try
   cursor = glfw.createCursor buffer, 16, 16, 0, 0
   glfw.setCursor window, cursor
 
+  ### Keyboard ###
+  glfw.setKeyCallback window, keyHandler
+  glfw.setCharCallback window, charHandler
+
+  ### Joystick ###
+  inf '[joystickPresent] 0:', glfw.joystickPresent 0
+  inf '[joystickPresent] 1:', glfw.joystickPresent 1
+  inf '[joystickPresent] 2:', glfw.joystickPresent 2
+
   #### Context handling ####
   # glfwMakeContextCurrent
   glfw.makeContextCurrent window
@@ -141,8 +153,7 @@ try
     inf glfw.getVersionString()
     inf glfw.getVersion()
 
-  glfw.setKeyCallback window, keyHandler
-
+  # the main loop
   mainLoop window while not glfw.windowShouldClose window
 
 catch error
