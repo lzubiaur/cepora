@@ -91,6 +91,7 @@ try
   # Not implemented
   # glfw.setMonitorCallback()
   inf 'Monitor video mode:', o for o in glfw.getVideoModes monitor
+  inf 'Monitor current mode:', glfw.getVideoMode monitor
 
   #### Context handling ####
   # glfwMakeContextCurrent
