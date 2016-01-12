@@ -696,8 +696,7 @@ duk_ret_t cpr__get_array_us(duk_context *ctx) {
   return 2;
 }
 
-/* TODO use buffer of 256 instead of malloc. See note about gamme in GLFW docs:
- * http://www.glfw.org/docs/latest/monitor.html#monitor_gamma) */
+/* TODO implement setGammaRamp using buffer instead of array */
 duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
   GLFWgammaramp ramp = {0};
   int i;
@@ -749,42 +748,64 @@ duk_ret_t glfw_set_input_mode(duk_context *ctx) {
 }
 
 duk_ret_t glfw_get_key(duk_context *ctx) {
-  /* int glfwGetKey(GLFWwindow* window, int key); */
+  duk_push_int(ctx, glfwGetKey(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
 duk_ret_t glfw_get_mouse_button(duk_context *ctx) {
-  /* int glfwGetMouseButton(GLFWwindow* window, int button); */
+  duk_push_int(ctx, glfwGetMouseButton(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
 duk_ret_t glfw_get_cursor_pos(duk_context *ctx) {
-  /* void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos); */
-  return 0;
+  double xpos, ypos;
+  glfwGetCursorPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
+  duk_push_array(ctx);
+  duk_push_number(ctx, xpos);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_number(ctx, ypos);
+  duk_put_prop_index(ctx, -2, 1);
+  return 1;
 }
 
 duk_ret_t glfw_set_cursor_pos(duk_context *ctx) {
-  /* void glfwSetCursorPos(GLFWwindow* window, double xpos, double ypos); */
+  glfwSetCursorPos(duk_require_pointer(ctx, 0),
+                   duk_require_number(ctx ,1),
+                   duk_require_number(ctx ,2));
   return 0;
 }
 
+/* @param buffer
+ * @param width
+ * @param height
+ * @param xhot
+ * @param yhot
+ */
 duk_ret_t glfw_create_cursor(duk_context *ctx) {
-  /* GLFWcursor* glfwCreateCursor(const GLFWimage* image, int xhot, int yhot); */
+  GLFWimage image;
+  duk_size_t len;
+
+  image.pixels = (unsigned char *)duk_require_buffer_data(ctx, 0, &len);
+  image.width  = duk_require_int(ctx, 1);
+  image.height = duk_require_int(ctx, 2);
+  duk_push_pointer(ctx, glfwCreateCursor(&image,
+                                         duk_require_int(ctx, 3),
+                                         duk_require_int(ctx, 4)));
   return 1;
 }
 
 duk_ret_t glfw_create_standard_cursor(duk_context *ctx) {
-  /* GLFWcursor* glfwCreateStandardCursor(int shape); */
+  duk_push_pointer(ctx, glfwCreateStandardCursor(duk_require_int(ctx, 0)));
   return 1;
 }
 
 duk_ret_t glfw_destroy_cursor(duk_context *ctx) {
-  /* void glfwDestroyCursor(GLFWcursor* cursor); */
+  glfwDestroyCursor(duk_require_pointer(ctx, 0));
   return 0;
 }
 
 duk_ret_t glfw_set_cursor(duk_context *ctx) {
-  /* void glfwSetCursor(GLFWwindow* window, GLFWcursor* cursor); */
+  glfwSetCursor(duk_require_pointer(ctx, 0), duk_require_pointer(ctx, 1));
   return 0;
 }
 
@@ -934,9 +955,9 @@ static const duk_function_list_entry module_funcs[] = {
   { "setInputMode",                glfw_set_input_mode,                3   },
   { "getKey",                      glfw_get_key,                       2   },
   { "getMouseButton",              glfw_get_mouse_button,              2   },
-  { "getCursorPos",                glfw_get_cursor_pos,                3   },
+  { "getCursorPos",                glfw_get_cursor_pos,                1   },
   { "setCursorPos",                glfw_set_cursor_pos,                3   },
-  { "createCursor",                glfw_create_cursor,                 3   },
+  { "createCursor",                glfw_create_cursor,                 5   },
   { "createStandardCursor",        glfw_create_standard_cursor,        1   },
   { "destroyCursor",               glfw_destroy_cursor,                1   },
   { "setCursor",                   glfw_set_cursor,                    2   },
@@ -1193,12 +1214,14 @@ const duk_number_list_entry module_consts[] = {
   { "ANY_RELEASE_BEHAVIOR",        (double) GLFW_ANY_RELEASE_BEHAVIOR },
   { "RELEASE_BEHAVIOR_FLUSH",      (double) GLFW_RELEASE_BEHAVIOR_FLUSH },
   { "RELEASE_BEHAVIOR_NONE",       (double) GLFW_RELEASE_BEHAVIOR_NONE },
+  /* Standard cursor shapes */
   { "ARROW_CURSOR",                (double) GLFW_ARROW_CURSOR },
   { "IBEAM_CURSOR",                (double) GLFW_IBEAM_CURSOR },
   { "CROSSHAIR_CURSOR",            (double) GLFW_CROSSHAIR_CURSOR },
   { "HAND_CURSOR",                 (double) GLFW_HAND_CURSOR },
   { "HRESIZE_CURSOR",              (double) GLFW_HRESIZE_CURSOR },
   { "VRESIZE_CURSOR",              (double) GLFW_VRESIZE_CURSOR },
+
   { "CONNECTED",                   (double) GLFW_CONNECTED },
   { "DISCONNECTED",                (double) GLFW_DISCONNECTED },
   { "DONT_CARE",                   (double) GLFW_DONT_CARE },
