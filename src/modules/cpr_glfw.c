@@ -327,7 +327,11 @@ duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_pos_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_pos_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowPosCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowPosCallback(window, cpr__window_pos_callback);
   duk_push_heapptr(ctx, u->window_pos_callback_ptr);
   return 1;
@@ -348,7 +352,11 @@ duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_size_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_size_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowSizeCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowSizeCallback(window, cpr__window_size_callback);
   duk_push_heapptr(ctx, u->window_size_callback_ptr);
   return 1;
@@ -367,7 +375,11 @@ duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_close_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_close_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowCloseCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowCloseCallback(window, cpr__window_close_callback);
   duk_push_heapptr(ctx, u->window_close_callback_ptr);
   return 1;
@@ -387,7 +399,11 @@ duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_refresh_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_refresh_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowRefreshCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowRefreshCallback(window, cpr__window_refresh_callback);
   duk_push_heapptr(ctx, u->window_refresh_callback_ptr);
   return 1;
@@ -407,7 +423,11 @@ duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_focus_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_focus_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowFocusCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowFocusCallback(window, cpr__window_focus_callback);
   duk_push_heapptr(ctx, u->window_focus_callback_ptr);
   return 1;
@@ -427,7 +447,11 @@ duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->window_iconify_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->window_iconify_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetWindowIconifyCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetWindowIconifyCallback(window, cpr__window_iconify_callback);
   duk_push_heapptr(ctx, u->window_iconify_callback_ptr);
   return 1;
@@ -448,7 +472,11 @@ duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
   cpr_user_data *u;
   window = duk_require_pointer(ctx, 0);
   u = glfwGetWindowUserPointer(window);
-  u->framebuffer_size_callback_ptr = duk_get_heapptr(ctx, 1);
+  if ((u->framebuffer_size_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetFramebufferSizeCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
   glfwSetFramebufferSizeCallback(window, cpr__framebuffer_size_callback);
   duk_push_heapptr(ctx, u->framebuffer_size_callback_ptr);
   return 1;
