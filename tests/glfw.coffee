@@ -103,9 +103,24 @@ try
   glfw.setInputMode window, glfw.CURSOR, glfw.CURSOR_NORMAL
   glfw.setInputMode window, glfw.STICKY_KEYS, 1
   glfw.setInputMode window, glfw.STICKY_MOUSE_BUTTONS, 1
-  inf 'Input mode: Cursor:', glfw.getInputMode window, glfw.CURSOR
-  inf 'Input mode: Sticky keys:', glfw.getInputMode window, glfw.STICKY_KEYS
-  inf 'Input mode: Sticky mouse buttons:', glfw.getInputMode window, glfw.STICKY_MOUSE_BUTTONS
+  inf '[Input mode] Cursor:', glfw.getInputMode window, glfw.CURSOR
+  inf '[Input mode] Sticky keys:', glfw.getInputMode window, glfw.STICKY_KEYS
+  inf '[Input mode] Sticky mouse buttons:', glfw.getInputMode window, glfw.STICKY_MOUSE_BUTTONS
+  inf '[getKey] KEY_K:', glfw.getKey window, glfw.KEY_K
+  inf '[getMouseButton] MOUSE_BUTTON_1:', glfw.getMouseButton window, glfw.MOUSE_BUTTON_1
+  # TODO setCursorPos doesn't seem to work
+  glfw.setCursorPos window, 100, 100
+  inf '[getCursorPos]:', glfw.getCursorPos window
+  cursor = glfw.createStandardCursor glfw.HAND_CURSOR
+  glfw.setCursor window, cursor
+
+  # TODO test createCursor with actual 32bits pixel data
+  # Create a plain buffer of 8 bytes
+  buffer = Duktape.Buffer 64
+  # Fill it using index properties
+  buffer[i] = 0x0f +i for i in [i..buffer.length]
+  cursor = glfw.createCursor buffer, 32, 32, 0, 0
+  glfw.setCursor window, cursor
 
   #### Context handling ####
   # glfwMakeContextCurrent
