@@ -601,19 +601,27 @@ void cpr__push_array_vidmode(duk_context *ctx, const GLFWvidmode *vidmode) {
 
 duk_ret_t glfw_get_video_modes(duk_context *ctx) {
   int count = 0, i;
-  const GLFWvidmode *vidmode = NULL;
+  const GLFWvidmode *modes = NULL;
 
-  vidmode = glfwGetVideoModes(duk_require_pointer(ctx, 0), &count);
-  duk_push_array(ctx);
-  for (i=0; i<count; ++i) {
-    cpr__push_array_vidmode(ctx, &vidmode[i]);
-    duk_put_prop_index(ctx, -2, i);
+  if ((modes = glfwGetVideoModes(duk_require_pointer(ctx, 0), &count)) != NULL) {
+    duk_push_array(ctx);
+    for (i=0; i<count; ++i) {
+      cpr__push_array_vidmode(ctx, &modes[i]);
+      duk_put_prop_index(ctx, -2, i);
+    }
+  } else {
+    duk_push_null(ctx);
   }
   return 1;
 }
 
 duk_ret_t glfw_get_video_mode(duk_context *ctx) {
-  /* const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* monitor); */
+  const GLFWvidmode *mode = NULL;
+  if ((mode = glfwGetVideoMode(duk_require_pointer(ctx, 0))) != NULL) {
+    cpr__push_array_vidmode(ctx, mode);
+  } else {
+    duk_push_null(ctx);
+  }
   return 1;
 }
 
