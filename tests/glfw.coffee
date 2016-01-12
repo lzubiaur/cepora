@@ -10,6 +10,8 @@ keyHandler = (window, key, scancode, action, mods) ->
   # if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   glfw.setWindowShouldClose window, true if key == glfw.KEY_ESCAPE
   inf key, scancode, action, mods
+  # test remove key callback
+  glfw.setKeyCallback window, null
 
 windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
 windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
@@ -83,6 +85,8 @@ try
   inf 'Monitor position:', glfw.getMonitorPos glfw.getPrimaryMonitor()
   inf 'Monitor physical size:', glfw.getMonitorPhysicalSize glfw.getPrimaryMonitor()
   inf 'Monitor name:', glfw.getMonitorName glfw.getPrimaryMonitor()
+  # Not implemented
+  # glfw.setMonitorCallback()
 
   #### Context handling ####
   # glfwMakeContextCurrent
