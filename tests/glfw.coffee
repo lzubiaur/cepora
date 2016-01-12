@@ -99,6 +99,13 @@ try
   blue = (num for num in [1..256])
   glfw.setGammaRamp monitor, [red, green, blue]
 
+  #### Input handling ####
+  glfw.setInputMode window, glfw.CURSOR, glfw.CURSOR_NORMAL
+  glfw.setInputMode window, glfw.STICKY_KEYS, 1
+  glfw.setInputMode window, glfw.STICKY_MOUSE_BUTTONS, 1
+  inf 'Input mode: Cursor:', glfw.getInputMode window, glfw.CURSOR
+  inf 'Input mode: Sticky keys:', glfw.getInputMode window, glfw.STICKY_KEYS
+  inf 'Input mode: Sticky mouse buttons:', glfw.getInputMode window, glfw.STICKY_MOUSE_BUTTONS
 
   #### Context handling ####
   # glfwMakeContextCurrent
