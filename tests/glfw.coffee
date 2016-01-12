@@ -16,7 +16,9 @@ keyHandler = (window, key, scancode, action, mods) ->
 windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
 windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
 windowCloseHandler = (window) -> inf 'Window will close'
-windowRefreshHandler = (window) -> inf 'Window refresh'
+windowRefreshHandler = (window) ->
+  inf 'Window refresh'
+  glfw.swapBuffers window
 windowFocusHandler = (window, focused) -> inf 'Window focus:', focused
 windowIconifyHandler = (window, iconified) -> inf 'Window iconify:', iconified
 frameBufferSizeHandler = (window, w, h) -> inf 'New framebuffer size:', w, h
@@ -81,12 +83,14 @@ try
   glfw.setFramebufferSizeCallback window, frameBufferSizeHandler
 
   #### Monitor handling ####
+  monitor = glfw.getPrimaryMonitor()
   inf 'Monitors:', glfw.getMonitors()
-  inf 'Monitor position:', glfw.getMonitorPos glfw.getPrimaryMonitor()
-  inf 'Monitor physical size:', glfw.getMonitorPhysicalSize glfw.getPrimaryMonitor()
-  inf 'Monitor name:', glfw.getMonitorName glfw.getPrimaryMonitor()
+  inf 'Monitor position:', glfw.getMonitorPos monitor
+  inf 'Monitor physical size:', glfw.getMonitorPhysicalSize monitor
+  inf 'Monitor name:', glfw.getMonitorName monitor
   # Not implemented
   # glfw.setMonitorCallback()
+  inf 'Monitor video mode:', o for o in glfw.getVideoModes monitor
 
   #### Context handling ####
   # glfwMakeContextCurrent
