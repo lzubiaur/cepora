@@ -12,6 +12,18 @@
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
 
+#if defined(CPR_DEBUG_GLFW_BINDING)
+
+void cpr__log_raw(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fflush(stderr);
+}
+
+#endif
+
 typedef struct cpr_user_data {
   duk_context *ctx;
   /* Callback pointers */
@@ -626,18 +638,100 @@ duk_ret_t glfw_get_video_mode(duk_context *ctx) {
 }
 
 duk_ret_t glfw_set_gamma(duk_context *ctx) {
-  /* void glfwSetGamma(GLFWmonitor* monitor, float gamma); */
+  glfwSetGamma(duk_require_pointer(ctx, 0), duk_require_number(ctx, 1));
   return 0;
+}
+
+void cpr__push_array_gamma_elem(duk_context *ctx, const unsigned short *elem, unsigned int size) {
+  int i;
+  duk_push_array(ctx);
+  for (i=0; i<size; ++i) {
+    duk_push_uint(ctx, elem[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
+}
+
+void cpr__push_array_gamma_ramp(duk_context *ctx, const GLFWgammaramp *ramp) {
+  duk_push_array(ctx);
+  cpr__push_array_gamma_elem(ctx, ramp->red, ramp->size);
+  duk_put_prop_index(ctx, -2, 0);
+  cpr__push_array_gamma_elem(ctx, ramp->green, ramp->size);
+  duk_put_prop_index(ctx, -2, 1);
+  cpr__push_array_gamma_elem(ctx, ramp->blue, ramp->size);
+  duk_put_prop_index(ctx, -2, 2);
 }
 
 duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
-  /* const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor); */
+  const GLFWgammaramp *ramp = NULL;
+  ramp = glfwGetGammaRamp(duk_require_pointer(ctx,0 ));
+  cpr__push_array_gamma_ramp(ctx, ramp);
   return 1;
 }
 
+/* Return an array of unsigned int at index `idx`. The caller must freed the array
+ * Size can be NULL.
+ */
+duk_ret_t cpr__get_array_us(duk_context *ctx) {
+  duk_size_t size;
+  int i;
+  unsigned short *ptr = NULL;
+
+  if (duk_is_array(ctx, -1) == 0) {
+    duk_error(ctx, DUK_ERR_TYPE_ERROR, "cpr__get_array_ui: Not an array.");
+  }
+  size = duk_get_length(ctx, -1);
+  if ((ptr = duk_alloc(ctx, sizeof(unsigned short) * size)) == NULL) {
+    duk_error(ctx, DUK_ERR_ALLOC_ERROR, "cpr__get_array_ui: Out of memory.");
+  }
+  for (i=0; i<size; ++i) {
+    if (duk_get_prop_index(ctx, -1, i) == 0) {
+      duk_free(ctx, ptr);
+      duk_error(ctx, DUK_ERR_RANGE_ERROR, "cpr__get_array_ui: invalid index %d.", i);
+    }
+    ptr[i] = duk_get_uint(ctx, -1);
+    duk_pop(ctx);
+  }
+  duk_push_pointer(ctx, ptr);
+  duk_push_uint(ctx, size);
+  return 2;
+}
+
+/* TODO use buffer of 256 instead of malloc. See note about gamme in GLFW docs:
+ * http://www.glfw.org/docs/latest/monitor.html#monitor_gamma) */
 duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
-  /* void glfwSetGammaRamp(GLFWmonitor* monitor, const GLFWgammaramp* ramp); */
+  GLFWgammaramp ramp = {0};
+  int i;
+  unsigned short **e;
+  if (duk_is_array(ctx, 1) == 0) {
+    duk_error(ctx, DUK_ERR_TYPE_ERROR, "glfw_set_gamma_ramp: Not an array.");
+  }
+  for (i=0, e=&ramp.red; i<3; ++i, e = i<2 ? &ramp.green : &ramp.blue) {
+    duk_get_prop_index(ctx, 1, i);
+    if (duk_safe_call(ctx, cpr__get_array_us, 1, 2)) {
+      duk_dup(ctx, -2); /* duplicate error object */
+      goto rethrow;
+    }
+#if defined(CPR_DEBUG_GLFW_BINDING)
+    duk_dump_context_stdout(ctx);
+#endif /* CPR_DEBUG_GLFW_BINDING */
+    *e = duk_get_pointer(ctx, -2);
+    ramp.size = duk_get_uint(ctx, -1) < ramp.size ? duk_get_uint(ctx, -1) : ramp.size;
+    /* No need to pop call to duk_get_prop_index because it's poped and
+     * replaced by the return values by duk_safe_call */
+    duk_pop_2(ctx);
+  }
+  glfwSetGammaRamp(duk_require_pointer(ctx, 0), &ramp);
+  duk_free(ctx, ramp.red);
+  duk_free(ctx, ramp.green);
+  duk_free(ctx, ramp.blue);
   return 0;
+
+rethrow:
+  duk_free(ctx, ramp.red);
+  duk_free(ctx, ramp.green);
+  duk_free(ctx, ramp.blue);
+  duk_throw(ctx);
+  return 0; /* Not reachable */
 }
 
 duk_ret_t glfw_get_input_mode(duk_context *ctx) {
