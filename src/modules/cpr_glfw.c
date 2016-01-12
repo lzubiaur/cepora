@@ -579,11 +579,36 @@ duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
 
 /* TODO implement glfw_set_monitor_callback */
 duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
+  fprintf(stderr, "FIXME: Not implemented\n");
   return 0;
 }
 
+void cpr__push_array_vidmode(duk_context *ctx, const GLFWvidmode *vidmode) {
+  duk_push_array(ctx);
+  duk_push_int(ctx, vidmode->width);
+  duk_put_prop_index(ctx, -2, 0);
+  duk_push_int(ctx, vidmode->height);
+  duk_put_prop_index(ctx, -2, 1);
+  duk_push_int(ctx, vidmode->redBits);
+  duk_put_prop_index(ctx, -2, 2);
+  duk_push_int(ctx, vidmode->greenBits);
+  duk_put_prop_index(ctx, -2, 3);
+  duk_push_int(ctx, vidmode->blueBits);
+  duk_put_prop_index(ctx, -2, 4);
+  duk_push_int(ctx, vidmode->refreshRate);
+  duk_put_prop_index(ctx, -2, 5);
+}
+
 duk_ret_t glfw_get_video_modes(duk_context *ctx) {
-  /* const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count); */
+  int count = 0, i;
+  const GLFWvidmode *vidmode = NULL;
+
+  vidmode = glfwGetVideoModes(duk_require_pointer(ctx, 0), &count);
+  duk_push_array(ctx);
+  for (i=0; i<count; ++i) {
+    cpr__push_array_vidmode(ctx, &vidmode[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
   return 1;
 }
 
@@ -793,7 +818,7 @@ static const duk_function_list_entry module_funcs[] = {
   { "getMonitorPhysicalSize",      glfw_get_monitor_physical_size,     3   },
   { "getMonitorName",              glfw_get_monitor_name,              1   },
   { "setMonitorCallback",          glfw_set_monitor_callback,          1   },
-  { "getVideoModes",               glfw_get_video_modes,               2   },
+  { "getVideoModes",               glfw_get_video_modes,               1   },
   { "getVideoMode",                glfw_get_video_mode,                1   },
   { "setGamma",                    glfw_set_gamma,                     2   },
   { "getGammaRamp",                glfw_get_gamma_ramp,                1   },
