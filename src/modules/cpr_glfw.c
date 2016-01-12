@@ -12,8 +12,22 @@
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
 
-#if defined(CPR_DEBUG_GLFW_BINDING)
+#define CPR_SET_CALLBACK(p1,p2,p3)                          \
+  do {                                                      \
+    GLFWwindow *window;                                     \
+    cpr_user_data *u;                                       \
+    window = duk_require_pointer(ctx, 0);                   \
+    u = glfwGetWindowUserPointer(window);                   \
+    if ((u->p2 = duk_get_heapptr(ctx, 1)) == NULL) {        \
+      p1(window, NULL);                                     \
+      duk_push_null(ctx);                                   \
+      return 1;                                             \
+    }                                                       \
+    p1(window, p3);                                         \
+    duk_push_heapptr(ctx, u->p2);                           \
+  } while(0)
 
+#if defined(CPR_DEBUG_GLFW_BINDING)
 void cpr__log_raw(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
@@ -21,7 +35,6 @@ void cpr__log_raw(const char *fmt, ...) {
   va_end(ap);
   fflush(stderr);
 }
-
 #endif
 
 typedef struct cpr_user_data {
@@ -36,6 +49,7 @@ typedef struct cpr_user_data {
   void *framebuffer_size_callback_ptr;
   void *key_callback_ptr;
   void *char_callback_ptr;
+  void *char_mods_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -834,8 +848,18 @@ duk_ret_t glfw_set_char_callback(duk_context *ctx) {
   return 1;
 }
 
+void cpr__set_char_mods_callback(GLFWwindow *window, unsigned int codepoint, int mods) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->char_mods_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_uint(u->ctx, codepoint);
+  duk_push_int(u->ctx, mods);
+  duk_call(u->ctx, 3);
+}
+
 duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
-  /* GLFWcharmodsfun glfwSetCharModsCallback(GLFWwindow* window, GLFWcharmodsfun cbfun); */
+  CPR_SET_CALLBACK(glfwSetCharModsCallback, char_mods_callback_ptr, cpr__set_char_mods_callback);
   return 1;
 }
 
