@@ -35,6 +35,7 @@ typedef struct cpr_user_data {
   void *window_iconify_callback_ptr;
   void *framebuffer_size_callback_ptr;
   void *key_callback_ptr;
+  void *char_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -514,34 +515,6 @@ static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
   return 0;
 }
 
-void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  cpr_user_data *u;
-  u = glfwGetWindowUserPointer(window);
-  duk_push_heapptr(u->ctx, u->key_callback_ptr);
-  duk_push_pointer(u->ctx, window);
-  duk_push_int(u->ctx, key);
-  duk_push_int(u->ctx, scancode);
-  duk_push_int(u->ctx, action);
-  duk_push_int(u->ctx, mods);
-  duk_call(u->ctx, 5);
-}
-
-static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->key_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetKeyCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetKeyCallback(window, cpr__key_callback);
-  duk_push_heapptr(ctx, u->key_callback_ptr);
-  return 1;
-}
-
 /* Monitor handling */
 /* http://www.glfw.org/docs/latest/group__monitor.html */
 
@@ -809,8 +782,55 @@ duk_ret_t glfw_set_cursor(duk_context *ctx) {
   return 0;
 }
 
+void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->key_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, key);
+  duk_push_int(u->ctx, scancode);
+  duk_push_int(u->ctx, action);
+  duk_push_int(u->ctx, mods);
+  duk_call(u->ctx, 5);
+}
+
+static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  if ((u->key_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetKeyCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
+  glfwSetKeyCallback(window, cpr__key_callback);
+  duk_push_heapptr(ctx, u->key_callback_ptr);
+  return 1;
+}
+
+void cpr__char_callback(GLFWwindow *window, unsigned int character) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->char_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, character);
+  duk_call(u->ctx, 2);
+}
+
 duk_ret_t glfw_set_char_callback(duk_context *ctx) {
-  /* GLFWcharfun glfwSetCharCallback(GLFWwindow* window, GLFWcharfun cbfun); */
+  GLFWwindow *window;
+  cpr_user_data *u;
+  window = duk_require_pointer(ctx, 0);
+  u = glfwGetWindowUserPointer(window);
+  if ((u->char_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
+    glfwSetCharCallback(window, NULL);
+    duk_push_null(ctx);
+    return 1;
+  }
+  glfwSetCharCallback(window, cpr__char_callback);
+  duk_push_heapptr(ctx, u->char_callback_ptr);
   return 1;
 }
 
@@ -845,7 +865,7 @@ duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
 }
 
 duk_ret_t glfw_joystick_present(duk_context *ctx) {
-  /* int glfwJoystickPresent(int joy); */
+  duk_push_boolean(ctx, glfwJoystickPresent(duk_require_int(ctx, 0)));
   return 1;
 }
 
@@ -990,7 +1010,7 @@ const duk_number_list_entry module_consts[] = {
   { "RELEASE",                     (double) GLFW_RELEASE },
   { "PRESS",                       (double) GLFW_PRESS },
   { "REPEAT",                      (double) GLFW_REPEAT },
-  /* Key codes */
+  /* Keyboard keys */
   { "KEY_UNKNOWN",                 (double) GLFW_KEY_UNKNOWN },
   { "KEY_SPACE",                   (double) GLFW_KEY_SPACE },
   { "KEY_APOSTROPHE",              (double) GLFW_KEY_APOSTROPHE },
@@ -1113,10 +1133,12 @@ const duk_number_list_entry module_consts[] = {
   { "KEY_RIGHT_SUPER",             (double) GLFW_KEY_RIGHT_SUPER },
   { "KEY_MENU",                    (double) GLFW_KEY_MENU },
   { "KEY_LAST",                    (double) GLFW_KEY_LAST },
+  /* Modifier key flags */
   { "MOD_SHIFT",                   (double) GLFW_MOD_SHIFT },
   { "MOD_CONTROL",                 (double) GLFW_MOD_CONTROL },
   { "MOD_ALT",                     (double) GLFW_MOD_ALT },
   { "MOD_SUPER",                   (double) GLFW_MOD_SUPER },
+  /* Mouse buttons */
   { "MOUSE_BUTTON_1",              (double) GLFW_MOUSE_BUTTON_1 },
   { "MOUSE_BUTTON_2",              (double) GLFW_MOUSE_BUTTON_2 },
   { "MOUSE_BUTTON_3",              (double) GLFW_MOUSE_BUTTON_3 },
@@ -1129,6 +1151,7 @@ const duk_number_list_entry module_consts[] = {
   { "MOUSE_BUTTON_LEFT",           (double) GLFW_MOUSE_BUTTON_LEFT },
   { "MOUSE_BUTTON_RIGHT",          (double) GLFW_MOUSE_BUTTON_RIGHT },
   { "MOUSE_BUTTON_MIDDLE",         (double) GLFW_MOUSE_BUTTON_MIDDLE },
+  /* Joysticks */
   { "JOYSTICK_1",                  (double) GLFW_JOYSTICK_1 },
   { "JOYSTICK_2",                  (double) GLFW_JOYSTICK_2 },
   { "JOYSTICK_3",                  (double) GLFW_JOYSTICK_3 },
