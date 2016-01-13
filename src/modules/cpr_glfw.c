@@ -872,7 +872,6 @@ void cpr__drop_callback(GLFWwindow *window, int count, const char **paths) {
 
 duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetDropCallback, drop_callback_ptr, cpr__drop_callback);
-  /* GLFWdropfun glfwSetDropCallback(GLFWwindow* window, GLFWdropfun cbfun); */
   return 1;
 }
 
@@ -882,17 +881,34 @@ duk_ret_t glfw_joystick_present(duk_context *ctx) {
 }
 
 duk_ret_t glfw_get_joystick_axes(duk_context *ctx) {
-  /* const float* glfwGetJoystickAxes(int joy, int* count); */
+  const float *axes;
+  int i, count = 0;
+  /* The returned array is allocated and freed by GLFW. */
+  axes = glfwGetJoystickAxes(duk_require_int(ctx, 0), &count);
+  duk_push_array(ctx);
+  for (i=0; i<count; ++i) {
+    duk_push_number(ctx, axes[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
   return 1;
 }
 
 duk_ret_t glfw_get_joystick_buttons(duk_context *ctx) {
-  /* const unsigned char* glfwGetJoystickButtons(int joy, int* count); */
+  const unsigned char *buttons;
+  int i, count = 0;
+  /* The returned array is allocated and freed by GLFW. */
+  buttons = glfwGetJoystickButtons(duk_require_int(ctx, 0), &count);
+  duk_push_array(ctx);
+  for (i=0; i<count; ++i) {
+    duk_push_boolean(ctx, buttons[i]);
+    duk_put_prop_index(ctx, -2, i);
+  }
   return 1;
 }
 
 duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
-  /* const char* glfwGetJoystickName(int joy); */
+  /* The returned string is allocated and freed by GLFW. */
+  duk_push_string(ctx, glfwGetJoystickName(duk_get_int(ctx, 0)));
   return 1;
 }
 
