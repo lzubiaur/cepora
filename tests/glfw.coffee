@@ -146,6 +146,9 @@ try
   inf '[joystickPresent] 0:', glfw.joystickPresent 0
   inf '[joystickPresent] 1:', glfw.joystickPresent 1
   inf '[joystickPresent] 2:', glfw.joystickPresent 2
+  inf '[getJoystickAxes]:', glfw.getJoystickAxes 0
+  inf '[getJoystickButtons]:', glfw.getJoystickButtons 0
+  inf '[getJoystickName]:', glfw.getJoystickName 0
 
   #### Context handling ####
   # glfwMakeContextCurrent
