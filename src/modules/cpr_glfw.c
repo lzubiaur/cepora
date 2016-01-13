@@ -58,6 +58,10 @@ typedef struct cpr_user_data {
   void *key_callback_ptr;
   void *char_callback_ptr;
   void *char_mods_callback_ptr;
+  void *mouse_button_callback_ptr;
+  void *cursor_pos_callback_ptr;
+  void *cursor_enter_callback_ptr;
+  void *scroll_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -791,23 +795,63 @@ duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
   return 1;
 }
 
+void cpr__mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->mouse_button_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_int(u->ctx, button);
+  duk_push_int(u->ctx, action);
+  duk_push_int(u->ctx, mods);
+  duk_call(u->ctx, 4);
+}
+
 duk_ret_t glfw_set_mouse_button_callback(duk_context *ctx) {
-  /* GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun); */
+  CPR__REGISTER_CALLBACK(glfwSetMouseButtonCallback, mouse_button_callback_ptr, cpr__mouse_button_callback);
   return 1;
+}
+
+void cpr__cursor_pos_callback(GLFWwindow *window, double xpos, double ypos) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->cursor_pos_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_number(u->ctx, xpos);
+  duk_push_number(u->ctx, ypos);
+  duk_call(u->ctx, 3);
 }
 
 duk_ret_t glfw_set_cursor_pos_callback(duk_context *ctx) {
-  /* GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun); */
+  CPR__REGISTER_CALLBACK(glfwSetCursorPosCallback, cursor_pos_callback_ptr, cpr__cursor_pos_callback);
   return 1;
+}
+
+void cpr__cursor_enter_callback(GLFWwindow *window, int entered) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->cursor_enter_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_boolean(u->ctx, entered);
+  duk_call(u->ctx, 2);
 }
 
 duk_ret_t glfw_set_cursor_enter_callback(duk_context *ctx) {
-  /* GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcursorenterfun cbfun); */
+  CPR__REGISTER_CALLBACK(glfwSetCursorEnterCallback, cursor_enter_callback_ptr, cpr__cursor_enter_callback);
   return 1;
 }
 
+void cpr__scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->scroll_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_number(u->ctx, xoffset);
+  duk_push_number(u->ctx, yoffset);
+  duk_call(u->ctx, 3);
+}
+
 duk_ret_t glfw_set_scroll_callback(duk_context *ctx) {
-  /* GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun); */
+  CPR__REGISTER_CALLBACK(glfwSetScrollCallback, scroll_callback_ptr, cpr__scroll_callback);
   return 1;
 }
 
