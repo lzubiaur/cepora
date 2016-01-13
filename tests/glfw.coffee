@@ -29,6 +29,7 @@ mouseButtonHandler = (window, button, action, mods) -> inf '[mouseButtonHandler]
 cursorPosHandler = (window, x, y) -> inf '[cursorPosHandler]', x, y
 cursorEnterHandler = (window, entered) -> inf '[cursorEnterHandler]', entered
 scrollHandler = (window, xoffset, yoffset) -> inf '[scrollHandler]', xoffset, yoffset
+dropHandler = (window, paths) -> inf '[dropHandler]', paths
 
 mainLoop = (window) ->
   glfw.pollEvents()
@@ -139,6 +140,7 @@ try
   glfw.setCursorPosCallback window, cursorPosHandler
   glfw.setCursorEnterCallback window, cursorEnterHandler
   glfw.setScrollCallback window, scrollHandler
+  glfw.setDropCallback window, dropHandler
 
   ### Joystick ###
   inf '[joystickPresent] 0:', glfw.joystickPresent 0
