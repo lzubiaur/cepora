@@ -12,19 +12,24 @@
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
 
-#define CPR_SET_CALLBACK(p1,p2,p3)                          \
+/* Callback template (setKeyCallback, setWindowSizeCallback...)
+ * @param __p1__ GLFW API function name used to register the C callback function.
+ * @param __p2__ name of the javascript callback heap pointer in the cpr_user_data struct.
+ * @param __p3__ name of the C function callback counterpart.
+ */
+#define CPR__REGISTER_CALLBACK(__p1__, __p2__, __p3__)       \
   do {                                                      \
     GLFWwindow *window;                                     \
     cpr_user_data *u;                                       \
     window = duk_require_pointer(ctx, 0);                   \
     u = glfwGetWindowUserPointer(window);                   \
-    if ((u->p2 = duk_get_heapptr(ctx, 1)) == NULL) {        \
-      p1(window, NULL);                                     \
+    if ((u->__p2__ = duk_get_heapptr(ctx, 1)) == NULL) {    \
+      __p1__(window, NULL);                                 \
       duk_push_null(ctx);                                   \
       return 1;                                             \
     }                                                       \
-    p1(window, p3);                                         \
-    duk_push_heapptr(ctx, u->p2);                           \
+    __p1__(window, __p3__);                                 \
+    duk_push_heapptr(ctx, u->__p2__);                       \
   } while(0)
 
 #if defined(CPR_DEBUG_GLFW_BINDING)
@@ -37,6 +42,9 @@ void cpr__log_raw(const char *fmt, ...) {
 }
 #endif
 
+/* Internal user data associated to a GLFWwindow. It's used to store callback
+ * pointers.
+ */
 typedef struct cpr_user_data {
   duk_context *ctx;
   /* Callback pointers */
@@ -375,17 +383,7 @@ void cpr__window_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->window_size_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetWindowSizeCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetWindowSizeCallback(window, cpr__window_size_callback);
-  duk_push_heapptr(ctx, u->window_size_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetWindowSizeCallback, window_size_callback_ptr, cpr__window_size_callback);
   return 1;
 }
 
@@ -398,17 +396,7 @@ void cpr__window_close_callback(GLFWwindow *window) {
 }
 
 duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->window_close_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetWindowCloseCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetWindowCloseCallback(window, cpr__window_close_callback);
-  duk_push_heapptr(ctx, u->window_close_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetWindowCloseCallback, window_close_callback_ptr, cpr__window_close_callback);
   return 1;
 }
 
@@ -422,17 +410,7 @@ void cpr__window_refresh_callback(GLFWwindow *window) {
 }
 
 duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->window_refresh_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetWindowRefreshCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetWindowRefreshCallback(window, cpr__window_refresh_callback);
-  duk_push_heapptr(ctx, u->window_refresh_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetWindowRefreshCallback, window_refresh_callback_ptr, cpr__window_refresh_callback);
   return 1;
 }
 
@@ -446,17 +424,7 @@ void cpr__window_focus_callback(GLFWwindow *window, int focused) {
 }
 
 duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->window_focus_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetWindowFocusCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetWindowFocusCallback(window, cpr__window_focus_callback);
-  duk_push_heapptr(ctx, u->window_focus_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetWindowFocusCallback, window_focus_callback_ptr, cpr__window_focus_callback);
   return 1;
 }
 
@@ -470,17 +438,7 @@ void cpr__window_iconify_callback(GLFWwindow *window, int iconified) {
 }
 
 duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->window_iconify_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetWindowIconifyCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetWindowIconifyCallback(window, cpr__window_iconify_callback);
-  duk_push_heapptr(ctx, u->window_iconify_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetWindowIconifyCallback, window_iconify_callback_ptr, cpr__window_iconify_callback);
   return 1;
 }
 
@@ -495,17 +453,7 @@ void cpr__framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->framebuffer_size_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetFramebufferSizeCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetFramebufferSizeCallback(window, cpr__framebuffer_size_callback);
-  duk_push_heapptr(ctx, u->framebuffer_size_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetFramebufferSizeCallback, framebuffer_size_callback_ptr, cpr__framebuffer_size_callback);
   return 1;
 }
 
@@ -810,17 +758,7 @@ void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, in
 }
 
 static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->key_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetKeyCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetKeyCallback(window, cpr__key_callback);
-  duk_push_heapptr(ctx, u->key_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetKeyCallback, key_callback_ptr, cpr__key_callback);
   return 1;
 }
 
@@ -834,17 +772,7 @@ void cpr__char_callback(GLFWwindow *window, unsigned int character) {
 }
 
 duk_ret_t glfw_set_char_callback(duk_context *ctx) {
-  GLFWwindow *window;
-  cpr_user_data *u;
-  window = duk_require_pointer(ctx, 0);
-  u = glfwGetWindowUserPointer(window);
-  if ((u->char_callback_ptr = duk_get_heapptr(ctx, 1)) == NULL) {
-    glfwSetCharCallback(window, NULL);
-    duk_push_null(ctx);
-    return 1;
-  }
-  glfwSetCharCallback(window, cpr__char_callback);
-  duk_push_heapptr(ctx, u->char_callback_ptr);
+  CPR__REGISTER_CALLBACK(glfwSetCharCallback, char_callback_ptr, cpr__char_callback);
   return 1;
 }
 
@@ -859,7 +787,7 @@ void cpr__set_char_mods_callback(GLFWwindow *window, unsigned int codepoint, int
 }
 
 duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
-  CPR_SET_CALLBACK(glfwSetCharModsCallback, char_mods_callback_ptr, cpr__set_char_mods_callback);
+  CPR__REGISTER_CALLBACK(glfwSetCharModsCallback, char_mods_callback_ptr, cpr__set_char_mods_callback);
   return 1;
 }
 
