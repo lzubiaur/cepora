@@ -150,6 +150,14 @@ try
   inf '[getJoystickButtons]:', glfw.getJoystickButtons 0
   inf '[getJoystickName]:', glfw.getJoystickName 0
 
+  ### clipboard ###
+  glfw.setClipboardString window, 'Hello world'
+  inf '[getClipboardString]:', glfw.getClipboardString window
+
+  ### Time ###
+  glfw.setTime 1
+  inf '[getTime]:', glfw.getTime()
+
   #### Context handling ####
   # glfwMakeContextCurrent
   glfw.makeContextCurrent window
