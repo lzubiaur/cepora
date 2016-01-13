@@ -62,6 +62,7 @@ typedef struct cpr_user_data {
   void *cursor_pos_callback_ptr;
   void *cursor_enter_callback_ptr;
   void *scroll_callback_ptr;
+  void *drop_callback_ptr;
   /* User pointer set/returned in glfwSetWindowUserPointer/glfwGetWindowUserPointer */
   void *user_ptr;
 } cpr_user_data;
@@ -855,7 +856,22 @@ duk_ret_t glfw_set_scroll_callback(duk_context *ctx) {
   return 1;
 }
 
+void cpr__drop_callback(GLFWwindow *window, int count, const char **paths) {
+  int i;
+  cpr_user_data *u;
+  u = glfwGetWindowUserPointer(window);
+  duk_push_heapptr(u->ctx, u->drop_callback_ptr);
+  duk_push_pointer(u->ctx, window);
+  duk_push_array(u->ctx);
+  for (i=0; i<count; ++i) {
+    duk_push_string(u->ctx, paths[i]);
+    duk_put_prop_index(u->ctx, -2, i);
+  }
+  duk_call(u->ctx,2);
+}
+
 duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
+  CPR__REGISTER_CALLBACK(glfwSetDropCallback, drop_callback_ptr, cpr__drop_callback);
   /* GLFWdropfun glfwSetDropCallback(GLFWwindow* window, GLFWdropfun cbfun); */
   return 1;
 }
