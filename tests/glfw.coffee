@@ -25,6 +25,10 @@ windowRefreshHandler = (window) ->
 windowFocusHandler = (window, focused) -> inf '[windowFocusHandler]:', focused
 windowIconifyHandler = (window, iconified) -> inf '[windowIconifyHandler]:', iconified
 frameBufferSizeHandler = (window, w, h) -> inf '[frameBufferSizeHandler]:', w, h
+mouseButtonHandler = (window, button, action, mods) -> inf '[mouseButtonHandler]', button, action, mods
+cursorPosHandler = (window, x, y) -> inf '[cursorPosHandler]', x, y
+cursorEnterHandler = (window, entered) -> inf '[cursorEnterHandler]', entered
+scrollHandler = (window, xoffset, yoffset) -> inf '[scrollHandler]', xoffset, yoffset
 
 mainLoop = (window) ->
   glfw.pollEvents()
@@ -129,6 +133,12 @@ try
   glfw.setKeyCallback window, keyHandler
   glfw.setCharCallback window, charHandler
   glfw.setCharModsCallback window, charModsHandler
+
+  ### Mouse ###
+  glfw.setMouseButtonCallback window, mouseButtonHandler
+  glfw.setCursorPosCallback window, cursorPosHandler
+  glfw.setCursorEnterCallback window, cursorEnterHandler
+  glfw.setScrollCallback window, scrollHandler
 
   ### Joystick ###
   inf '[joystickPresent] 0:', glfw.joystickPresent 0
