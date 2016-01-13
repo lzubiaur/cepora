@@ -913,22 +913,24 @@ duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
 }
 
 duk_ret_t glfw_set_clipboard_string(duk_context *ctx) {
-  /* void glfwSetClipboardString(GLFWwindow* window, const char* string); */
+  /* The string is copied by GLFW before the function returns. */
+  glfwSetClipboardString(duk_get_pointer(ctx, 0), duk_get_string(ctx, 1));
   return 0;
 }
 
 duk_ret_t glfw_get_clipboard_string(duk_context *ctx) {
-  /* const char* glfwGetClipboardString(GLFWwindow* window); */
+  /* The returned string is allocated and freed by GLFW. */
+  duk_push_string(ctx, glfwGetClipboardString(duk_get_pointer(ctx, 0)));
   return 1;
 }
 
 duk_ret_t glfw_get_time(duk_context *ctx) {
-  /* double glfwGetTime(void); */
+  duk_push_number(ctx, glfwGetTime());
   return 1;
 }
 
 duk_ret_t glfw_set_time(duk_context *ctx) {
-  /* void glfwSetTime(double time); */
+  glfwSetTime(duk_get_number(ctx, 0));
   return 0;
 }
 
