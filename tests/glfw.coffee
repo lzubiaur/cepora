@@ -16,16 +16,15 @@ keyHandler = (window, key, scancode, action, mods) ->
 # XXX print unicode character instead of its code
 charHandler = (window, character) -> inf '[charHandler]:', character
 charModsHandler = (window, character) -> inf '[charModsHandler]:', character
-
-windowPosHandler = (window, x, y) -> inf 'New window position:', x, y
-windowSizeHandler = (window, w, h) -> inf 'New window size:', w, h
-windowCloseHandler = (window) -> inf 'Window will close'
+windowPosHandler = (window, x, y) -> inf '[windowPosHandler]:', x, y
+windowSizeHandler = (window, w, h) -> inf '[windowSizeHandler]:', w, h
+windowCloseHandler = (window) -> inf '[windowCloseHandler]'
 windowRefreshHandler = (window) ->
-  inf 'Window refresh'
+  inf '[windowRefreshHandler]'
   glfw.swapBuffers window
-windowFocusHandler = (window, focused) -> inf 'Window focus:', focused
-windowIconifyHandler = (window, iconified) -> inf 'Window iconify:', iconified
-frameBufferSizeHandler = (window, w, h) -> inf 'New framebuffer size:', w, h
+windowFocusHandler = (window, focused) -> inf '[windowFocusHandler]:', focused
+windowIconifyHandler = (window, iconified) -> inf '[windowIconifyHandler]:', iconified
+frameBufferSizeHandler = (window, w, h) -> inf '[frameBufferSizeHandler]:', w, h
 
 mainLoop = (window) ->
   glfw.pollEvents()
