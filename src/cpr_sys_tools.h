@@ -20,6 +20,8 @@ extern "C" {
  * to the bundle `resource` folder automaticaly.
  */
 
+int cpr_file_exists(const char *path);
+
 /* Get the directory absolute path of the executable.
  * The path string must be freed by the caller.
  */
