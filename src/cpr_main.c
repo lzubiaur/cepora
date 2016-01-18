@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
 
   if (!ctx) {
     cpr_log_raw("FATAL: Failed to create a Duktape heap.\n");
-    goto fail;
+    goto finished;
   }
 
   /* TODO set log level from command line */
@@ -333,9 +333,6 @@ int main(int argc, char *argv[]) {
   INF(ctx, "Bye!");
 
 finished:
-  duk_destroy_heap(ctx);
-  return EXIT_SUCCESS;
-fail:
   duk_destroy_heap(ctx); /* No-op if ctx is NULL */
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
