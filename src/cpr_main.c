@@ -65,15 +65,25 @@ duk_ret_t cpr_search_path(duk_context *ctx) {
   return 1;
 }
 
-/* Helper function to set logging level for C API. This can be changed in
- * javascript by updating `Duktape.Logger.clog.l` to 'TRC', 'DBG', 'INF'...
+/* Helper function to set logging level for both C and Javascript API.
+ * Note that this only set the *DEFAULT* javascript logging level and will not
+ * change Logger objects already created.
+ * C logging level can be changed in javascript by updating `Duktape.Logger.clog.l`.
+ * Default Javascript level can be changed in `Duktape.Logger.prototype.l`.
  */
-void cpr_set_c_log_level(duk_context *ctx, const char *level) {
-  duk_get_global_string(ctx, "Duktape");  /* [ Duktape ] */
-  duk_get_prop_string(ctx, -1, "Logger"); /* [ Duktape Logger ] */
-  duk_get_prop_string(ctx, -1, "clog");   /* [ Duktape Logger clog ] */
-  duk_push_string(ctx, level);            /* [ Duktape Logger clog "level" ] */
-  duk_put_prop_string(ctx, -2, "l");      /* [ Duktape Logger clog ] */
+void cpr_set_default_log_level(duk_context *ctx, unsigned short level) {
+  CPR__DLOG("Set log level to %d", level);
+  duk_get_global_string(ctx, "Duktape");      /* [ Duktape ] */
+  duk_get_prop_string(ctx, -1, "Logger");     /* [ Duktape Logger ] */
+  /* Set c logger level */
+  duk_get_prop_string(ctx, -1, "clog");       /* [ Duktape Logger clog ] */
+  duk_push_int(ctx, level);                   /* [ Duktape Logger clog "level" ] */
+  duk_put_prop_string(ctx, -2, "l");          /* [ Duktape Logger clog ] */
+  duk_pop(ctx);                               /* [ Duktape Logger ] */
+  /* Set Javascript default logger level */
+  duk_get_prop_string(ctx, -1, "prototype");  /* [ Duktape Logger prototype ] */
+  duk_push_int(ctx, level);                   /* [ Duktape Logger clog "level" ] */
+  duk_put_prop_string(ctx, -2, "l");          /* [ duktape Logger prototype ] */
   duk_pop_3(ctx);
 }
 
@@ -155,7 +165,7 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
 
 int main(int argc, char *argv[]) {
   duk_context *ctx = NULL;
-  int i = 0, argsConsumed = 0;
+  int i = 0, argsConsumed = 0, log_level = 0;
   char *path = NULL, *ptr = NULL, *ptr2 = NULL;
   const char *filename = NULL, *log_path = NULL;
 
@@ -174,6 +184,13 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
       if (i + 1 < argc) {
           log_path = argv[++i];
+      } else {
+        cpr_log_raw("%s: %s requires an arguments\n", argv[0], argv[i]);
+        exit(EXIT_FAILURE);
+      }
+    } else if (strcmp(argv[i], "-l") == 0) {
+      if (i + 1 < argc) {
+        log_level = strtol(argv[++i], NULL, 10);
       } else {
         cpr_log_raw("%s: %s requires an arguments\n", argv[0], argv[i]);
         exit(EXIT_FAILURE);
@@ -197,8 +214,7 @@ int main(int argc, char *argv[]) {
     goto finished;
   }
 
-  /* TODO set log level from command line */
-  cpr_set_c_log_level(ctx, "TRC");
+  cpr_set_default_log_level(ctx, log_level);
 
   /* Redirect the logger ouput to a file stream */
   if (log_path) {
