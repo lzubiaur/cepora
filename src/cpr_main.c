@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* getenv */
+#include <errno.h>
 #ifdef _WIN32
 #include <windows.h> /* WinMain */
 #include <direct.h> /* _chdir */
@@ -21,6 +22,7 @@
 #include <libgen.h> /* basename */
 
 #include "duktape.h"
+#include "cpr_debug_internal.h"
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
@@ -35,27 +37,8 @@
 #define CPR_VERSION_STRING "v0.10.99"
 #define CPR_PATH_SEPARATOR ';'
 
-/* logging file */
-static FILE *stream = NULL;
-
-void cpr_log_raw(const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stdout, fmt, ap);
-  va_end(ap);
-  fflush(stdout);
-}
-
-#define BUF_SIZE 256
-void cpr_log_perror(const char *fmt, ...) {
-  char buf[BUF_SIZE];
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(buf, BUF_SIZE, fmt, ap);
-  va_end(ap);
-  perror(buf);
-}
-
+/* Look up for a file using the search paths (Duktape.package.paths).
+ */
 duk_ret_t cpr_search_path(duk_context *ctx) {
   if (duk_is_null_or_undefined(ctx, -1)) {
     duk_push_undefined(ctx);
@@ -170,31 +153,27 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   exit(EXIT_FAILURE);
 }
 
-duk_ret_t cpr__log_to_file_raw(duk_context *ctx) {
-  duk_size_t size;
-  void *data = NULL;
-  data = duk_get_buffer_data(ctx, -1, &size);
-  fwrite(data, size, 1, stream);
-  fwrite("\n", 1, 1, stream);
-  // fflush(stream);
-  return 0;
-}
-
 int main(int argc, char *argv[]) {
   duk_context *ctx = NULL;
-  int i = 0;
+  int i = 0, argsConsumed = 0;
   char *path = NULL, *ptr = NULL, *ptr2 = NULL;
-  const char *filename = NULL, *log_filename = NULL;
+  const char *filename = NULL, *log_path = NULL;
 
+  /* Arguments are parsed using a while loop because to "consume" unused options.
+   * WARNING: when opening an application on MacOS using the `open` command
+   * without explicit arguments (--args option) then the first argument is the PSN
+   * id (-psn_xxxx).
+   */
   i = 1;
   while (i < argc && argv[i][0] == '-') {
+    CPR__DLOG("argument %d : %s", i, argv[i]);
     if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0){
       cpr_version();
     } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
       cpr_usage();
     } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
       if (i + 1 < argc) {
-          log_filename = argv[++i];
+          log_path = argv[++i];
       } else {
         cpr_log_raw("%s: %s requires an arguments\n", argv[0], argv[i]);
         exit(EXIT_FAILURE);
@@ -222,18 +201,11 @@ int main(int argc, char *argv[]) {
   cpr_set_c_log_level(ctx, "TRC");
 
   /* Redirect the logger ouput to a file stream */
-  if (log_filename) {
-    if ((stream = fopen(log_filename, "w")) == NULL) {
-      cpr_log_perror("Can't open output log file '%s'", log_filename);
-      goto fail;
+  if (log_path) {
+    CPR__DLOG("Redirect log stream to file '%s'", log_path);
+    if (freopen(log_path, "w", stdout) == NULL || freopen(log_path, "w", stderr) == NULL) {
+      WRN(ctx, "Can't redirect log stream to file '%s' : %s", log_path, strerror(errno));
     }
-    /* Override the `Duktape.Logger.prototype.raw` function */
-    duk_get_global_string(ctx, "Duktape");
-    duk_get_prop_string(ctx, -1, "Logger");
-    duk_get_prop_string(ctx, -1, "prototype");
-    duk_push_c_function(ctx, cpr__log_to_file_raw, 1);
-    duk_put_prop_string(ctx, -2, "raw");
-    duk_pop_3(ctx);
   }
 
   /* Load the `package` module into the `Duktape` global object */
@@ -362,12 +334,8 @@ int main(int argc, char *argv[]) {
 
 finished:
   duk_destroy_heap(ctx);
-  fclose(stream);
   return EXIT_SUCCESS;
 fail:
-  if (stream) {
-    fclose(stream); /* Error ignored */
-  }
   duk_destroy_heap(ctx); /* No-op if ctx is NULL */
   return EXIT_FAILURE;
 }
