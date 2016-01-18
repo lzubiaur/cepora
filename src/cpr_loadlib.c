@@ -87,16 +87,18 @@ duk_ret_t cpr_loadlib(duk_context *ctx) {
   void *lib = NULL;
   const char *dot = NULL;
   const char *filename = NULL;
+  const char *id = NULL;
   // const char *modid = NULL;
   duk_size_t len = 0;
   duk_c_function init_func = NULL;
 
   filename = duk_require_string(ctx, 0);
+  id = duk_require_string(ctx, 1);
 
-  DBG(ctx, "cpr_loadlib: %s", filename);
+  DBG(ctx, "cpr_loadlib: id: '%s' filename '%s'", id, filename);
 
-  if (cpr_is_mod_loaded(ctx, filename) == 1) {
-    WRN(ctx, "FIXME - Module already loaded: %s", filename);
+  if (cpr_is_mod_loaded(ctx, id) == 1) {
+    WRN(ctx, "FIXME - Module already loaded: '%s'", id);
     /* FIXME Checking it modLoaded has the property `filename` is not
      * enough because:
      * 1: the module id must be extract from the path
@@ -108,13 +110,13 @@ duk_ret_t cpr_loadlib(duk_context *ctx) {
     goto error;
   }
 
-  if ((dot = strrchr(filename, '.')) == NULL) {
-    len = strlen(filename);
+  if ((dot = strrchr(id, '.')) == NULL) {
+    len = strlen(id);
   } else {
-    len = dot - filename;
+    len = dot - id;
   }
   duk_push_string(ctx, CPR_OPEN_PREFIX);
-  duk_push_lstring(ctx, filename, len);
+  duk_push_lstring(ctx, id, len);
   duk_concat(ctx, 2);
   if ((init_func = cpr_load_sym(ctx, lib, duk_get_string(ctx, -1))) == NULL) {
     /* TODO test error */
@@ -141,7 +143,7 @@ err_rethrow:
 }
 
 static const duk_function_list_entry module_funcs[] = {
-    { "loadlib", cpr_loadlib, 1 },
+    { "loadlib", cpr_loadlib, 2 },
     { NULL, NULL, 0 }
 };
 

@@ -1,0 +1,25 @@
+# WARNING Running a script using INSTALL(SCRIPT) will not expose the CMake environment
+# and some module might not work (e.g. InstallRequiredSystemLibraries)
+
+set(APP @APP@)
+set(DIRS @DIRS@)
+set(PLUGINS @PLUGINS@)
+set(PLUGINS_DESTINATION @PLUGINS_DESTINATION@)
+set(BUILD_WIN @BUILD_WIN@)
+
+set(PLUGINS_LIST "")
+
+message(STATUS "Install plugings into '${PLUGINS_DESTINATION}'")
+
+foreach(ITEM IN LISTS PLUGINS)
+    get_filename_component(PLUGIN_NAME ${ITEM} NAME)
+    message(STATUS "Copy plugin: ${PLUGIN_NAME}")
+    configure_file(${ITEM} "${PLUGINS_DESTINATION}/${PLUGIN_NAME}" COPYONLY)
+    list(APPEND PLUGINS_LIST "${PLUGINS_DESTINATION}/${PLUGIN_NAME}")
+endforeach()
+
+if(NOT BUILD_WIN)
+   include(BundleUtilities)
+   # set(BU_CHMOD_BUNDLE_ITEMS ON)
+   fixup_bundle("${APP}" "${PLUGINS_LIST}" "${DIRS}")
+endif()

@@ -10,50 +10,65 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* getenv */
+#include <errno.h>
+#ifdef _WIN32
+#include <windows.h> /* WinMain */
+#include <direct.h> /* _chdir */
+#else
 #include <unistd.h> /* chdir */
+#endif
 #include <string.h> /* strcmp */
 #include <dlfcn.h>  /* dlopen... */
 #include <libgen.h> /* basename */
 
 #include "duktape.h"
+#include "cpr_debug_internal.h"
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
 #include "cpr_mod_coffee.h"
 #include "cpr_loadlib.h"
 
+#ifdef _WIN32
+#define chdir(p) (_chdir(p))
+#define getcwd(d, s) (_getcwd(d, s))
+#endif
+
 #define CPR_VERSION_STRING "v0.10.99"
+#define CPR_PATH_SEPARATOR ';'
 
-void log_raw(const char*fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
-  fflush(stderr);
-}
-
-/* @javascript: reads a file from disk, and returns a string or `undefined`. */
-duk_ret_t readfile(duk_context *ctx) {
-  /* It's not not mandatory to check the number of parameters passed to this
-  * function using `duk_get_top` because it's guaranteed to be one (the stack will have one
-  * and only one value (see how the function is binded using
-  * `duk_push_c_function`).
-  * Instead we must check if the parameter is either `null` or `undefined`.
-  * There is only one parameter so we can check the top of the stack (-1).
-  */
+/* Look up for a file using the search paths (Duktape.package.paths).
+ */
+duk_ret_t cpr_search_path(duk_context *ctx) {
   if (duk_is_null_or_undefined(ctx, -1)) {
     duk_push_undefined(ctx);
-  } else {
-    duk_push_string_file(ctx, duk_to_string(ctx, 0));
+    return 1;
   }
-
+  duk_get_global_string(ctx, "Duktape");
+  duk_get_prop_string(ctx, -1, "package");
+  duk_get_prop_string(ctx, -1, "paths");
+  duk_enum(ctx, -1, DUK_ENUM_ARRAY_INDICES_ONLY);
+  while (duk_next(ctx, -1, 1)) {
+    duk_push_string(ctx, "/");
+    duk_dup(ctx, 0);
+    duk_concat(ctx, 3);
+    if (cpr_file_exists(duk_get_string(ctx, -1))) {
+      DBG(ctx, "File found '%s'", duk_get_string(ctx, -1));
+      return 1;
+    }
+    WRN(ctx, "File NOT found '%s'", duk_get_string(ctx, -1));
+    duk_pop_2(ctx); /* pop key and value */
+  }
+  duk_pop(ctx); /* enum */
+  duk_pop_3(ctx); /* Duktape package paths */
+  ERR(ctx, "File NOT found '%s'", duk_get_string(ctx, 0));
   return 1;
 }
 
 /* Helper function to set logging level for C API. This can be changed in
  * javascript by updating `Duktape.Logger.clog.l` to 'TRC', 'DBG', 'INF'...
  */
-void set_C_log_level(duk_context *ctx, const char *level) {
+void cpr_set_c_log_level(duk_context *ctx, const char *level) {
   duk_get_global_string(ctx, "Duktape");  /* [ Duktape ] */
   duk_get_prop_string(ctx, -1, "Logger"); /* [ Duktape Logger ] */
   duk_get_prop_string(ctx, -1, "clog");   /* [ Duktape Logger clog ] */
@@ -66,10 +81,15 @@ void set_C_log_level(duk_context *ctx, const char *level) {
  * @params id, require, exports, module
  */
 duk_ret_t require_handler(duk_context *ctx) {
-  const char *filename = duk_to_string(ctx, 0);
+  const char *filename = NULL;
+  /* Search for the file in the search paths */
+  duk_get_global_string(ctx, "search_path");
+  duk_dup(ctx, 0);
+  duk_call(ctx, 1);
+  filename = duk_get_string(ctx, -1);
   /* TODO Lazy file extension check  */
-  char *ext = strrchr(filename, '.');
-  if (ext && strcmp(ext, ".coffee") == 0) {
+  char *dot = strrchr(duk_get_string(ctx, -1), '.');
+  if (dot && strcmp(dot, ".coffee") == 0) {
     INF(ctx, "Load CoffeeScript module '%s'", filename);
     duk_get_global_string(ctx, "coffee");
     duk_push_string(ctx, "compile_coffee");
@@ -77,13 +97,14 @@ duk_ret_t require_handler(duk_context *ctx) {
     if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
       // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
-      dump_stack_trace(ctx, -1);
+      cpr_dump_stack_trace(ctx, -1);
     }
-  } else if (ext && strcmp(ext, ".so") == 0) {
-    INF(ctx, "Load C module '%s'", filename);
-    duk_push_c_function(ctx, cpr_loadlib, 1);
+  } else if (dot && strcmp(dot, ".so") == 0) {
+    INF(ctx, "Load C module id: '%s' filename:'%s'", duk_get_string(ctx, 0), filename);
+    duk_push_c_function(ctx, cpr_loadlib, 2);
     duk_push_string(ctx, filename);
-    duk_call(ctx, 1);
+    duk_dup(ctx, 0);
+    duk_call(ctx, 2);
     /* duk_replace(ctx, 2);*/  /* Replacing the "exports" table doesnt work */
     /* The init function should return (push) an object with the exported
     * functions/properties. Those exported functions are then copied to the
@@ -105,48 +126,64 @@ duk_ret_t require_handler(duk_context *ctx) {
 }
 
 /* Usage inspired from Node.js */
-void usage() {
-  printf("Usage: cepora [options] [script.js | script.coffee] [arguments]\n");
-  printf("\n");
-  printf("Options:\n");
-  printf("  -v, --version    print version\n");
-  printf("  -h, --help       print this message\n");
-  printf("\n");
-  printf("Environment variables:\n");
-  printf("CPR_PATH           directory prefixed to the module search path. If not set the \n");
-  printf("                   executable path is used as default modules root directory.\n");
-  printf("\n");
+void cpr_usage() {
+  cpr_log_raw("Usage: cepora [options] [-o filename] [script.js | script.coffee] [arguments]\n");
+  cpr_log_raw("\n");
+  cpr_log_raw("Options:\n");
+  cpr_log_raw("  -v, --version    print version\n");
+  cpr_log_raw("  -h, --help       print this message\n");
+  cpr_log_raw("  -o               redirect logging to file\n");
+  cpr_log_raw("\n");
+  cpr_log_raw("Environment variables:\n");
+  cpr_log_raw("CPR_PATH           semi-colon separated directories list to seach for module and scripts.");
+  cpr_log_raw("\n");
   exit(EXIT_SUCCESS);
 }
 
-void version() {
-  printf("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
-  printf("Duktape %s\n", DUK_GIT_DESCRIBE);
+void cpr_version() {
+  cpr_log_raw("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
+  cpr_log_raw("Duktape %s\n", DUK_GIT_DESCRIBE);
   exit(EXIT_SUCCESS);
 }
 
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
-  dump_stack_trace(ctx, -1);
+  cpr_dump_stack_trace(ctx, -1);
   /* Fatal handler should not return. */
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
   duk_context *ctx = NULL;
-  char *path = NULL;
-  const char *full_path = NULL, *filename = NULL;
+  int i = 0, argsConsumed = 0;
+  char *path = NULL, *ptr = NULL, *ptr2 = NULL;
+  const char *filename = NULL, *log_path = NULL;
 
-  if (argc > 1) {
-    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0){
-      version();
-    } else if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-      usage();
+  /* Arguments are parsed using a while loop because to "consume" unused options.
+   * WARNING: when opening an application on MacOS using the `open` command
+   * without explicit arguments (--args option) then the first argument is the PSN
+   * id (-psn_xxxx).
+   */
+  i = 1;
+  while (i < argc && argv[i][0] == '-') {
+    CPR__DLOG("argument %d : %s", i, argv[i]);
+    if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0){
+      cpr_version();
+    } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+      cpr_usage();
+    } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
+      if (i + 1 < argc) {
+          log_path = argv[++i];
+      } else {
+        cpr_log_raw("%s: %s requires an arguments\n", argv[0], argv[i]);
+        exit(EXIT_FAILURE);
+      }
     }
+    ++i;
   }
 
-  /* Load script passed from command line or load './process.js' by default. */
-  filename = argc > 1 ? argv[1] : "./process.js";
+  /* Run in CLI mode. First argument is the script file to run. */
+  filename = i < argc ? argv[i] : "js/main.coffee";
 
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
@@ -156,21 +193,66 @@ int main(int argc, char *argv[]) {
   ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
 
   if (!ctx) {
-    log_raw("FATAL: Failed to create a Duktape heap.\n");
-    exit(EXIT_FAILURE);
+    cpr_log_raw("FATAL: Failed to create a Duktape heap.\n");
+    goto fail;
   }
 
   /* TODO set log level from command line */
-  set_C_log_level(ctx, "TRC");
+  cpr_set_c_log_level(ctx, "TRC");
+
+  /* Redirect the logger ouput to a file stream */
+  if (log_path) {
+    CPR__DLOG("Redirect log stream to file '%s'", log_path);
+    if (freopen(log_path, "w", stdout) == NULL || freopen(log_path, "w", stderr) == NULL) {
+      WRN(ctx, "Can't redirect log stream to file '%s' : %s", log_path, strerror(errno));
+    }
+  }
+
+  /* Load the `package` module into the `Duktape` global object */
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_c_function(ctx, dukopen_loadlib, 0);
+  duk_call(ctx, 0);
+  duk_put_prop_string(ctx, -2, "package");
+  duk_pop(ctx); /* pop duktape */
 
   /* Look for CPR_PATH environment variable. If CPR_PATH is not defined, try to
   * retreive the process executable path.
   */
+  i = 0;
   if ((path = getenv("CPR_PATH")) != NULL) {
-    DBG(ctx, "CPR_PATH defined: '%s'", path);
-    path = strdup(path);
-  } else if ((path = cpr_get_exec_dir()) == NULL) {
-    FTL(ctx, "Cannot retrieve executable path. Please set 'CPR_PATH' to the install directory and try again.");
+    cpr_log_raw("CPR_PATH is defined to '%s'\n", path);
+    ptr = path;
+    duk_get_global_string(ctx, "Duktape");
+    duk_get_prop_string(ctx, -1, "package");
+    duk_push_array(ctx);
+    while((ptr2 = strchr(ptr, CPR_PATH_SEPARATOR)) != NULL) {
+      if ((ptr2 - ptr) > 0 ) {
+        duk_push_lstring(ctx, ptr, (duk_size_t)(ptr2 - ptr));
+        duk_put_prop_index(ctx, -2, i++);
+      }
+      ptr = ptr2 + 1;
+    }
+    if (strlen(ptr) > 0) {
+      duk_push_string(ctx, ptr);
+      duk_put_prop_index(ctx, -2, i++);
+    }
+    duk_put_prop_string(ctx, -2, "paths");
+    duk_pop(ctx); /* pop duktape */
+  } else if ((path = cpr_get_exec_dir()) != NULL) {
+    duk_get_global_string(ctx, "Duktape");
+    duk_get_prop_string(ctx, -1, "package");
+    duk_push_array(ctx);
+    duk_push_string(ctx, path);
+    duk_put_prop_index(ctx, -2, 0);
+    /* TODO Add Resources folder for MacOS platform */
+    duk_push_string(ctx, path);
+    duk_push_string(ctx, "/../Resources");
+    duk_concat(ctx, 2);
+    duk_put_prop_index(ctx, -2, 1);
+    duk_put_prop_string(ctx, -2, "paths");
+    duk_pop(ctx); /* pop duktape */
+  } else {
+    cpr_log_raw("Cannot retrieve executable path. Please set 'CPR_PATH' to the install directory and try again.\n");
     goto finished;
   }
 
@@ -185,8 +267,8 @@ int main(int argc, char *argv[]) {
   * parameter passed.
   */
   duk_push_global_object(ctx);
-  duk_push_c_function(ctx, readfile, 1); /* C function with exactly one argument */
-  duk_put_prop_string(ctx, -2 /*index of global*/, "readfile");
+  duk_push_c_function(ctx, cpr_search_path, 1); /* C function with exactly one argument */
+  duk_put_prop_string(ctx, -2 /*index of global*/, "search_path");
   duk_pop(ctx);  /* pop global */
 
   /* Load module coffee */
@@ -210,39 +292,38 @@ int main(int argc, char *argv[]) {
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
 
-  duk_push_c_function(ctx, dukopen_loadlib, 0);
-  duk_call(ctx, 0);
-  duk_put_global_string(ctx, "mod");
-
   duk_get_global_string(ctx, "Duktape");
   duk_push_c_function(ctx, require_handler, 4);
   duk_put_prop_string(ctx, -2, "modSearch");
   duk_pop(ctx);
 
   /* Get CoffeeScript compiler full path */
-  duk_push_string(ctx, path);
-  duk_push_string(ctx, "/js/lib/coffee-script.js");
-  duk_concat(ctx, 2);
-  full_path = duk_get_string(ctx, -1);
-  // DBG(ctx, "Load CoffeeScript compiler: %s", full_path);
+  duk_get_global_string(ctx, "search_path");
+  duk_push_string(ctx, "js/lib/coffee-script.js");
+  duk_pcall(ctx, 1);
 
-  if (duk_peval_file(ctx, full_path) != 0) {
-    ERR(ctx, "Error loading CoffeeScript compiler: '%s'", full_path);
-    dump_stack_trace(ctx, -1);
+  DBG(ctx, "Loading CoffeeScript compiler '%s'", duk_get_string(ctx, -1));
+  if (duk_peval_file(ctx, duk_get_string(ctx, -1)) != 0) {
+    ERR(ctx, "Error loading CoffeeScript compiler: '%s'", duk_get_string(ctx, -1));
+    cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
   duk_pop(ctx); /* pop duk_peval_file resul */
-  duk_pop(ctx); /* pop full_path */
+  duk_pop(ctx); /* pop path */
+
+  duk_get_global_string(ctx, "search_path");
+  duk_push_string(ctx, filename);
+  duk_pcall(ctx, 1);
 
   duk_get_global_string(ctx, "coffee");
   duk_push_string(ctx, "eval_script");
-  duk_push_string(ctx, filename);
+  duk_dup(ctx, -3);
   if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
     // ERR(ctx, "Error processing script '%s'", filename); /* Not revelant error message */
-    dump_stack_trace(ctx, -1);
+    cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
   // TODO how to return code from javasctipt ?
@@ -254,4 +335,7 @@ int main(int argc, char *argv[]) {
 finished:
   duk_destroy_heap(ctx);
   return EXIT_SUCCESS;
+fail:
+  duk_destroy_heap(ctx); /* No-op if ctx is NULL */
+  return EXIT_FAILURE;
 }

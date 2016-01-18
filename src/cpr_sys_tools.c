@@ -13,6 +13,7 @@
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h> /* For _NSGetExecutablePath */
+#include <sys/stat.h>
 #endif
 
 #ifdef __linux__
@@ -28,6 +29,16 @@
 #else
 #include <libgen.h> /* dirname */
 #endif
+
+int cpr_file_exists(const char *path) {
+#if defined(__linux__) || defined(__APPLE__)
+  struct stat st;
+  return stat(path, &st) == 0 ? 1 : 0;
+#elif defined(_WIN32)
+  /* TODO implement windows version */
+#error cpr_file_exists not implemented
+#endif
+}
 
 char *cpr_get_exec_dir() {
     char *path = NULL, *dir = NULL;
