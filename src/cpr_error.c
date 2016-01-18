@@ -10,7 +10,7 @@
 /* Log the error stack trace. Check if index `idx` is valid and the object
  * inherits from `error`.
  */
-void dump_stack_trace(duk_context *ctx, duk_idx_t idx) {
+void cpr_dump_stack_trace(duk_context *ctx, duk_idx_t idx) {
   if (duk_is_valid_index(ctx, idx) == 0) {
     WRN(ctx, "dump_stack_trace: Invalid index: %d", idx);
     return;
@@ -20,7 +20,7 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx) {
       ERR(ctx, duk_safe_to_string(ctx, -1));
       if (duk_get_prop_string(ctx, idx, "cause")) {
         ERR(ctx, "Caused by:");
-        dump_stack_trace(ctx, -1);
+        cpr_dump_stack_trace(ctx, -1);
       }
       duk_pop(ctx);
     } else {
@@ -40,7 +40,7 @@ void dump_stack_trace(duk_context *ctx, duk_idx_t idx) {
  * @param fmt the message format string.
  * @param ap variable argument list used with the format string.
  */
-duk_idx_t push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, va_list ap) {
+duk_idx_t cpr_push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, va_list ap) {
   duk_idx_t err_idx, norm_cause_idx;
 
   /* normalize index so reversed index is supported. */
@@ -54,22 +54,22 @@ duk_idx_t push_cause_error_va(duk_context *ctx, duk_idx_t cause_idx, duk_errcode
   return err_idx;
 }
 
-duk_idx_t push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
+duk_idx_t cpr_push_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
   duk_idx_t err_idx;
   va_list ap;
 
   va_start(ap, fmt);
-  err_idx = push_cause_error_va(ctx, cause_idx, err_code, fmt, ap);
+  err_idx = cpr_push_cause_error_va(ctx, cause_idx, err_code, fmt, ap);
   va_end(ap);
 
   return err_idx;
 }
 
-duk_ret_t throw_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
+duk_ret_t cpr_throw_cause_error(duk_context *ctx, duk_idx_t cause_idx, duk_errcode_t err_code, const char *fmt, ...) {
   va_list ap;
 
   va_start(ap, fmt);
-  push_cause_error_va(ctx, cause_idx, err_code, fmt, ap);
+  cpr_push_cause_error_va(ctx, cause_idx, err_code, fmt, ap);
   va_end(ap);
 
   duk_throw(ctx);

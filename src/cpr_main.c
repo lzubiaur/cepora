@@ -114,7 +114,7 @@ duk_ret_t require_handler(duk_context *ctx) {
     if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
       // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
-      dump_stack_trace(ctx, -1);
+      cpr_dump_stack_trace(ctx, -1);
     }
   } else if (dot && strcmp(dot, ".so") == 0) {
     INF(ctx, "Load C module id: '%s' filename:'%s'", duk_get_string(ctx, 0), filename);
@@ -165,7 +165,7 @@ void cpr_version() {
 
 void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
-  dump_stack_trace(ctx, -1);
+  cpr_dump_stack_trace(ctx, -1);
   /* Fatal handler should not return. */
   exit(EXIT_FAILURE);
 }
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
   DBG(ctx, "Loading CoffeeScript compiler '%s'", duk_get_string(ctx, -1));
   if (duk_peval_file(ctx, duk_get_string(ctx, -1)) != 0) {
     ERR(ctx, "Error loading CoffeeScript compiler: '%s'", duk_get_string(ctx, -1));
-    dump_stack_trace(ctx, -1);
+    cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
   duk_pop(ctx); /* pop duk_peval_file resul */
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]) {
      * But we must request at least one return value to actually get the error
      * object on the stack. */
     // ERR(ctx, "Error processing script '%s'", filename); /* Not revelant error message */
-    dump_stack_trace(ctx, -1);
+    cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
   // TODO how to return code from javasctipt ?
