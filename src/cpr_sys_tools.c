@@ -34,7 +34,7 @@ int cpr_file_exists(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   struct stat st;
   return stat(path, &st) == 0 ? 1 : 0;
-#else defined(_WIN32)
+#elif defined(_WIN32)
   /* TODO implement windows version */
 #error cpr_file_exists not implemented
 #endif
