@@ -13,13 +13,19 @@ set(core
   cpr_error.c
   cpr_sys_tools.c
   cpr_mod_coffee.c
-  cpr_loadlib.c)
+  cpr_loadlib.c
+  cpr_debug_internal.c)
 
 add_executable(${RUNTIME_NAME} ${core})
 add_dependencies(${RUNTIME_NAME} duktape)
 
 # Enable debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
+
+# Flag to notify that this build is part of the Cepora framework
+target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_COMPILING_CEPORA=1)
+# Enable internal debugging
+target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
 
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
@@ -29,7 +35,7 @@ if (BUILD_LINUX)
 elseif (BUILD_OSX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1 CPR_COMPILING_CEPORA=1)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}")
   set(PLUGINS_DESTINATION "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/Contents/MacOS")
   set(BUNDLE_RUNTIME_DESTINATION "${BUNDLE_NAME}/Contents/MacOS")
