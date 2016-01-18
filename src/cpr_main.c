@@ -137,12 +137,13 @@ duk_ret_t require_handler(duk_context *ctx) {
 
 /* Usage inspired from Node.js */
 void cpr_usage() {
-  cpr_log_raw("Usage: cepora [options] [-o filename] [script.js | script.coffee] [arguments]\n");
+  cpr_log_raw("Usage: cepora [options] [-o filename] [-l level] [script.js | script.coffee] [arguments]\n");
   cpr_log_raw("\n");
   cpr_log_raw("Options:\n");
   cpr_log_raw("  -v, --version    print version\n");
   cpr_log_raw("  -h, --help       print this message\n");
   cpr_log_raw("  -o               redirect logging to file\n");
+  cpr_log_raw("  -l               set default logging level (0-5)\n");
   cpr_log_raw("\n");
   cpr_log_raw("Environment variables:\n");
   cpr_log_raw("CPR_PATH           semi-colon separated directories list to seach for module and scripts.");
