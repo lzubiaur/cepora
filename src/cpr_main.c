@@ -61,7 +61,9 @@ duk_ret_t cpr_search_path(duk_context *ctx) {
     duk_push_undefined(ctx);
     return 1;
   }
-  duk_get_global_string(ctx, "paths");
+  duk_get_global_string(ctx, "Duktape");
+  duk_get_prop_string(ctx, -1, "package");
+  duk_get_prop_string(ctx, -1, "paths");
   duk_enum(ctx, -1, DUK_ENUM_ARRAY_INDICES_ONLY);
   while (duk_next(ctx, -1, 1)) {
     duk_push_string(ctx, "/");
@@ -75,7 +77,7 @@ duk_ret_t cpr_search_path(duk_context *ctx) {
     duk_pop_2(ctx); /* pop key and value */
   }
   duk_pop(ctx); /* enum */
-  duk_pop(ctx); /* paths */
+  duk_pop_3(ctx); /* Duktape package paths */
   ERR(ctx, "File NOT found '%s'", duk_get_string(ctx, 0));
   return 1;
 }
@@ -97,13 +99,14 @@ void cpr_set_c_log_level(duk_context *ctx, const char *level) {
  */
 duk_ret_t require_handler(duk_context *ctx) {
   const char *filename = NULL;
+  /* Search for the file in the search paths */
   duk_get_global_string(ctx, "search_path");
   duk_dup(ctx, 0);
   duk_call(ctx, 1);
   filename = duk_get_string(ctx, -1);
   /* TODO Lazy file extension check  */
-  char *ext = strrchr(duk_get_string(ctx, -1), '.');
-  if (ext && strcmp(ext, ".coffee") == 0) {
+  char *dot = strrchr(duk_get_string(ctx, -1), '.');
+  if (dot && strcmp(dot, ".coffee") == 0) {
     INF(ctx, "Load CoffeeScript module '%s'", filename);
     duk_get_global_string(ctx, "coffee");
     duk_push_string(ctx, "compile_coffee");
@@ -113,7 +116,7 @@ duk_ret_t require_handler(duk_context *ctx) {
       ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
       dump_stack_trace(ctx, -1);
     }
-  } else if (ext && strcmp(ext, ".so") == 0) {
+  } else if (dot && strcmp(dot, ".so") == 0) {
     INF(ctx, "Load C module id: '%s' filename:'%s'", duk_get_string(ctx, 0), filename);
     duk_push_c_function(ctx, cpr_loadlib, 2);
     duk_push_string(ctx, filename);
@@ -141,15 +144,15 @@ duk_ret_t require_handler(duk_context *ctx) {
 
 /* Usage inspired from Node.js */
 void cpr_usage() {
-  cpr_log_raw("Usage: cepora [options] [script.js | script.coffee] [arguments]\n");
+  cpr_log_raw("Usage: cepora [options] [-o filename] [script.js | script.coffee] [arguments]\n");
   cpr_log_raw("\n");
   cpr_log_raw("Options:\n");
   cpr_log_raw("  -v, --version    print version\n");
   cpr_log_raw("  -h, --help       print this message\n");
+  cpr_log_raw("  -o               redirect logging to file\n");
   cpr_log_raw("\n");
   cpr_log_raw("Environment variables:\n");
-  cpr_log_raw("CPR_PATH           directory prefixed to the module search path. If not set the \n");
-  cpr_log_raw("                   executable path is used as default modules root directory.\n");
+  cpr_log_raw("CPR_PATH           semi-colon separated directories list to seach for module and scripts.");
   cpr_log_raw("\n");
   exit(EXIT_SUCCESS);
 }
@@ -218,19 +221,27 @@ int main(int argc, char *argv[]) {
   /* TODO set log level from command line */
   cpr_set_c_log_level(ctx, "TRC");
 
+  /* Redirect the logger ouput to a file stream */
   if (log_filename) {
     if ((stream = fopen(log_filename, "w")) == NULL) {
       cpr_log_perror("Can't open output log file '%s'", log_filename);
       goto fail;
     }
+    /* Override the `Duktape.Logger.prototype.raw` function */
     duk_get_global_string(ctx, "Duktape");
     duk_get_prop_string(ctx, -1, "Logger");
     duk_get_prop_string(ctx, -1, "prototype");
     duk_push_c_function(ctx, cpr__log_to_file_raw, 1);
     duk_put_prop_string(ctx, -2, "raw");
-    duk_dump_context_stdout(ctx);
     duk_pop_3(ctx);
   }
+
+  /* Load the `package` module into the `Duktape` global object */
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_c_function(ctx, dukopen_loadlib, 0);
+  duk_call(ctx, 0);
+  duk_put_prop_string(ctx, -2, "package");
+  duk_pop(ctx); /* pop duktape */
 
   /* Look for CPR_PATH environment variable. If CPR_PATH is not defined, try to
   * retreive the process executable path.
@@ -239,6 +250,8 @@ int main(int argc, char *argv[]) {
   if ((path = getenv("CPR_PATH")) != NULL) {
     cpr_log_raw("CPR_PATH is defined to '%s'\n", path);
     ptr = path;
+    duk_get_global_string(ctx, "Duktape");
+    duk_get_prop_string(ctx, -1, "package");
     duk_push_array(ctx);
     while((ptr2 = strchr(ptr, CPR_PATH_SEPARATOR)) != NULL) {
       if ((ptr2 - ptr) > 0 ) {
@@ -251,21 +264,25 @@ int main(int argc, char *argv[]) {
       duk_push_string(ctx, ptr);
       duk_put_prop_index(ctx, -2, i++);
     }
-    duk_put_global_string(ctx, "paths");
+    duk_put_prop_string(ctx, -2, "paths");
+    duk_pop(ctx); /* pop duktape */
   } else if ((path = cpr_get_exec_dir()) != NULL) {
+    duk_get_global_string(ctx, "Duktape");
+    duk_get_prop_string(ctx, -1, "package");
     duk_push_array(ctx);
     duk_push_string(ctx, path);
     duk_put_prop_index(ctx, -2, 0);
+    /* TODO Add Resources folder for MacOS platform */
     duk_push_string(ctx, path);
     duk_push_string(ctx, "/../Resources");
     duk_concat(ctx, 2);
     duk_put_prop_index(ctx, -2, 1);
-    duk_put_global_string(ctx, "paths");
+    duk_put_prop_string(ctx, -2, "paths");
+    duk_pop(ctx); /* pop duktape */
   } else {
     cpr_log_raw("Cannot retrieve executable path. Please set 'CPR_PATH' to the install directory and try again.\n");
     goto finished;
   }
-
 
   /* Note regarding function binding parameters.
   * The third argument of `duk_push_c_function` is the number of parameters the
@@ -302,10 +319,6 @@ int main(int argc, char *argv[]) {
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
-
-  duk_push_c_function(ctx, dukopen_loadlib, 0);
-  duk_call(ctx, 0);
-  duk_put_global_string(ctx, "mod");
 
   duk_get_global_string(ctx, "Duktape");
   duk_push_c_function(ctx, require_handler, 4);
