@@ -30,6 +30,10 @@
 #include <libgen.h> /* dirname */
 #endif
 
+#ifdef _WIN32
+#define chdir(p) (_chdir(p))
+#endif
+
 int cpr_file_exists(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   struct stat st;

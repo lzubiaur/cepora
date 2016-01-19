@@ -7,10 +7,6 @@
 #ifndef CPR_SYS_TOOLS_H
 #define CPR_SYS_TOOLS_H
 
-#ifdef _WIN32
-#define chdir(p) (_chdir(p))
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
