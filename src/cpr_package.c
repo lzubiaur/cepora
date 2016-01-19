@@ -16,11 +16,11 @@
 
 #define CPR__PATH_SEPARATOR ';'
 
-/* Look up for a file using the search paths (package.paths).
+/* Look up for a file using the search paths (package.paths). Return `undefined`
+ * if the file is not found.
  */
 static duk_ret_t cpr__search_path(duk_context *ctx) {
   if (duk_is_null_or_undefined(ctx, -1)) {
-    CPR__DLOG("parameter `filename` is undefined");
     duk_push_undefined(ctx);
     return 1;
   }
@@ -32,10 +32,10 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
     duk_dup(ctx, 0);
     duk_concat(ctx, 3);
     if (cpr_file_exists(duk_get_string(ctx, -1))) {
-      DBG(ctx, "File found '%s'", duk_get_string(ctx, -1));
+      DBG(ctx, "File '%s' found in : '%s'", duk_get_string(ctx, 0), duk_get_string(ctx, -1));
       return 1;
     }
-    WRN(ctx, "File NOT found '%s'", duk_get_string(ctx, -1));
+    DBG(ctx, "File '%s' NOT found in : '%s'", duk_get_string(ctx, 0), duk_get_string(ctx, -1));
     duk_pop_2(ctx); /* pop key and value */
   }
   duk_pop(ctx); /* enum */
