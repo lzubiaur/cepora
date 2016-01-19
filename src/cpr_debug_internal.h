@@ -12,8 +12,9 @@ void cpr_log_raw(const char *fmt, ...);
 
 /* This is for internal debugging. Don't use it in client code */
 #if defined(CPR_DEBUG_INTERNAL)
-void cpr__debug_log(const char *file, const int line, const char *fmt, ...);
-#define CPR__DLOG(...) cpr__debug_log(__FILE__, __LINE__, __VA_ARGS__)
+/* TODO __func__ is not standard and might not be defined in every compiler */
+void cpr__debug_log(const char *file, const char *func, const int line, const char *fmt, ...);
+#define CPR__DLOG(...) cpr__debug_log(__FILE__, __func__, __LINE__, __VA_ARGS__)
 #else
 #define CPR__DLOG(x) do { } while(0)
 #endif /* CPR_DEBUG_INTERNAL */

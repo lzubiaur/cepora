@@ -22,12 +22,12 @@ void cpr_log_raw(const char *fmt, ...) {
 #define CPR__DEBUG_LOG_BUF_SIZE 4098L
 static char debug_log_buf[CPR__DEBUG_LOG_BUF_SIZE];
 
-void cpr__debug_log(const char *file, const int line, const char *fmt, ...) {
+void cpr__debug_log(const char *file, const char *func, const int line, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vsnprintf(debug_log_buf, CPR__DEBUG_LOG_BUF_SIZE, fmt, ap);
   va_end(ap);
-  fprintf(stdout, "[DEBUG] %s:%ld : %s\n", file, (long)line, debug_log_buf);
+  fprintf(stdout, "[DEBUG] %s:%s:%ld : %s\n", file, func, (long)line, debug_log_buf);
   fflush(stdout);
 }
 
