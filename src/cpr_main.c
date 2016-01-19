@@ -76,11 +76,6 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
 
 /* Load the core module into the global environment */
 duk_ret_t cpr__open_core_modules(duk_context *ctx) {
-  /* Load the `fileUtile` module */
-  duk_push_c_function(ctx, dukopen_sys_tools, 0);
-  duk_call(ctx, 0);
-  duk_put_global_string(ctx, "fileUtil");
-
   /* Load the `package` module */
   duk_push_c_function(ctx, dukopen_package, 0);
   duk_call(ctx, 0);
