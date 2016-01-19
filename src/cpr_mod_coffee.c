@@ -34,7 +34,7 @@ static duk_ret_t cpr__eval_coffee(duk_context *ctx) {
   // duk_call(ctx, 1); /* call the compiler on the CoffeeScript source */
   cpr__compile_coffee(ctx);
   duk_eval(ctx); /* Run the compiled JavaScript code */
-  return 0;
+  return 1;
 }
 
 /* Load and run JavaScript and CoffeeScript file.  */
