@@ -31,4 +31,9 @@ void cpr__debug_log(const char *file, const char *func, const int line, const ch
   fflush(stdout);
 }
 
+void cpr__dump_context(const char *file, const char *func, const int line, duk_context *ctx) {
+  duk_push_context_dump(ctx);
+  cpr__debug_log(file, func, line, duk_get_string(ctx, -1));
+  duk_pop(ctx); /* dump */
+}
 #endif /* CPR_DEBUG_INTERNAL */
