@@ -5,6 +5,18 @@ info = () -> log.info.apply log, arguments
 # require 'js/tests/test.coffee'
 info 'Loaded modules:'
 info o for o of Duktape.modLoaded
+
+# Search for a dummy file
+try
+  require 'dummy_file.txt'
+catch e
+  info e.stack
+
+try
+  require 'js/tests/broken.coffee'
+catch e
+  info e.stack
+
 # Load C module
 try
   io = require 'io.so'

@@ -1,0 +1,4 @@
+foo = () ->
+  print 'hello'
+
+&& foo()
