@@ -14,6 +14,7 @@ set(core
   cpr_sys_tools.c
   cpr_mod_coffee.c
   cpr_loadlib.c
+  cpr_package.c
   cpr_debug_internal.c)
 
 add_executable(${RUNTIME_NAME} ${core})
