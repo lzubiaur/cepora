@@ -38,8 +38,7 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
     DBG(ctx, "File '%s' NOT found in : '%s'", duk_get_string(ctx, 0), duk_get_string(ctx, -1));
     duk_pop_2(ctx); /* pop key and value */
   }
-  duk_pop(ctx); /* enum */
-  duk_pop_3(ctx); /* Duktape package paths */
+  duk_pop_3(ctx); /* package paths enum */
   ERR(ctx, "File NOT found '%s'", duk_get_string(ctx, 0));
   return 1;
 }
