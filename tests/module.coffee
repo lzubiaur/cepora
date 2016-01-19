@@ -1,13 +1,19 @@
-print o for o in Duktape.arguments
+log = new Duktape.Logger('module.coffee')
+info = () -> log.info.apply log, arguments
 
 # Load Javascript module
-require 'js/tests/test.coffee'
-
+# require 'js/tests/test.coffee'
+info 'Loaded modules:'
+info o for o of Duktape.modLoaded
 # Load C module
-io = require('io.so')
-
-print io.DELAY
-io.read()
+try
+  io = require 'io.so'
+  info io.DELAY
+  io.read()
+  # io = require s
+catch e
+  info e.stack
 
 # Print currently loaded modules
-print o for o in Duktape.modLoaded
+info 'Loaded modules:'
+info o for o of Duktape.modLoaded
