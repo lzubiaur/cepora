@@ -1,4 +1,4 @@
-log = new Duktape.Logger('module.coffee')
+log = new Duktape.Logger('glfw.coffee')
 inf = () -> log.info.apply log, arguments
 err = () -> log.error.apply log, arguments
 
