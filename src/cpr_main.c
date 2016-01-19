@@ -17,7 +17,6 @@
 #include "cpr_macros.h"
 #include "cpr_error.h"
 #include "cpr_sys_tools.h"
-#include "cpr_mod_coffee.h"
 #include "cpr_package.h"
 #include "cpr_loadlib.h"
 
@@ -85,11 +84,6 @@ duk_ret_t cpr__open_core_modules(duk_context *ctx) {
   duk_push_c_function(ctx, dukopen_loadlib, 0);
   duk_call(ctx, 0);
   duk_put_global_string(ctx, "lib");
-
-  /* Load the `coffee` */
-  duk_push_c_function(ctx, dukopen_coffee, 0);
-  duk_call(ctx, 0);
-  duk_put_global_string(ctx, "coffee");
 
   return 0;
 }
@@ -160,8 +154,10 @@ int main(int argc, char *argv[]) {
     cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
+  duk_pop(ctx); /* result */
 
   /* Store command line arguments in the `Duktape` global object. */
+  /* TODO test arguments */
   duk_push_global_object(ctx);
   duk_get_prop_string(ctx, -1, "Duktape");
   duk_push_string(ctx, "arguments");
@@ -181,33 +177,43 @@ int main(int argc, char *argv[]) {
   duk_push_string(ctx, "js/lib/coffee-script.js");
   duk_pcall(ctx, 1);
 
+  /* Load CoffeeScript compiler into the global environment. The CoffeeScript
+   * compiler will be available in the global variable `CoffeeScript`.
+   */
   DBG(ctx, "Loading CoffeeScript compiler '%s'", duk_get_string(ctx, -1));
   if (duk_peval_file(ctx, duk_get_string(ctx, -1)) != 0) {
     ERR(ctx, "Error loading CoffeeScript compiler: '%s'", duk_get_string(ctx, -1));
     cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
-  duk_pop(ctx); /* pop path and duk_peval_file resul */
+  duk_pop_3(ctx); /* [package] [searchPath] [result] */
 
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_push_string(ctx, filename);
   duk_pcall(ctx, 1);
 
-  duk_get_global_string(ctx, "coffee");
-  duk_push_string(ctx, "evalScript");
-  duk_dup(ctx, -3); /* searchPath */
+  /* Get the CoffeeScript global object */
+  duk_get_global_string(ctx, "CoffeeScript");
+  duk_push_string(ctx, "compile");
+  /* Push the content of the file on the top of the stack */
+  duk_push_string_file(ctx, duk_get_string(ctx, -3));
+  /* Compile the coffee script in "safe" mode */
   if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    // ERR(ctx, "Error processing script '%s'", filename); /* Not revelant error message */
-    cpr_dump_stack_trace(ctx, -1);
+    ERR(ctx, "Can't compile script '%s' : %s", filename, duk_safe_to_string(ctx, -1));
     goto finished;
   }
-  // TODO how to return code from javasctipt ?
-  // INF(ctx, "Script succeed with code: %s\n", duk_safe_to_string(ctx, -1));
-  duk_pop_2(ctx); /* pop path and duk_pcall_prop */
+  /* Insert the compiled CoffeeScript script before in the stack so we can
+   * clean up (pop) before evaluating the script */
+  duk_insert(ctx, -4);
+  duk_pop_3(ctx); /* [package] [searchPath] [CoffeeScript] */
+  CPR__DUMP_CONTEXT(ctx); /* Stack should only contain the script source code */
+  if (duk_peval(ctx)) {
+    cpr_dump_stack_trace(ctx, -1);
+  }
 
   INF(ctx, "Bye!");
 

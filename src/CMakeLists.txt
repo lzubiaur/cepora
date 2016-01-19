@@ -12,7 +12,6 @@ set(core
   cpr_main.c
   cpr_error.c
   cpr_sys_tools.c
-  cpr_mod_coffee.c
   cpr_loadlib.c
   cpr_package.c
   cpr_debug_internal.c)

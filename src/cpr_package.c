@@ -32,14 +32,15 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
     duk_dup(ctx, 0);
     duk_concat(ctx, 3);
     if (cpr_file_exists(duk_get_string(ctx, -1))) {
-      DBG(ctx, "File '%s' found in : '%s'", duk_get_string(ctx, 0), duk_get_string(ctx, -1));
+      DBG(ctx, "Found file '%s'", duk_get_string(ctx, -1));
       return 1;
     }
-    DBG(ctx, "File '%s' NOT found in : '%s'", duk_get_string(ctx, 0), duk_get_string(ctx, -1));
+    DBG(ctx, "No file '%s'", duk_get_string(ctx, -1));
     duk_pop_2(ctx); /* pop key and value */
   }
   duk_pop_3(ctx); /* package paths enum */
-  ERR(ctx, "File NOT found '%s'", duk_get_string(ctx, 0));
+  ERR(ctx, "Module '%s' not found", duk_get_string(ctx, 0));
+  duk_push_undefined(ctx);
   return 1;
 }
 
@@ -48,23 +49,28 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
  */
 static duk_ret_t cpr__require_handler(duk_context *ctx) {
   const char *filename = NULL;
+  CPR__DLOG("require '%s'", duk_get_string(ctx, 0));
   /* Search for the file in the search paths */
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_dup(ctx, 0);
   duk_call(ctx, 1);
+  if (duk_is_null_or_undefined(ctx,-1)) {
+    duk_error(ctx, DUK_ERR_ERROR ,"module '%s' not found", duk_get_string(ctx, 0));
+  }
   filename = duk_get_string(ctx, -1);
   /* TODO Lazy file extension check  */
   char *dot = strrchr(duk_get_string(ctx, -1), '.');
   if (dot && strcmp(dot, ".coffee") == 0) {
     INF(ctx, "Load CoffeeScript module '%s'", filename);
-    duk_get_global_string(ctx, "coffee");
-    duk_push_string(ctx, "compileCoffee");
-    duk_push_string(ctx, filename);
+    /* Get the CoffeeScript global object */
+    duk_get_global_string(ctx, "CoffeeScript");
+    duk_push_string(ctx, "compile");
+    /* Push the content of the file on the top of the stack */
+    duk_push_string_file(ctx, filename);
+    /* Compile the coffee script in "safe" mode */
     if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
-      // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
-      ERR(ctx, "Cannot compile CoffeeScript '%s'", filename);
-      cpr_dump_stack_trace(ctx, -1);
+      duk_error(ctx, DUK_ERR_SYNTAX_ERROR, "Can't compile CoffeeScript '%s' : %s", filename, duk_safe_to_string(ctx, -1));
     }
   } else if (dot && strcmp(dot, ".so") == 0) {
     INF(ctx, "Load C module id: '%s' filename:'%s'", duk_get_string(ctx, 0), filename);
@@ -131,9 +137,7 @@ static duk_ret_t cpr__init_search_path(duk_context *ctx) {
     duk_put_prop_index(ctx, -2, 1);
     duk_put_prop_string(ctx, obj_idx, "paths");
   } else {
-    // duk_error requires using variable parameter so we use the duk_push_string/duk_throw workaround.
-    duk_push_string(ctx, "Can't retreive executable path. Please try setting CPR_PATH.");
-    duk_throw(ctx);
+    duk_error(ctx, DUK_ERR_ERROR, "Can't retreive executable path. Please try setting CPR_PATH.");
   }
   return 0;
 }
