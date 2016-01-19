@@ -13,7 +13,7 @@
  * Throw an error on IO file access (e.g. file not found) or on compilation
  * error (e.g. syntax error).
  */
-static duk_ret_t compile_coffee(duk_context *ctx) {
+static duk_ret_t cpr__compile_coffee(duk_context *ctx) {
   const char *filename = duk_to_string(ctx, -1);
   if (duk_get_global_string(ctx, "CoffeeScript")) {
     duk_push_string(ctx, "compile");
@@ -28,17 +28,17 @@ static duk_ret_t compile_coffee(duk_context *ctx) {
 /* Compile and eval a CoffeeScript file. Throw an error on IO and compilation
  * errors (e.g. file not found, syntax error).
  */
-static duk_ret_t eval_coffee(duk_context *ctx) {
+static duk_ret_t cpr__eval_coffee(duk_context *ctx) {
   // duk_get_global_string(ctx, "compile_coffee"); /* Get the CoffeeScript global compiler */
   // duk_insert(ctx, -2); /* Insert the compiler before the filename on the stack */
   // duk_call(ctx, 1); /* call the compiler on the CoffeeScript source */
-  compile_coffee(ctx);
+  cpr__compile_coffee(ctx);
   duk_eval(ctx); /* Run the compiled JavaScript code */
   return 0;
 }
 
 /* Load and run JavaScript and CoffeeScript file.  */
-static duk_ret_t eval_script(duk_context *ctx) {
+static duk_ret_t cpr__eval_script(duk_context *ctx) {
   const char *filename = duk_to_string(ctx, -1);
   DBG(ctx, "Loading script '%s'", filename);
   /* TODO Lazy file extension check  */
@@ -47,7 +47,7 @@ static duk_ret_t eval_script(duk_context *ctx) {
     // duk_get_global_string(ctx, "eval_coffee");
     duk_push_string(ctx, filename);
     // duk_call(ctx, 1);
-    eval_coffee(ctx);
+    cpr__eval_coffee(ctx);
   } else {
     duk_eval_file(ctx, filename);
   }
@@ -55,9 +55,9 @@ static duk_ret_t eval_script(duk_context *ctx) {
 }
 
 static const duk_function_list_entry module_funcs[] = {
-    { "eval_script", eval_script, 1 /*nargs*/ },
-    { "eval_coffee", eval_coffee, 1           },
-    { "compile_coffee", compile_coffee, 1     },
+    { "evalScript",     cpr__eval_script,     1 },
+    { "evalCoffee",     cpr__eval_coffee,     1 },
+    { "compileCoffee",  cpr__compile_coffee,  1 },
     { NULL, NULL, 0 }
 };
 

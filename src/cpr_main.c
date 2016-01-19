@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
   duk_pcall(ctx, 1);
 
   duk_get_global_string(ctx, "coffee");
-  duk_push_string(ctx, "eval_script");
+  duk_push_string(ctx, "evalScript");
   duk_dup(ctx, -3); /* searchPath */
   if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.

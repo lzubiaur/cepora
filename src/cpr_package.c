@@ -60,7 +60,7 @@ static duk_ret_t cpr__require_handler(duk_context *ctx) {
   if (dot && strcmp(dot, ".coffee") == 0) {
     INF(ctx, "Load CoffeeScript module '%s'", filename);
     duk_get_global_string(ctx, "coffee");
-    duk_push_string(ctx, "compile_coffee");
+    duk_push_string(ctx, "compileCoffee");
     duk_push_string(ctx, filename);
     if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
       // duk_error(ctx, DUK_ERR_RANGE_ERROR, "argument out of range: %d", (int) argval);
