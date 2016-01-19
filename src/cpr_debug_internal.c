@@ -27,7 +27,7 @@ void cpr__debug_log(const char *file, const char *func, const int line, const ch
   va_start(ap, fmt);
   vsnprintf(debug_log_buf, CPR__DEBUG_LOG_BUF_SIZE, fmt, ap);
   va_end(ap);
-  fprintf(stdout, "[DEBUG] %s:%s:%ld : %s\n", file, func, (long)line, debug_log_buf);
+  fprintf(stdout, "[DEBUG] '%s':%ld:%s : %s\n", file, (long)line, func, debug_log_buf);
   fflush(stdout);
 }
 
