@@ -6,4 +6,4 @@ cd @CMAKE_INSTALL_PREFIX@
 
 ${cepora_exec} -v
 ${cepora_exec} -h
-${cepora_exec} -o ./output.log js/tests/test.coffee
+${cepora_exec} js/tests/arguments.coffee -arg1 -arg2 optionA
