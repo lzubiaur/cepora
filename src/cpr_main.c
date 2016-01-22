@@ -45,7 +45,7 @@ void cpr_set_default_log_level(duk_context *ctx, unsigned short level) {
 }
 
 /* Usage inspired from Node.js */
-void cpr_usage() {
+static void cpr__usage() {
   cpr_log_raw("Usage: cepora [options] [-o filename] [-l level] [script.js | script.coffee] [arguments]\n");
   cpr_log_raw("\n");
   cpr_log_raw("Options:\n");
@@ -60,13 +60,13 @@ void cpr_usage() {
   exit(EXIT_SUCCESS);
 }
 
-void cpr_version() {
+static void cpr__version() {
   cpr_log_raw("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
   cpr_log_raw("Duktape %s\n", DUK_GIT_DESCRIBE);
   exit(EXIT_SUCCESS);
 }
 
-void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
+static void cpr__fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
   cpr_dump_stack_trace(ctx, -1);
   /* Fatal handler should not return. */
@@ -74,7 +74,7 @@ void fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
 }
 
 /* Load the core module into the global environment */
-duk_ret_t cpr__open_core_modules(duk_context *ctx) {
+static duk_ret_t cpr__open_core_modules(duk_context *ctx) {
   /* Load the `package` module */
   duk_push_c_function(ctx, dukopen_package, 0);
   duk_call(ctx, 0);
@@ -102,9 +102,9 @@ int main(int argc, char *argv[]) {
   while (i < argc && argv[i][0] == '-') {
     CPR__DLOG("argument %d : %s", i, argv[i]);
     if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0){
-      cpr_version();
+      cpr__version();
     } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-      cpr_usage();
+      cpr__usage();
     } else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) {
       if (i + 1 < argc) {
           log_path = argv[++i];
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
    * (https://github.com/gperftools/gperftools) and jmalloc
    * (https://github.com/jemalloc/jemalloc).
    */
-  ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_handler);
+  ctx = duk_create_heap(NULL, NULL, NULL, NULL, cpr__fatal_handler);
 
   if (!ctx) {
     cpr_log_raw("FATAL: Failed to create a Duktape heap.\n");
