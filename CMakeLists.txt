@@ -33,33 +33,34 @@ set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/products/${CMAKE_BUILD_TYPE})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 if(BUILD_OSX)
-    set(BUNDLE_NAME "${BUNDLE_NAME}.app")
-    set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}/Contents/Resources")
-
-   # Disable RPATH for build and install. We use fixup_bundle to assemble a
-   # standalone bundle.
-   # CMAKE_SKIP_RPATH is required disabled on OSX because dependencies like
-   # GLFW are linked using the install path and fixup_bundle can't find them if they
-   # are not yet installed (which we don't want to do).
-   set(CMAKE_SKIP_RPATH TRUE)
+  set(BUNDLE_NAME "${BUNDLE_NAME}.app")
+  set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}/Contents/Resources")
+  set(PLUGINS_DESTINATION "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/Contents/MacOS")
+  set(BUNDLE_RUNTIME_DESTINATION "${BUNDLE_NAME}/Contents/MacOS")
+  # Disable RPATH for build and install. We use fixup_bundle to assemble a
+  # standalone bundle.
+  # CMAKE_SKIP_RPATH is required disabled on OSX because dependencies like
+  # GLFW are linked using the install path and fixup_bundle can't find them if they
+  # are not yet installed (which we don't want to do).
+  set(CMAKE_SKIP_RPATH TRUE)
 elseif(BUILD_LINUX)
-   set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}")
+  set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}")
 
-   # use, i.e. don't skip the full RPATH for the build tree
-   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+  # use, i.e. don't skip the full RPATH for the build tree
+  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
-   # when building, don't use the install RPATH already
-   # (but later on when installing)
-   SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  # when building, don't use the install RPATH already
+  # (but later on when installing)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-   # the RPATH to be used when installing
-   SET(CMAKE_INSTALL_RPATH ".")
+  # the RPATH to be used when installing
+  SET(CMAKE_INSTALL_RPATH ".")
 
-   # don't add the automatically determined parts of the RPATH
-   # which point to directories outside the build tree to the install RPATH
-   SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+  # don't add the automatically determined parts of the RPATH
+  # which point to directories outside the build tree to the install RPATH
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 elseif(BUILD_WIN)
-   set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}")
+  set(BUNDLE_RESOURCE_DIR "${BUNDLE_NAME}")
 endif(BUILD_OSX)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/lib)

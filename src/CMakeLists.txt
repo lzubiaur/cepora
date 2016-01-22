@@ -37,8 +37,6 @@ elseif (BUILD_OSX)
   target_link_libraries(${RUNTIME_NAME} duktape)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}")
-  set(PLUGINS_DESTINATION "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/Contents/MacOS")
-  set(BUNDLE_RUNTIME_DESTINATION "${BUNDLE_NAME}/Contents/MacOS")
   # MACOSX_BUNDLE can not be used with CPack
   set_target_properties(${RUNTIME_NAME} PROPERTIES MACOSX_BUNDLE true)
   # Specify linker flags for shared library build
