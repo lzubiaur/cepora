@@ -3,8 +3,16 @@ cmake_minimum_required(VERSION 3.3)
 
 configure_file("run-tests.sh.in" "${PROJECT_BINARY_DIR}/run-tests.sh" @ONLY)
 
+set(tests_files
+  test.coffee
+  module.coffee
+  glfw.coffee
+  broken.coffee
+  arguments.coffee
+)
+
 install(
-  FILES test.coffee module.coffee glfw.coffee broken.coffee
+  FILES ${tests_files}
   DESTINATION ${BUNDLE_RESOURCE_DIR}/js/tests
   COMPONENT Runtime)
 
