@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cepora_exec=@BUNDLE_RUNTIME_DESTINATION@/@RUNTIME_NAME@
+
+cd @CMAKE_INSTALL_PREFIX@
+
+${cepora_exec} -v
+${cepora_exec} -h
+${cepora_exec} -o ./output.log js/tests/test.coffee
