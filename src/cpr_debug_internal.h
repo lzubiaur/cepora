@@ -17,10 +17,10 @@ void cpr_log_raw(const char *fmt, ...);
 void cpr__debug_log(const char *file, const char *func, const int line, const char *fmt, ...);
 void cpr__dump_context(const char *file, const char *func, const int line, duk_context *ctx);
 #define CPR__DLOG(...) cpr__debug_log(__FILE__, __func__, __LINE__, __VA_ARGS__)
-#define CPR__DUMP_CONTEXT(__ctx__) cpr__dump_context(__FILE__, __func__, __LINE__, __ctx__);
+#define CPR__DUMP_CONTEXT(__ctx__) cpr__dump_context(__FILE__, __func__, __LINE__, __ctx__)
 #else
-#define CPR__DLOG(x) do { } while(0)
-#define CPR__DUMP_CONTEXT do { } while(0)
+#define CPR__DLOG(...) do { } while(0)
+#define CPR__DUMP_CONTEXT(__ctx__) do { } while(0)
 #endif /* CPR_DEBUG_INTERNAL */
 
 #endif /* CPR_DEBUG_INTERNAL_H */
