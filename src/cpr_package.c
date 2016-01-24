@@ -14,21 +14,40 @@
 
 #include <stdlib.h> /* getenv */
 
-#define CPR__PATH_SEPARATOR ';'
+#define CPR__PATH_SEPARATOR ';' /* Path separator used in the CPR_PATH environment variable */
+#if defined(_WIN32)
+#define CPR__FILE_SYSTEM_SEPARATOR "\\"
+#else
+#define CPR__FILE_SYSTEM_SEPARATOR "/"
+#endif
 
 /* Look up for a file using the search paths (package.paths). Return `undefined`
  * if the file is not found.
  */
 static duk_ret_t cpr__search_path(duk_context *ctx) {
+  const char *filename = NULL;
   if (duk_is_null_or_undefined(ctx, -1)) {
     duk_push_undefined(ctx);
     return 1;
   }
+
+  filename = duk_require_string(ctx, -1);
+  /* return filename if absolute path */
+  if (filename[0] == CPR__FILE_SYSTEM_SEPARATOR[0]) {
+    CPR__DLOG("path is absolute '%s'", filename);
+    if (cpr_file_exists(filename)) {
+      duk_push_string(ctx, filename);
+    } else {
+      duk_push_undefined(ctx);
+    }
+    return 1;
+  }
+
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "paths");
   duk_enum(ctx, -1, DUK_ENUM_ARRAY_INDICES_ONLY);
   while (duk_next(ctx, -1, 1)) {
-    duk_push_string(ctx, "/");
+    duk_push_string(ctx, CPR__FILE_SYSTEM_SEPARATOR);
     duk_dup(ctx, 0);
     duk_concat(ctx, 3);
     if (cpr_file_exists(duk_get_string(ctx, -1))) {
@@ -39,7 +58,7 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
     duk_pop_2(ctx); /* pop key and value */
   }
   duk_pop_3(ctx); /* package paths enum */
-  ERR(ctx, "Module '%s' not found", duk_get_string(ctx, 0));
+  ERR(ctx, "Module '%s' not found", filename);
   duk_push_undefined(ctx);
   return 1;
 }
