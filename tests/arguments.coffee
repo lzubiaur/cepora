@@ -1,5 +1,4 @@
 ### @test
-arguments list:
 -arg1
 -arg2
 optionA
