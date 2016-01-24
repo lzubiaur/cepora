@@ -21,6 +21,7 @@
 #include "cpr_loadlib.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
+#define CPR__COFFEE_SCRIPT_PATH "js/lib/coffee-script.js"
 
 /* Helper function to set logging level for both C and Javascript API.
  * Note that this only set the *DEFAULT* javascript logging level and will not
@@ -69,7 +70,6 @@ static void cpr__version() {
 
 static void cpr__fatal_handler(duk_context *ctx, duk_errcode_t code, const char *msg) {
   FTL(ctx, "Fatal error: %s [code: %d]", msg, code);
-  cpr_dump_stack_trace(ctx, -1);
   /* Fatal handler should not return. */
   exit(EXIT_FAILURE);
 }
@@ -181,8 +181,12 @@ int main(int argc, char *argv[]) {
   /* Get CoffeeScript compiler full path */
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "searchPath");
-  duk_push_string(ctx, "js/lib/coffee-script.js");
+  duk_push_string(ctx, CPR__COFFEE_SCRIPT_PATH);
   duk_pcall(ctx, 1);
+  if (duk_is_null_or_undefined(ctx, -1)) {
+    FTL(ctx, "Can't find CoffeeScript compiler : " CPR__COFFEE_SCRIPT_PATH);
+    goto finished;
+  }
 
   /* Load CoffeeScript compiler into the global environment. The CoffeeScript
    * compiler will be available in the global variable `CoffeeScript`.
@@ -198,15 +202,13 @@ int main(int argc, char *argv[]) {
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_push_string(ctx, filename);
-  if (duk_pcall(ctx, 1) != DUK_EXEC_SUCCESS) {
-    cpr_dump_stack_trace(ctx, -1);
-    goto finished;
-  }
+  duk_pcall(ctx, 1);
   /* If no file is found then `undefined` is pushed */
   if (duk_is_null_or_undefined(ctx, -1)) {
     FTL(ctx, "Can't find script : '%s'", filename);
     goto finished;
   }
+  CPR__DLOG("main script : '%s'", filename);
 
   /* Get the CoffeeScript global object */
   duk_get_global_string(ctx, "CoffeeScript");
