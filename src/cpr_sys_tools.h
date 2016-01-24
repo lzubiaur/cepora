@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+int cpr_file_is_absolute(const char *path);
+
 /* TODO check GLFW cmake options (GLFW_USE_CHDIR) or directive (_GLFW_USE_CHDIR)
  * when building OSX release because glfwInit will change current directory
  * to the bundle `resource` folder automaticaly.

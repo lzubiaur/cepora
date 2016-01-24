@@ -34,6 +34,14 @@
 #define chdir(p) (_chdir(p))
 #endif
 
+int cpr_file_is_absolute(const char *path) {
+#if defined(__linux__) || defined(__APPLE__)
+  return (path[0] == '/');
+#else
+#error Not implemented
+#endif
+}
+
 int cpr_file_exists(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   struct stat st;
