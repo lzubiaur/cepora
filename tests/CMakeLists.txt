@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.3)
 configure_file("run-tests.sh.in" "${PROJECT_BINARY_DIR}/run-tests.sh" @ONLY)
 
 set(tests_files
-  test.coffee
+  hello.coffee
   module.coffee
   glfw.coffee
   broken.coffee
