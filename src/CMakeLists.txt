@@ -25,7 +25,7 @@ add_dependencies(${RUNTIME_NAME} duktape)
 # Flag to notify that this build is part of the Cepora framework
 target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_COMPILING_CEPORA=1)
 # Enable internal debugging
-target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
+# target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
 
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
