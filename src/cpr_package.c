@@ -33,7 +33,7 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
 
   filename = duk_require_string(ctx, -1);
   /* return filename if absolute path */
-  if (filename[0] == CPR__FILE_SYSTEM_SEPARATOR[0]) {
+  if (cpr_file_is_absolute(filename)) {
     CPR__DLOG("path is absolute '%s'", filename);
     if (cpr_file_exists(filename)) {
       duk_push_string(ctx, filename);
