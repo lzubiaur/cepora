@@ -198,14 +198,21 @@ int main(int argc, char *argv[]) {
   duk_get_global_string(ctx, "package");
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_push_string(ctx, filename);
-  duk_pcall(ctx, 1);
+  if (duk_pcall(ctx, 1) != DUK_EXEC_SUCCESS) {
+    cpr_dump_stack_trace(ctx, -1);
+    goto finished;
+  }
+  /* If no file is found then `undefined` is pushed */
+  if (duk_is_null_or_undefined(ctx, -1)) {
+    FTL(ctx, "Can't find script : '%s'", filename);
+    goto finished;
+  }
 
   /* Get the CoffeeScript global object */
   duk_get_global_string(ctx, "CoffeeScript");
   duk_push_string(ctx, "compile");
   /* Push the content of the file on the top of the stack */
   duk_push_string_file(ctx, duk_get_string(ctx, -3));
-  /* FIXME crash when the script doesn't exist */
   /* Compile the coffee script in "safe" mode */
   if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.
