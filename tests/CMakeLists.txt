@@ -17,5 +17,5 @@ install(
   COMPONENT Runtime)
 
 install(
-  PROGRAMS "${PROJECT_BINARY_DIR}/run-tests.sh"
+  PROGRAMS "${PROJECT_BINARY_DIR}/run-tests.sh" run-testcase.py
   DESTINATION ${CMAKE_INSTALL_PREFIX})

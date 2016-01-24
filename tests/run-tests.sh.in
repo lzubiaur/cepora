@@ -1,9 +1,31 @@
 #!/bin/sh
 
 cepora_exec=@BUNDLE_RUNTIME_DESTINATION@/@RUNTIME_NAME@
+resources=@BUNDLE_RESOURCE_DIR@
+
+# Cepora process command line arguments
+# -l logging level (FATAL:5, ERROR:4...)
+cepora_opts="-l 4"
 
 cd @CMAKE_INSTALL_PREFIX@
 
-${cepora_exec} -v
-${cepora_exec} -h
-${cepora_exec} js/tests/arguments.coffee -arg1 -arg2 optionA
+# Print commands and their arguments as they are executed
+if [ "$1" == "-d" ]; then
+  set -x
+  python_opts = "${python_opts} -d"
+fi
+
+unset CPR_PATH
+
+# ${cepora_exec} -v
+# ${cepora_exec} -h
+
+function run_test {
+  python run-testcase.py ${python_opts} -s ${resources}/$1 ${cepora_exec} ${cepora_opts} $1 $2
+}
+
+run_test 'js/tests/arguments.coffee' '-arg1 -arg2 optionA'
+export CPR_PATH='/tmp'
+run_test 'js/tests/glfw.coffee'
+unset CPR_PATH
+run_test 'js/tests/glfw.coffee'
