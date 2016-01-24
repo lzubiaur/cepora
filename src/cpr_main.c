@@ -61,6 +61,7 @@ static void cpr__usage() {
 }
 
 static void cpr__version() {
+  /* TODO */
   cpr_log_raw("Cepora %s - Git commit %s\n", CPR_VERSION_STRING, CPR_GIT_COMMIT);
   cpr_log_raw("Duktape %s\n", DUK_GIT_DESCRIBE);
   exit(EXIT_SUCCESS);
@@ -125,7 +126,13 @@ int main(int argc, char *argv[]) {
   argsConsumed = i;
 
   /* Run in CLI mode. First argument is the script file to run. */
-  filename = i < argc ? argv[i] : "js/main.coffee";
+  if (argsConsumed < argc) {
+    filename = argv[argsConsumed];
+    argsConsumed++;
+  } else {
+    filename = "js/main.coffee";
+  }
+  CPR__DLOG(filename);
 
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
@@ -163,9 +170,9 @@ int main(int argc, char *argv[]) {
   duk_push_string(ctx, "arguments");
   duk_idx_t arr_idx = duk_push_array(ctx); /* push an empty array */
 
-  for (int i=argsConsumed; i<argc; ++i) {
+  for (i = argsConsumed; i < argc; ++i) {
     duk_push_string(ctx, argv[i]);
-    duk_put_prop_index(ctx, arr_idx, i - 2);
+    duk_put_prop_index(ctx, arr_idx, i - argsConsumed);
   }
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
@@ -198,6 +205,7 @@ int main(int argc, char *argv[]) {
   duk_push_string(ctx, "compile");
   /* Push the content of the file on the top of the stack */
   duk_push_string_file(ctx, duk_get_string(ctx, -3));
+  /* FIXME crash when the script doesn't exist */
   /* Compile the coffee script in "safe" mode */
   if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
     /* If duk_safe_call fails the error object is at the top of the context.
