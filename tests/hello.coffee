@@ -1,4 +1,4 @@
-### @test
+### @test
 hello CoffeeScript
 1
 2
