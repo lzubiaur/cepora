@@ -156,7 +156,11 @@ static duk_ret_t glfw_extension_supported(duk_context *ctx) {
 }
 
 static duk_ret_t glfw_get_proc_address(duk_context *ctx) {
-  duk_push_pointer(ctx, glfwGetProcAddress(duk_get_string(ctx, 0)));
+#if defined(__GNUC__)
+  duk_push_pointer(ctx, (__extension__ (void *)glfwGetProcAddress(duk_get_string(ctx, 0))));
+#else
+  duk_push_pointer(ctx, (void *)glfwGetProcAddress(duk_get_string(ctx, 0)));
+#endif
   return 1;
 }
 #endif /* CPR__GLFW_MANUAL_EXT_LOADING_BIND */
