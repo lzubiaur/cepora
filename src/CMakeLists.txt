@@ -61,9 +61,12 @@ set_target_properties(mod_dummy PROPERTIES PREFIX "" OUTPUT_NAME "dummy" SUFFIX 
 
 add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX "${MODULE_SUFFIX}")
+if (BUILD_LINUX)
+  target_compile_options(mod_glfw PUBLIC -std=c99 -pedantic-errors -pedantic)
+endif (BUILD_LINUX)
 target_link_libraries(mod_glfw glfw)
 # CPR_DEBUG_GLFW_BINDING Enable debugging trace
-target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1 CPR_DEBUG_GLFW_BINDING=1)
+target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
 
 install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw
     BUNDLE  DESTINATION "." COMPONENT Runtime
