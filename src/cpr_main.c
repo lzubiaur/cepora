@@ -91,7 +91,8 @@ static duk_ret_t cpr__open_core_modules(duk_context *ctx) {
 
 int main(int argc, char *argv[]) {
   duk_context *ctx = NULL;
-  int i = 0, argsConsumed = 0, log_level = 0;
+  int i = 0, argsConsumed = 0;
+  int  log_level = 4; /* Default log level to ERROR */
   const char *filename = NULL, *log_path = NULL;
 
   /* Arguments are parsed using a while loop because to "consume" unused options.
