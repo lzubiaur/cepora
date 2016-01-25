@@ -32,10 +32,13 @@ if (BUILD_LINUX)
   target_link_libraries(${RUNTIME_NAME} duktape dl m)
   target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99 -pedantic-errors -pedantic)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1 CPR_COMPILING_CEPORA=1)
+  # On linux APP must be set to the executable binary
+  set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/bin/${RUNTIME_NAME}")
 elseif (BUILD_OSX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
+  # On OSX APP must be set to the bundle root
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}")
   # MACOSX_BUNDLE can not be used with CPack
   set_target_properties(${RUNTIME_NAME} PROPERTIES MACOSX_BUNDLE true)
