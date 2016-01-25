@@ -9,6 +9,8 @@
 
 #include "duktape.h"
 
+#define CPR_PACKAGE_NAME "module"
+
 duk_ret_t dukopen_package(duk_context *ctx);
 
 #endif /* CPR_PACKAGE_H */

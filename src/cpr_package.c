@@ -43,7 +43,7 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
     return 1;
   }
 
-  duk_get_global_string(ctx, "package");
+  duk_get_global_string(ctx, CPR_PACKAGE_NAME);
   duk_get_prop_string(ctx, -1, "paths");
   duk_enum(ctx, -1, DUK_ENUM_ARRAY_INDICES_ONLY);
   while (duk_next(ctx, -1, 1)) {
@@ -70,7 +70,7 @@ static duk_ret_t cpr__require_handler(duk_context *ctx) {
   const char *filename = NULL;
   CPR__DLOG("require '%s'", duk_get_string(ctx, 0));
   /* Search for the file in the search paths */
-  duk_get_global_string(ctx, "package");
+  duk_get_global_string(ctx, CPR_PACKAGE_NAME);
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_dup(ctx, 0);
   duk_call(ctx, 1);

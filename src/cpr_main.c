@@ -79,7 +79,7 @@ static duk_ret_t cpr__open_core_modules(duk_context *ctx) {
   /* Load the `package` module */
   duk_push_c_function(ctx, dukopen_package, 0);
   duk_call(ctx, 0);
-  duk_put_global_string(ctx, "package");
+  duk_put_global_string(ctx, CPR_PACKAGE_NAME);
 
   /* Load the `package` module */
   duk_push_c_function(ctx, dukopen_loadlib, 0);
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
   duk_pop_2(ctx);
 
   /* Get CoffeeScript compiler full path */
-  duk_get_global_string(ctx, "package");
+  duk_get_global_string(ctx, CPR_PACKAGE_NAME);
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_push_string(ctx, CPR__COFFEE_SCRIPT_PATH);
   duk_pcall(ctx, 1);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
   }
   duk_pop_3(ctx); /* [package] [searchPath] [result] */
 
-  duk_get_global_string(ctx, "package");
+  duk_get_global_string(ctx, CPR_PACKAGE_NAME);
   duk_get_prop_string(ctx, -1, "searchPath");
   duk_push_string(ctx, filename);
   duk_pcall(ctx, 1);
