@@ -61,7 +61,14 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
 
   /* Clear any existing previous error */
   dlerror();
+#if defined(__GNUC__)
+  /* ISO C doesnt allow casting from void * to function. When compiling using GCC with -pedantic
+   * flag it generate a warning. The gnu __extension__ keyword avoid that warning.
+   */
+  func = (__extension__ (duk_c_function) dlsym(handle, sym));
+#else
   func = (duk_c_function) dlsym(handle, sym);
+#endif
   if ((errmsg = dlerror()) != NULL)  {
     ERR(ctx, "%s", errmsg);
     duk_push_sprintf(ctx, "Cannot find symbol '%s'", sym);
