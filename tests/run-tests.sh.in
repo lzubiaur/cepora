@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cepora_exec=@BUNDLE_RUNTIME_DESTINATION@/@RUNTIME_NAME@
 resources=@BUNDLE_RESOURCE_DIR@
