@@ -6,6 +6,7 @@ configure_file("run-tests.sh.in" "${PROJECT_BINARY_DIR}/run-tests.sh" @ONLY)
 set(tests_files
   hello.coffee
   module.coffee
+  loadlib.coffee
   glfw.coffee
   broken.coffee
   arguments.coffee

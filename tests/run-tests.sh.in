@@ -5,7 +5,7 @@ resources=@BUNDLE_RESOURCE_DIR@
 
 # Cepora process command line arguments
 # -l logging level (FATAL:5, ERROR:4...)
-cepora_opts="-l 4"
+cepora_opts="-l 5"
 
 cd @CMAKE_INSTALL_PREFIX@
 
@@ -25,6 +25,7 @@ function run_test {
 }
 
 run_test 'js/tests/hello.coffee'
+run_test 'js/tests/loadlib.coffee'
 run_test 'js/tests/arguments.coffee' '-arg1 -arg2 optionA'
 
 # export CPR_PATH='/tmp'
