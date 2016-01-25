@@ -1,27 +1,23 @@
-#include "cpr_io.h"
+#include "cpr_dummy.h"
 #include "cpr_macros.h"
 
-/* Load and run JavaScript and CoffeeScript file.  */
-static duk_ret_t read(duk_context *ctx)
+static duk_ret_t foo(duk_context *ctx)
 {
-  printf("Hello module\n");
+  printf("%s", duk_get_string(ctx, 0));
   return 0;
 }
 
 static const duk_function_list_entry module_funcs[] = {
-    { "read", read, 1 },
+    { "foo", foo, 1 },
     { NULL, NULL, 0 }
 };
 
 const duk_number_list_entry module_consts[] = {
-    { "FLAG_FOO", (double) (1 << 0) },
-    { "FLAG_BAR", (double) (1 << 1) },
-    { "FLAG_QUUX", (double) (1 << 2) },
-    { "DELAY", 300.0 },
+    { "BAR", (double)(-1) },
     { NULL, 0.0 }
 };
 
-duk_ret_t dukopen_io(duk_context *ctx) {
+duk_ret_t dukopen_dummy(duk_context *ctx) {
   DBG(ctx, "dukopen_io");
   duk_push_object(ctx);  /* module result */
   duk_put_function_list(ctx, -1, module_funcs);

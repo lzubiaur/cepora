@@ -48,8 +48,11 @@ elseif (BUILD_WINDOWS)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
 endif()
 
-add_library(io SHARED cpr_io.c)
-set_target_properties(io PROPERTIES PREFIX "" OUTPUT_NAME "io" SUFFIX "${MODULE_SUFFIX}")
+###########################################
+#### Modules
+###########################################
+add_library(mod_dummy SHARED modules/cpr_dummy.c)
+set_target_properties(mod_dummy PROPERTIES PREFIX "" OUTPUT_NAME "dummy" SUFFIX "${MODULE_SUFFIX}")
 # add_dependencies(io duktape_shared)
 # target_link_libraries(io duktape_shared)
 
@@ -59,7 +62,7 @@ target_link_libraries(mod_glfw glfw)
 # CPR_DEBUG_GLFW_BINDING Enable debugging trace
 target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1 CPR_DEBUG_GLFW_BINDING=1)
 
-install(TARGETS ${RUNTIME_NAME} io mod_glfw
+install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
