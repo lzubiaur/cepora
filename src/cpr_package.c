@@ -17,8 +17,13 @@
 #define CPR__PATH_SEPARATOR ';' /* Path separator used in the CPR_PATH environment variable */
 #if defined(_WIN32)
 #define CPR__FILE_SYSTEM_SEPARATOR "\\"
-#else
+#define CPR__RESOURCES_PATH "\\.."
+#elif defined(__APPLE__)
 #define CPR__FILE_SYSTEM_SEPARATOR "/"
+#define CPR__RESOURCES_PATH "/../Resources"
+#else /* __linux__ */
+#define CPR__FILE_SYSTEM_SEPARATOR "/"
+#define CPR__RESOURCES_PATH "/.."
 #endif
 
 /* Look up for a file using the search paths (package.paths). Return `undefined`
@@ -151,7 +156,7 @@ static duk_ret_t cpr__init_search_path(duk_context *ctx) {
     duk_put_prop_index(ctx, -2, 0);
     /* TODO Add Resources folder for MacOS platform */
     duk_push_string(ctx, path);
-    duk_push_string(ctx, "/../Resources");
+    duk_push_string(ctx, CPR__RESOURCES_PATH);
     duk_concat(ctx, 2);
     duk_put_prop_index(ctx, -2, 1);
     duk_put_prop_string(ctx, obj_idx, "paths");
