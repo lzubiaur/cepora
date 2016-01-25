@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
    */
   DBG(ctx, "Loading CoffeeScript compiler '%s'", duk_get_string(ctx, -1));
   if (duk_peval_file(ctx, duk_get_string(ctx, -1)) != 0) {
-    ERR(ctx, "Error loading CoffeeScript compiler: '%s'", duk_get_string(ctx, -1));
+    FTL(ctx, "Error loading CoffeeScript compiler: '%s'", duk_get_string(ctx, -1));
     cpr_dump_stack_trace(ctx, -1);
     goto finished;
   }
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
     /* If duk_safe_call fails the error object is at the top of the context.
      * But we must request at least one return value to actually get the error
      * object on the stack. */
-    ERR(ctx, "Can't compile script '%s' : %s", filename, duk_safe_to_string(ctx, -1));
+    FTL(ctx, "Can't compile script '%s' : %s", filename, duk_safe_to_string(ctx, -1));
     goto finished;
   }
   /* Insert the compiled CoffeeScript script before in the stack so we can
