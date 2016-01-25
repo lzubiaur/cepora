@@ -41,7 +41,10 @@ void *cpr_open_lib(duk_context *ctx, const char *filename) {
   * resolve references in subsequently loaded libraries */
   handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
-    duk_push_sprintf(ctx, "Cannot open module '%s': %s", filename, dlerror());
+    /* Low level error is logged and a custom error message is returned so we
+     * can look for the same message on every platform (mainly for testing purpose). */
+    ERR(ctx, "%s", dlerror());
+    duk_push_sprintf(ctx, "Cannot open shared library '%s'", filename);
   }
 
   return handle;
@@ -60,7 +63,8 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
   dlerror();
   func = (duk_c_function) dlsym(handle, sym);
   if ((errmsg = dlerror()) != NULL)  {
-    duk_push_string(ctx, errmsg);
+    ERR(ctx, "%s", errmsg);
+    duk_push_sprintf(ctx, "Cannot find symbol '%s'", sym);
     return NULL;
   }
   return func;
