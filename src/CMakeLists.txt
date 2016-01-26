@@ -56,8 +56,9 @@ endif()
 ###########################################
 add_library(mod_dummy SHARED modules/cpr_dummy.c)
 set_target_properties(mod_dummy PROPERTIES PREFIX "" OUTPUT_NAME "dummy" SUFFIX "${MODULE_SUFFIX}")
-# add_dependencies(io duktape_shared)
-# target_link_libraries(io duktape_shared)
+if (BUILD_LINUX)
+  target_compile_options(mod_dummy PUBLIC -std=c99 -pedantic-errors -pedantic)
+endif (BUILD_LINUX)
 
 add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX "${MODULE_SUFFIX}")
