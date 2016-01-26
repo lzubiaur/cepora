@@ -171,11 +171,6 @@ static const duk_function_list_entry module_funcs[] = {
     { NULL, NULL, 0 }
 };
 
-const duk_number_list_entry module_consts[] = {
-    // { "FLAG_FOO", (double) (1 << 0) },
-    { NULL, 0.0 }
-};
-
 duk_ret_t dukopen_package(duk_context *ctx) {
   CPR__DLOG("Opening module");
   duk_push_object(ctx);  /* module object, must be created before calling cpr__init_search_path */
@@ -187,7 +182,6 @@ duk_ret_t dukopen_package(duk_context *ctx) {
   duk_pop(ctx); /* pop Duktape */
 
   duk_put_function_list(ctx, -1, module_funcs);
-  duk_put_number_list(ctx, -1, module_consts);
 
   return 1;  /* return module value */
 }
