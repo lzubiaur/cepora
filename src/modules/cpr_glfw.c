@@ -1137,7 +1137,7 @@ static const duk_function_list_entry module_funcs[] = {
   { NULL, NULL, 0 }
 };
 
-const duk_number_list_entry module_consts[] = {
+static const duk_number_list_entry module_consts[] = {
   { "VERSION_MAJOR",               (double) GLFW_VERSION_MAJOR },
   { "VERSION_MINOR",               (double) GLFW_VERSION_MINOR },
   { "VERSION_REVISION",            (double) GLFW_VERSION_REVISION },
