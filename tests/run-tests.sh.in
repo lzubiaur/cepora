@@ -1,5 +1,6 @@
 #!/bin/bash
 
+exec_dir=@BUNDLE_RUNTIME_DESTINATION@
 cepora_exec=@BUNDLE_RUNTIME_DESTINATION@/@RUNTIME_NAME@
 resources=@BUNDLE_RESOURCE_DIR@
 
@@ -16,17 +17,18 @@ if [ "$1" == "-d" ]; then
 fi
 
 unset CPR_PATH
+export CPR_PATH="${exec_dir};${resources};."
 
 # ${cepora_exec} -v
 # ${cepora_exec} -h
 
 function run_test {
-  python run-testcase.py ${python_opts} -s ${resources}/$1 ${cepora_exec} ${cepora_opts} $1 $2
+  python run-testcase.py ${python_opts} -s $1 ${cepora_exec} ${cepora_opts} $1 $2
 }
 
-run_test 'js/tests/hello.coffee'
-run_test 'js/tests/loadlib.coffee'
-run_test 'js/tests/arguments.coffee' '-arg1 -arg2 optionA'
+run_test 'tests/hello.coffee'
+run_test 'tests/loadlib.coffee'
+run_test 'tests/arguments.coffee' '-arg1 -arg2 optionA'
 
 # export CPR_PATH='/tmp'
 # run_test 'js/tests/glfw.coffee'
