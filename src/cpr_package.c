@@ -166,12 +166,11 @@ static duk_ret_t cpr__init_search_path(duk_context *ctx) {
   return 0;
 }
 
-static const duk_function_list_entry module_funcs[] = {
+duk_ret_t dukopen_package(duk_context *ctx) {
+  const duk_function_list_entry module_funcs[] = {
     { "searchPath", cpr__search_path, 1 },
     { NULL, NULL, 0 }
-};
-
-duk_ret_t dukopen_package(duk_context *ctx) {
+  };
   CPR__DLOG("Opening module");
   duk_push_object(ctx);  /* module object, must be created before calling cpr__init_search_path */
   cpr__init_search_path(ctx);

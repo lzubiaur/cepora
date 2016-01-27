@@ -153,12 +153,12 @@ err_rethrow:
   return 0; /* Not reachable */
 }
 
-static const duk_function_list_entry module_funcs[] = {
-    { "loadlib", cpr_loadlib, 2 },
-    { NULL, NULL, 0 }
-};
 
 duk_ret_t dukopen_loadlib(duk_context *ctx) {
+  const duk_function_list_entry module_funcs[] = {
+    { "loadlib", cpr_loadlib, 2 },
+    { NULL, NULL, 0 }
+  };
   duk_push_object(ctx);  /* module result */
   duk_put_function_list(ctx, -1, module_funcs);
 
