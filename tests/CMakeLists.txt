@@ -14,7 +14,7 @@ set(tests_files
 
 install(
   FILES ${tests_files}
-  DESTINATION ${BUNDLE_RESOURCE_DIR}/js/tests
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
   COMPONENT Runtime)
 
 install(
