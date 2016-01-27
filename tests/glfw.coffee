@@ -101,11 +101,12 @@ try
   inf 'Monitor video mode:', o for o in glfw.getVideoModes monitor
   inf 'Monitor current mode:', glfw.getVideoMode monitor
   inf 'Monitor gamma ramp:', glfw.getGammaRamp monitor
-  # TODO test with actual data
-  red = (num for num in [1..256])
-  green = (num for num in [1..256])
-  blue = (num for num in [1..256])
-  glfw.setGammaRamp monitor, [red, green, blue]
+  # TODO test setGammaRamp with actual data
+  # Testing with dummy data will crash on Linux (Ubuntu)
+  # red = (num for num in [1..256])
+  # green = (num for num in [1..256])
+  # blue = (num for num in [1..256])
+  # glfw.setGammaRamp monitor, [red, green, blue]
 
   #### Input handling ####
   glfw.setInputMode window, glfw.CURSOR, glfw.CURSOR_NORMAL
