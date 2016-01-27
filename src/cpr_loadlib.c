@@ -94,6 +94,7 @@ static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id) {
 }
 
 /* Low level library loading */
+/* TODO don't prefix the open lib function name */
 duk_ret_t cpr_loadlib(duk_context *ctx) {
   void *lib = NULL;
   const char *dot = NULL;
