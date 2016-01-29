@@ -1,6 +1,8 @@
 # Lines that start with '#' are comments.
 # For a complete gitignore templates please check out https://github.com/github/gitignore 
 
+sync.sh
+
 .DS_Store
 *.bak
 
