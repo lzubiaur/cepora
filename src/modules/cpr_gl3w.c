@@ -17,8 +17,13 @@ duk_ret_t cpr_gl3w_is_supported(duk_context *ctx) {
   return 1;
 }
 
+/* Implemented for completeness but not tested */
 duk_ret_t cpr_gl3w_get_proc_address(duk_context *ctx) {
+#if defined(__GNUC__)
+  duk_push_pointer(ctx, (__extension__ (void *)gl3wGetProcAddress(duk_require_string(ctx, 0))));
+#else
   duk_push_pointer(ctx, gl3wGetProcAddress(duk_require_string(ctx, 0)));
+#endif
   return 1;
 }
 
