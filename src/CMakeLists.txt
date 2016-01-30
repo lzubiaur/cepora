@@ -19,6 +19,8 @@ set(core
 add_executable(${RUNTIME_NAME} ${core})
 add_dependencies(${RUNTIME_NAME} duktape)
 
+set(C_FLAGS "-std=c99 -pedantic-errors -pedantic")
+
 # Enable debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 
@@ -30,7 +32,7 @@ target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_COMPILING_CEPORA=1)
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape dl m)
-  target_compile_options(${RUNTIME_NAME} PUBLIC -std=c99 -pedantic-errors -pedantic)
+  target_compile_options(${RUNTIME_NAME} PUBLIC ${C_FLAGS})
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1 CPR_COMPILING_CEPORA=1)
   # On linux APP must be set to the executable binary
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/bin/${RUNTIME_NAME}")
@@ -51,23 +53,38 @@ elseif (BUILD_WINDOWS)
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
 endif()
 
-###########################################
-#### Modules
-###########################################
+################################################################################
+# Modules
+################################################################################
+
+### DUMMY ######################################################################
 add_library(mod_dummy SHARED modules/cpr_dummy.c)
 set_target_properties(mod_dummy PROPERTIES PREFIX "" OUTPUT_NAME "dummy" SUFFIX "${MODULE_SUFFIX}")
 if (BUILD_LINUX)
-  target_compile_options(mod_dummy PUBLIC -std=c99 -pedantic-errors -pedantic)
+  target_compile_options(mod_dummy PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
 
+### GLFW #######################################################################
 add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX "${MODULE_SUFFIX}")
 if (BUILD_LINUX)
-  target_compile_options(mod_glfw PUBLIC -std=c99 -pedantic-errors -pedantic)
+  target_compile_options(mod_glfw PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
 target_link_libraries(mod_glfw glfw)
 # CPR_DEBUG_GLFW_BINDING Enable debugging trace
 target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
+
+### GL3W #######################################################################
+add_library(mod_gl3w SHARED modules/cpr_gl3w.c)
+set_target_properties(mod_gl3w PROPERTIES PREFIX "" OUTPUT_NAME "gl3w" SUFFIX "${MODULE_SUFFIX}")
+if (BUILD_LINUX)
+  target_compile_options(mod_gl3w PUBLIC ${C_FLAGS})
+endif (BUILD_LINUX)
+target_link_libraries(mod_gl3w gl3w)
+
+################################################################################
+# INSTALL
+################################################################################
 
 install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw
     BUNDLE  DESTINATION "." COMPONENT Runtime
