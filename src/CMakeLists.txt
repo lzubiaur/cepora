@@ -86,7 +86,7 @@ target_link_libraries(mod_gl3w gl3w)
 # INSTALL
 ################################################################################
 
-install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw
+install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
@@ -102,7 +102,7 @@ set(DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE})
 # On MacOSX it can be frameworks or shared lib not linked with the executable.
 # Plugins must be copied manually before they can be fixed by fixup_bundle.
 # get_target_property(LFS_LIB_NAME liblfs OUTPUT_NAME)
-get_target_property(GLFW_LIB_NAME glfw OUTPUT_NAME)
+# get_target_property(GLFW_LIB_NAME glfw OUTPUT_NAME)
 # Freetype CMakeLists.txt does not set any OUTPUT_NAME for the library target
 # get_target_property(FREETYPE_LIB_NAME freetype OUTPUT_NAME)
 
@@ -119,8 +119,7 @@ set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 # Note: no need to add GLFW shared library to the plugin since it's a dependency
 # of the glfw module and will be copied by the bundle script.
 set(PLUGINS "${LIB_OUTPUT}/glfw${MODULE_SUFFIX}")
-#list(APPEND PLUGINS "${LIB_OUTPUT}/${LIB_PREFIX}imgui${LIB_SUFFIX}")
-#list(APPEND PLUGINS "${LIB_OUTPUT}/${LIB_PREFIX}DevIL${LIB_SUFFIX}")
+list(APPEND PLUGINS "${LIB_OUTPUT}/gl3w${MODULE_SUFFIX}")
 #list(APPEND PLUGINS "${LIB_OUTPUT}/${LIB_PREFIX}tests${LIB_SUFFIX}")
 
 message(STATUS "PLUGINS:" ${PLUGINS})
