@@ -19,7 +19,7 @@ set(core
 add_executable(${RUNTIME_NAME} ${core})
 add_dependencies(${RUNTIME_NAME} duktape)
 
-set(C_FLAGS "-std=c99 -pedantic-errors -pedantic")
+set(C_FLAGS -std=c99 -pedantic-errors -pedantic)
 
 # Enable debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
