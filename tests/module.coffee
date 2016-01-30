@@ -1,31 +1,43 @@
-log = new Duktape.Logger('module.coffee')
-info = () -> log.info.apply log, arguments
+### @test
+module '_NOT_EXISTS.so' not found
+Can't compile script broken.coffee
+-1
+Hello world
+dummy.so
+###
 
 # Load Javascript module
-# require 'js/tests/test.coffee'
-info 'Loaded modules:'
-info o for o of Duktape.modLoaded
+# require 'js/tests/hello.js'
 
-# Search for a dummy file
 try
-  require 'dummy_file.txt'
+  require '_NOT_EXISTS.so'
 catch e
-  info e.stack
+  print e.message
 
 try
   require 'js/tests/broken.coffee'
 catch e
-  info e.stack
+  print "Can't compile script broken.coffee"
+
+try
+  lib.loadlib 'dldl.so', 'ddd'
+catch e
+  print e.message
+
+try
+  path = module.searchPath 'dummy.so'
+  lib.loadlib path, 'dummy'
+catch e
+  print e.message
 
 # Load C module
 try
-  io = require 'io.so'
-  info io.DELAY
-  io.read()
+  dummy = require 'dummy.so'
+  print dummy.BAR
+  dummy.foo 'Hello world\n'
   # io = require s
 catch e
-  info e.stack
+  print e.message
 
 # Print currently loaded modules
-info 'Loaded modules:'
-info o for o of Duktape.modLoaded
+print o for o of Duktape.modLoaded
