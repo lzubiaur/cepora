@@ -23,6 +23,7 @@ try
   # GL context must be initialized (windowHint), created (createWindow) and
   # make current (makeContextCurrent) before gl3w.init can be called
   print gl3w.init()
-  print gl3w.isSupported 3, 1
+  print gl3w.isSupported 3, 2
+
 catch e
   print e.message
