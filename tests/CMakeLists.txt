@@ -10,6 +10,7 @@ set(tests_files
   glfw.coffee
   broken.coffee
   arguments.coffee
+  gl3w.coffee
 )
 
 install(
