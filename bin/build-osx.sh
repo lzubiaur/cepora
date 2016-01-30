@@ -13,9 +13,9 @@ then
 fi
 cd build/osx
 
-# Generate build system using the XCode generator. "Unix Makefiles" might not
-# because of third party library like GL3W who requires objective-c.
-cmake -G "Xcode" \
+# Generate build system using the "XCode" or "Unix Makefiles" generator.
+# cmake -G "Xcode" \
+cmake -G "Unix Makefiles" \
     -DBUILD_OSX=TRUE \
     -DCMAKE_BUILD_TYPE=Release \
     ../..
