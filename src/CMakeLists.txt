@@ -75,7 +75,7 @@ target_link_libraries(mod_glfw glfw)
 target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
 
 ### GL3W #######################################################################
-add_library(mod_gl3w SHARED modules/cpr_gl3w.c)
+add_library(mod_gl3w SHARED modules/cpr_gl3w.c modules/cpr_gl.c)
 set_target_properties(mod_gl3w PROPERTIES PREFIX "" OUTPUT_NAME "gl3w" SUFFIX "${MODULE_SUFFIX}")
 if (BUILD_LINUX)
   target_compile_options(mod_gl3w PUBLIC ${C_FLAGS})
