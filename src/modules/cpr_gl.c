@@ -35,6 +35,7 @@ static duk_ret_t cpr_gl_viewport(duk_context *ctx) {
              duk_require_int(ctx, 1),
              duk_require_int(ctx, 2),
              duk_require_int(ctx, 3));
+  return 0;
 }
 
 duk_ret_t dukopen_gl(duk_context *ctx) {
