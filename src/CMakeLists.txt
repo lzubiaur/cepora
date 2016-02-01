@@ -82,11 +82,19 @@ if (BUILD_LINUX)
 endif (BUILD_LINUX)
 target_link_libraries(mod_gl3w gl3w)
 
+### IMGUI ######################################################################
+add_library(mod_imgui SHARED modules/cpr_imgui.cxx)
+set_target_properties(mod_imgui PROPERTIES PREFIX "" OUTPUT_NAME "imgui" SUFFIX "${MODULE_SUFFIX}")
+if (BUILD_LINUX)
+  target_compile_options(mod_imgui PUBLIC ${C_FLAGS})
+endif (BUILD_LINUX)
+target_link_libraries(mod_imgui imgui)
+
 ################################################################################
 # INSTALL
 ################################################################################
 
-install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w
+install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w mod_imgui
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
@@ -118,11 +126,14 @@ set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 # Note: no need to add GLFW shared library to the plugin since it's a dependency
 # of the glfw module and will be copied by the bundle script.
-set(PLUGINS "${LIB_OUTPUT}/glfw${MODULE_SUFFIX}")
+set(PLUGINS)
+list(APPEND PLUGINS "${LIB_OUTPUT}/glfw${MODULE_SUFFIX}")
 list(APPEND PLUGINS "${LIB_OUTPUT}/gl3w${MODULE_SUFFIX}")
-#list(APPEND PLUGINS "${LIB_OUTPUT}/${LIB_PREFIX}tests${LIB_SUFFIX}")
+list(APPEND PLUGINS "${LIB_OUTPUT}/imgui${MODULE_SUFFIX}")
 
-message(STATUS "PLUGINS:" ${PLUGINS})
+foreach(plugin IN LISTS PLUGINS)
+  message(STATUS "Install plugin: " ${PLUGINS})
+endforeach()
 
 if(BUILD_WIN)
    # Check the architecture
