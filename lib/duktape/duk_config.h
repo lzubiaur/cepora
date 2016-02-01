@@ -2195,10 +2195,11 @@ typedef FILE duk_file;
 #define DUK_USE_OS_STRING "iphone-sim"
 #elif TARGET_OS_IPHONE
 #define DUK_USE_OS_STRING "iphone"
+/* https://github.com/svaarala/duktape/issues/570 */
 #elif TARGET_OS_MAC
-#define DUK_USE_OS_STRING "ios"
+#define DUK_USE_OS_STRING "osx"
 #else
-#define DUK_USE_OS_STRING "ios-unknown"
+#define DUK_USE_OS_STRING "osx-unknown"
 #endif
 #elif defined(DUK_F_FREEBSD)
 #define DUK_USE_OS_STRING "freebsd"
