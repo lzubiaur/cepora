@@ -11,6 +11,7 @@ set(tests_files
   broken.coffee
   arguments.coffee
   gl3w.coffee
+  imgui.coffee
 )
 
 install(
