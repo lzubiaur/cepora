@@ -164,8 +164,14 @@ int main(int argc, char *argv[]) {
   }
   duk_pop(ctx); /* result */
 
+  duk_get_global_string(ctx, "Duktape");
+  duk_push_string(ctx, DUK_USE_OS_STRING);
+  duk_put_prop_string(ctx, -2, "os");
+  duk_push_string(ctx, DUK_USE_ARCH_STRING);
+  duk_put_prop_string(ctx, -2, "arch");
+  duk_pop(ctx); /* Duktape */
+
   /* Store command line arguments in the `Duktape` global object. */
-  /* TODO test arguments */
   duk_push_global_object(ctx);
   duk_get_prop_string(ctx, -1, "Duktape");
   duk_push_string(ctx, "arguments");
