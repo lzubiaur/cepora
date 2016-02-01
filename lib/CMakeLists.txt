@@ -5,5 +5,6 @@ project(lib)
 add_subdirectory(gl3w)
 add_subdirectory(glfw)
 add_subdirectory(duktape)
+add_subdirectory(imgui)
 
 set(GLFW_HEADERS "${PROJECT_SOURCE_DIR}/glfw/include" PARENT_SCOPE)
