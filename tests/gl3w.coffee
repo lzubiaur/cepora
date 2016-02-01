@@ -13,8 +13,7 @@ try
   glfw.windowHint glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE
   glfw.windowHint glfw.CONTEXT_VERSION_MAJOR, 3
   glfw.windowHint glfw.CONTEXT_VERSION_MINOR, 2
-  # TODO only on OSX
-  glfw.windowHint glfw.OPENGL_FORWARD_COMPAT, 1
+  glfw.windowHint glfw.OPENGL_FORWARD_COMPAT, 1 if Duktape.os == 'osx'
 
   window = glfw.createWindow 480, 320, 'my window'
   throw new Error 'Cannot create OpenGL window' if not window
