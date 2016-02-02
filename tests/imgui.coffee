@@ -1,4 +1,5 @@
 ### @test
+480 320
 ###
 
 try
@@ -20,7 +21,10 @@ try
 
   throw new Error 'Cannot init gl3w' if gl3w.init()
 
-  imgui.getIO()
+  io = imgui.getIO()
+  io.displaySize.x = 480
+  io.displaySize.y = 320
+  print io.displaySize.x, io.displaySize.y
 
 catch e
   print e.message
