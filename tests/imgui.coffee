@@ -1,5 +1,6 @@
 ### @test
 480 320
+60
 ###
 
 try
@@ -25,6 +26,9 @@ try
   io.displaySize.x = 480
   io.displaySize.y = 320
   print io.displaySize.x, io.displaySize.y
+
+  io.deltaTime = 60
+  print io.deltaTime
 
 catch e
   print e.message
