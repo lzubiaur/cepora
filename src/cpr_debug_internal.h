@@ -7,6 +7,10 @@
 #ifndef CPR_DEBUG_INTERNAL_H
 #define CPR_DEBUG_INTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Raw print log message to `stdout` without additional formating. */
 void cpr_log_raw(const char *fmt, ...);
 
@@ -22,5 +26,9 @@ void cpr__dump_context(const char *file, const char *func, const int line, duk_c
 #define CPR__DLOG(...) do { } while(0)
 #define CPR__DUMP_CONTEXT(__ctx__) do { } while(0)
 #endif /* CPR_DEBUG_INTERNAL */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CPR_DEBUG_INTERNAL_H */
