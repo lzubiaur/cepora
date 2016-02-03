@@ -7,7 +7,8 @@
 /* Include cepora configuration if compiling inside Cepora project */
 #if defined(CPR_COMPILING_CEPORA)
 #include "cpr_config.h"
-#include "cpr_macros.h"
+#include "cpr_debug_internal.h"
+/* XXX debug when not compiling for cepora */
 #endif
 #include "cpr_glfw.h"
 #include "GLFW/glfw3.h" /* GLFW library header */
@@ -246,14 +247,14 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
     defined(CPR__GLFW_WINDOW_CALLBACKS_BIND) || \
     defined(CPR__GLFW_KEYBOARD_BIND) || \
     defined(CPR__GLFW_WINDOW_EXTRA_BIND)
-  cpr_user_data *u;
+  cpr_user_data *u = NULL;
 #endif
-  GLFWwindow* window = NULL;
+  GLFWwindow *window = NULL;
   int width = 0;
   int height = 0;
   const char *title = NULL;
-  GLFWmonitor * monitor = NULL;
-  GLFWwindow * share = NULL;
+  GLFWmonitor *monitor = NULL;
+  GLFWwindow *share = NULL;
 
 #if defined(CPR__GLFW_MOUSE_CALLBACK_BIND) || \
     defined(CPR__GLFW_WINDOW_CALLBACKS_BIND) || \
@@ -272,15 +273,19 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   title = duk_require_string(ctx, 2);
   monitor =  duk_get_pointer(ctx, 3);
   share = duk_get_pointer(ctx, 4);
+  CPR__DLOG("width %d height %d title '%s' monitor %p share %p", width, height, title, monitor, share);
 
-  window = glfwCreateWindow(width, height, title, monitor, share);
+  if ((window = glfwCreateWindow(width, height, title, monitor, share)) != NULL) {
 #if defined(CPR__GLFW_MOUSE_CALLBACK_BIND) || \
     defined(CPR__GLFW_WINDOW_CALLBACKS_BIND) || \
     defined(CPR__GLFW_KEYBOARD_BIND) || \
     defined(CPR__GLFW_WINDOW_EXTRA_BIND)
-  glfwSetWindowUserPointer(window, u);
+    glfwSetWindowUserPointer(window, u);
 #endif
-  duk_push_pointer(ctx, window);
+    duk_push_pointer(ctx, window);
+  } else {
+    duk_push_undefined(ctx);
+  }
 
   return 1;
 }
