@@ -23,10 +23,10 @@ static duk_ret_t cpr_gl_enable(duk_context *ctx) {
 }
 
 static duk_ret_t cpr_gl_clear_color(duk_context *ctx) {
-  glClearColor(duk_require_int(ctx, 0),
-               duk_require_int(ctx, 1),
-               duk_require_int(ctx, 2),
-               duk_require_int(ctx, 3));
+  glClearColor(duk_require_number(ctx, 0),
+               duk_require_number(ctx, 1),
+               duk_require_number(ctx, 2),
+               duk_require_number(ctx, 3));
   return 0;
 }
 
