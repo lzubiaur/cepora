@@ -6,12 +6,14 @@
 ###
 
 glfw  = require 'glfw.so'
-gl3w  = require 'gl3w.so'
+gl  = require 'gl3w.so'
 imgui = require 'imgui.so'
 io = imgui.getIO()
 
 mainLoop = (window) ->
   glfw.pollEvents()
+  gl.clearColor 0.3, 0.28, 0.35, 1
+  gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
   imgui.newFrame()
   imgui.begin 'my window'
   imgui.text 'hello world'
@@ -36,9 +38,9 @@ try
   throw new Error 'Cannot create OpenGL window' if not window
   glfw.makeContextCurrent window
 
-  throw new Error 'Cannot init gl3w' if gl3w.init()
+  throw new Error 'Cannot init gl3w' if gl.init()
 
-  throw new Error 'Cannot init imgui' if !imgui.init window, true
+  throw new Error 'Cannot init imgui' if !imgui.init window, false
 
   io.displaySize.x = 480
   io.displaySize.y = 320
