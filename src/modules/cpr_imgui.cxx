@@ -23,6 +23,14 @@
 #define CPR__RENDER_DRAW_LISTS_FN_GETTER  11
 #define CPR__RENDER_DRAW_LISTS_FN_SETTER  12
 
+/* Forward declarations */
+
+/* Helpers */
+static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx);
+static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx);
+
+/* Binding API */
+
 static duk_ret_t cpr_imgui_io_getter_setter(duk_context *ctx) {
   duk_int_t magic;
   magic = duk_get_current_magic(ctx);
@@ -127,13 +135,32 @@ static duk_ret_t cpr_imgui_begin(duk_context *ctx) {
 }
 
 static duk_ret_t cpr_imgui_text(duk_context *ctx) {
-  ImGui::Text(duk_require_string(ctx, 0));
+  /* TODO handle variable arguments */
+  int count = 0, i = 0;
+  count = duk_get_top(ctx);
+  for (i = 0; i < count; ++i) {
+    duk_safe_to_string(ctx, i);
+  }
+  duk_concat(ctx, count);
+  ImGui::Text(duk_get_string(ctx, -1));
   return 0;
 }
 
 static duk_ret_t cpr_imgui_end(duk_context *ctx) {
   ImGui::End();
   return 0;
+}
+
+static duk_ret_t cpr_imgui_show_user_guide(duk_context *ctx) {
+  ImGui::ShowUserGuide();
+  return 0;
+}
+
+static duk_ret_t cpr_imgui_show_test_window(duk_context *ctx) {
+  bool opened = true;
+  ImGui::ShowTestWindow(&opened);
+  duk_push_boolean(ctx, (int)opened);
+  return 1;
 }
 
 /* Initialize ImGui. Must be called before any Imgui API calls but after the OpenGL
@@ -146,16 +173,43 @@ static duk_ret_t cpr_imgui_init(duk_context *ctx) {
   return 1;
 }
 
+/* TODO Add a textColored version with color parameter as array */
+static duk_ret_t cpr_imgui_text_colored(duk_context *ctx) {
+  ImGui::TextColored(cpr_imgui_imvec4(ctx, 3), duk_require_string(ctx, 4));
+  return 0;
+}
+
+/* Helpers */
+
+/* ImVec4 */
+static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx) {
+  return ImVec4(
+    duk_require_number(ctx, idx - 3),
+    duk_require_number(ctx, idx - 2),
+    duk_require_number(ctx, idx - 1),
+    duk_require_number(ctx, idx));
+}
+
+/* ImVec4 */
+static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx) {
+  return ImVec2(
+    duk_require_number(ctx, idx - 1),
+    duk_require_number(ctx, idx));
+}
+
 duk_ret_t dukopen_imgui(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
-    { "init",       cpr_imgui_init,             2 },
-    { "shutdown",   cpr_imgui_shutdown,         0 },
-    { "getIO",      cpr_imgui_get_io,           1 },
-    { "newFrame",   cpr_imgui_new_frame,        0 },
-    { "render",     cpr_imgui_render,           0 },
-    { "end",        cpr_imgui_end,              0 },
-    { "begin",      cpr_imgui_begin,            1 },
-    { "text",       cpr_imgui_text,             1 },
+    { "init",                     cpr_imgui_init,                           2 },
+    { "shutdown",                 cpr_imgui_shutdown,                       0 },
+    { "getIO",                    cpr_imgui_get_io,                         1 },
+    { "newFrame",                 cpr_imgui_new_frame,                      0 },
+    { "render",                   cpr_imgui_render,                         0 },
+    { "end",                      cpr_imgui_end,                            0 },
+    { "begin",                    cpr_imgui_begin,                          1 },
+    { "showUserGuide",            cpr_imgui_show_user_guide,                0 },
+    { "showTestWindow",           cpr_imgui_show_test_window,               0 },
+    { "text",                     cpr_imgui_text,                           DUK_VARARGS },
+    { "textColored",              cpr_imgui_text_colored,                   DUK_VARARGS },
     { NULL, NULL, 0 }
   };
 
