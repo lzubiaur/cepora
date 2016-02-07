@@ -1,9 +1,12 @@
-set(PROJECT_NAME "cepora")
+cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
+
+include(config.cmake)
+
+set(PROJECT_NAME ${CPR_PROJECT_NAME})
 set(RUNTIME_NAME ${PROJECT_NAME})
 set(BUNDLE_NAME  ${PROJECT_NAME})
 
 project(${PROJECT_NAME} C CXX)
-cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
 # TODO GLFW compile options http://www.glfw.org/docs/latest/compile.html#compile_options_osx
 
