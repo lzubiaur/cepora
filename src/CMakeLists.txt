@@ -14,6 +14,7 @@ set(core
   cpr_sys_tools.c
   cpr_loadlib.c
   cpr_package.c
+  cpr_duktape_helpers.c
   cpr_debug_internal.c)
 
 add_executable(${RUNTIME_NAME} ${core})
@@ -27,7 +28,11 @@ set(C_FLAGS -std=c99 -pedantic-errors -pedantic)
 # Flag to notify that this build is part of the Cepora framework
 target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_COMPILING_CEPORA=1)
 # Enable internal debugging
-# target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
+# Note that internal debugging must be enable in both runtime and modules to use
+# internal debugging in modules.
+if (CPR_BUILD_DEBUG_INTERNAL)
+  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
+endif(CPR_BUILD_DEBUG_INTERNAL)
 
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
@@ -73,6 +78,9 @@ endif (BUILD_LINUX)
 target_link_libraries(mod_glfw glfw)
 # CPR_DEBUG_GLFW_BINDING Enable debugging trace
 target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
+if (CPR_BUILD_DEBUG_INTERNAL)
+  target_compile_definitions(mod_glfw PRIVATE CPR_DEBUG_INTERNAL=1)
+endif(CPR_BUILD_DEBUG_INTERNAL)
 
 ### GL3W #######################################################################
 add_library(mod_gl3w SHARED modules/cpr_gl3w.c modules/cpr_gl.c)
@@ -85,6 +93,9 @@ target_link_libraries(mod_gl3w gl3w)
 ### IMGUI ######################################################################
 add_library(mod_imgui SHARED modules/cpr_imgui.cxx)
 set_target_properties(mod_imgui PROPERTIES PREFIX "" OUTPUT_NAME "imgui" SUFFIX "${MODULE_SUFFIX}")
+if (CPR_BUILD_DEBUG_INTERNAL)
+  target_compile_definitions(mod_imgui PRIVATE CPR_DEBUG_INTERNAL=1)
+endif(CPR_BUILD_DEBUG_INTERNAL)
 if (BUILD_LINUX)
   target_compile_options(mod_imgui PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
