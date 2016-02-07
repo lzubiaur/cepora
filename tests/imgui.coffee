@@ -15,8 +15,13 @@ mainLoop = (window) ->
   gl.clearColor 0.3, 0.28, 0.35, 1
   gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
   imgui.newFrame()
+  imgui.showUserGuide()
+  imgui.showTestWindow()
   imgui.begin 'my window'
-  imgui.text 'hello world'
+  imgui.text 'hello', ' world'
+  imgui.textColored 100, 100, 0, 255, 'colored', ' text'
+  imgui.textDisabled 'disabled text'
+  imgui.textWrapped 'wrapped text'
   imgui.end()
   imgui.render()
   glfw.swapBuffers window

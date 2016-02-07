@@ -7,6 +7,7 @@
 #include "cpr_imgui.h"
 #include "cpr_debug_internal.h"
 #include "cpr_macros.h"
+#include "cpr_duktape_helpers.h"
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
 
@@ -63,13 +64,14 @@ static duk_ret_t cpr_imgui_io_getter_setter(duk_context *ctx) {
   return 1;
 }
 
-#define CPR__IO_GETTER_SETTER(__name__, __idx__, __getter__, __setter__) \
+#define CPR__IO_GETTER_SETTER(__name__, __idx__, __getter__, __setter__) do { \
   duk_push_string(ctx, __name__); \
   duk_push_c_function(ctx, cpr_imgui_io_getter_setter, 0); \
   duk_set_magic(ctx, -1, __getter__); \
   duk_push_c_function(ctx, cpr_imgui_io_getter_setter, 1); \
   duk_set_magic(ctx, -1, __setter__); \
-  duk_def_prop(ctx, __idx__, DUK_DEFPROP_HAVE_GETTER | DUK_DEFPROP_HAVE_SETTER);
+  duk_def_prop(ctx, __idx__, DUK_DEFPROP_HAVE_GETTER | DUK_DEFPROP_HAVE_SETTER); \
+} while(0)
 
 /* Bind ImGui::GetIO() to module.getIO(). */
 static duk_ret_t cpr_imgui_get_io(duk_context *ctx) {
@@ -136,13 +138,28 @@ static duk_ret_t cpr_imgui_begin(duk_context *ctx) {
 
 static duk_ret_t cpr_imgui_text(duk_context *ctx) {
   /* TODO handle variable arguments */
-  int count = 0, i = 0;
-  count = duk_get_top(ctx);
-  for (i = 0; i < count; ++i) {
+  int i = 0, args = 0;
+  duk_int_t magic, top = 0;
+  magic = duk_get_current_magic(ctx);
+  top = duk_get_top(ctx);
+  if (magic == 2) {
+    /* TextColored first 4 parameters are the RGBA color */
+    args = 4;
+  }
+  CPR__DLOG("top %d magic %d idx %d", top, magic, i);
+  for (i = args; i < top; ++i) {
     duk_safe_to_string(ctx, i);
   }
-  duk_concat(ctx, count);
-  ImGui::Text(duk_get_string(ctx, -1));
+  duk_concat(ctx, top - args);
+  switch(duk_get_current_magic(ctx)) {
+    /* Use a formated literal string to avoid warning */
+    case 1: ImGui::Text("%s", duk_get_string(ctx, -1)); break;
+    case 2: ImGui::TextColored(cpr_imgui_imvec4(ctx, 3), "%s", duk_require_string(ctx, -1)); break;
+    case 3: ImGui::TextDisabled("%s", duk_get_string(ctx, -1)); break;
+    case 4: ImGui::TextWrapped("%s", duk_get_string(ctx, -1)); break;
+    default: CPR__DLOG("Unknown magic %d", duk_get_current_magic(ctx)); break;
+  }
+
   return 0;
 }
 
@@ -173,12 +190,6 @@ static duk_ret_t cpr_imgui_init(duk_context *ctx) {
   return 1;
 }
 
-/* TODO Add a textColored version with color parameter as array */
-static duk_ret_t cpr_imgui_text_colored(duk_context *ctx) {
-  ImGui::TextColored(cpr_imgui_imvec4(ctx, 3), duk_require_string(ctx, 4));
-  return 0;
-}
-
 /* Helpers */
 
 /* ImVec4 */
@@ -198,18 +209,20 @@ static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx) {
 }
 
 duk_ret_t dukopen_imgui(duk_context *ctx) {
-  const duk_function_list_entry module_funcs[] = {
-    { "init",                     cpr_imgui_init,                           2 },
-    { "shutdown",                 cpr_imgui_shutdown,                       0 },
-    { "getIO",                    cpr_imgui_get_io,                         1 },
-    { "newFrame",                 cpr_imgui_new_frame,                      0 },
-    { "render",                   cpr_imgui_render,                         0 },
-    { "end",                      cpr_imgui_end,                            0 },
-    { "begin",                    cpr_imgui_begin,                          1 },
-    { "showUserGuide",            cpr_imgui_show_user_guide,                0 },
-    { "showTestWindow",           cpr_imgui_show_test_window,               0 },
-    { "text",                     cpr_imgui_text,                           DUK_VARARGS },
-    { "textColored",              cpr_imgui_text_colored,                   DUK_VARARGS },
+  const cpr_function_list_magic_entry module_funcs[] = {
+    { "init",                     cpr_imgui_init,                       2, 0 },
+    { "shutdown",                 cpr_imgui_shutdown,                   0, 0 },
+    { "getIO",                    cpr_imgui_get_io,                     1, 0 },
+    { "newFrame",                 cpr_imgui_new_frame,                  0, 0 },
+    { "render",                   cpr_imgui_render,                     0, 0 },
+    { "end",                      cpr_imgui_end,                        0, 0 },
+    { "begin",                    cpr_imgui_begin,                      1, 0 },
+    { "showUserGuide",            cpr_imgui_show_user_guide,            0, 0 },
+    { "showTestWindow",           cpr_imgui_show_test_window,           0, 0 },
+    { "text",                     cpr_imgui_text,                       DUK_VARARGS, 1 },
+    { "textColored",              cpr_imgui_text,                       DUK_VARARGS, 2 },
+    { "textDisabled",             cpr_imgui_text,                       DUK_VARARGS, 3 },
+    { "textWrapped",              cpr_imgui_text,                       DUK_VARARGS, 4 },
     { NULL, NULL, 0 }
   };
 
@@ -219,7 +232,7 @@ duk_ret_t dukopen_imgui(duk_context *ctx) {
   };
 
   duk_push_object(ctx);
-  duk_put_function_list(ctx, -1, module_funcs);
+  cpr_put_function_list_magic(ctx, -1, module_funcs);
   duk_put_number_list(ctx, -1, module_consts);
 
   return 1;
