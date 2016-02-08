@@ -1,5 +1,5 @@
 ### @test
-0
+true
 true
 ###
 
