@@ -31,7 +31,7 @@ endif()
 
 if (APPLE)
     option(GLFW_BUILD_UNIVERSAL "Build GLFW as a Universal Binary" OFF)
-    option(GLFW_USE_CHDIR "Make glfwInit chdir to Contents/Resources" ON)
+    option(GLFW_USE_CHDIR "Make glfwInit chdir to Contents/Resources" OFF)
     option(GLFW_USE_MENUBAR "Populate the menu bar on first window creation" ON)
     option(GLFW_USE_RETINA "Use the full resolution of Retina displays" ON)
 else()
@@ -490,7 +490,7 @@ configure_package_config_file("${GLFW_SOURCE_DIR}/src/glfw3Config.cmake.in"
                               PATH_VARS CMAKE_INSTALL_PREFIX
                               NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
-write_basic_package_version_file("${GLFW_BINARY_DIR}/src/glfw3ConfigVersion.cmake" 
+write_basic_package_version_file("${GLFW_BINARY_DIR}/src/glfw3ConfigVersion.cmake"
                                  VERSION ${GLFW_VERSION_FULL}
                                  COMPATIBILITY SameMajorVersion)
 
@@ -548,4 +548,3 @@ if (GLFW_INSTALL)
                           "${GLFW_BINARY_DIR}/cmake_uninstall.cmake")
     endif()
 endif()
-

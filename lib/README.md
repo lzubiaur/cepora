@@ -4,3 +4,6 @@ Log any changes made to 3rd party libs that should be reapplied to future upgrad
 
 ### GL3W
 * gl3w_gen.py has been updated so linking against libGL is not required anymore on Linux (commit e71b097c3200a9e011b4319226badd30242a5971)
+
+### GLFW
+* Turn off `GLFW_USE_CHDIR` option (change directory to Resource on OSX). This is required or duktape module might not work properly.
