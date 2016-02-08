@@ -13,3 +13,8 @@ target_include_directories(imgui PUBLIC
   ${PROJECT_SOURCE_DIR}
   "${PROJECT_SOURCE_DIR}/examples/opengl3_example"
 )
+if (BUILD_LINUX)
+  # Since this static library will be linked against a shared library (imgui module)
+  # it has to be build with the PIC flag (position-independent code)
+  target_compile_options(imgui PUBLIC -fPIC)
+endif (BUILD_LINUX)
