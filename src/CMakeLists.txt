@@ -96,9 +96,6 @@ set_target_properties(mod_imgui PROPERTIES PREFIX "" OUTPUT_NAME "imgui" SUFFIX 
 if (CPR_BUILD_DEBUG_INTERNAL)
   target_compile_definitions(mod_imgui PRIVATE CPR_DEBUG_INTERNAL=1)
 endif(CPR_BUILD_DEBUG_INTERNAL)
-if (BUILD_LINUX)
-  target_compile_options(mod_imgui PUBLIC ${C_FLAGS})
-endif (BUILD_LINUX)
 target_link_libraries(mod_imgui imgui)
 
 ################################################################################
