@@ -10,6 +10,7 @@ try
   rc = glfw.init()
   throw new Error 'Cannot initialize GLFW library' if not rc
 
+  # at least OpenGL 3 is required by gl3w
   glfw.windowHint glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE
   glfw.windowHint glfw.CONTEXT_VERSION_MAJOR, 3
   glfw.windowHint glfw.CONTEXT_VERSION_MINOR, 2
