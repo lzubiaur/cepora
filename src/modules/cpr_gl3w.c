@@ -9,7 +9,7 @@
 #include "cpr_gl.h"
 
 duk_ret_t cpr_gl3w_init(duk_context *ctx) {
-  duk_push_int(ctx, gl3wInit());
+  duk_push_boolean(ctx, gl3wInit() == 0);
   return 1;
 }
 
