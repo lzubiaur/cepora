@@ -52,7 +52,9 @@ elseif (BUILD_OSX)
   # Specify linker flags for shared library build
   # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
   # (http://lua-users.org/wiki/BuildingModules)
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
+  #
+  # `-flat_namespace` is not required
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup -flat_namespace -weak_library ../lib/gl3w.so")
 elseif (BUILD_WINDOWS)
   set(MODULE_SUFFIX ".dll")
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
