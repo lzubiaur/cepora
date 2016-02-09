@@ -36,9 +36,10 @@ void cpr_close_lib(void *handle) {
 void *cpr_open_lib(duk_context *ctx, const char *filename) {
   void *handle = NULL;
   /* From Linux man page:
-  * RTLD_NOW: all undefined symbols in the library are resolved before dlopen
+  * RTLD_NOW: all undefined symbols in the library are resolved before dlopen returns
   * RTLD_LOCAL:  Symbols defined in this library are not made available to
-  * resolve references in subsequently loaded libraries */
+  * resolve references in subsequently loaded libraries
+  * RTLD_LAZY: Each external function reference is bound the first time the function is called */
   handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
     /* Low level error is logged and a custom error message is returned so we
@@ -153,7 +154,6 @@ err_rethrow:
   duk_throw(ctx);
   return 0; /* Not reachable */
 }
-
 
 duk_ret_t dukopen_loadlib(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
