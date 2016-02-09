@@ -29,10 +29,9 @@ mainLoop = (window) ->
 errorHandler = (code, message) -> print code, message
 
 try
-  rc = glfw.init()
-  throw new Error 'Cannot initialize GLFW library' if not rc
-
   glfw.setErrorCallBack errorHandler
+
+  throw new Error 'Cannot initialize GLFW library' if not glfw.init()
 
   glfw.windowHint glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE
   glfw.windowHint glfw.CONTEXT_VERSION_MAJOR, 3
@@ -43,9 +42,9 @@ try
   throw new Error 'Cannot create OpenGL window' if not window
   glfw.makeContextCurrent window
 
-  throw new Error 'Cannot init gl3w' if gl.init()
+  throw new Error 'Cannot init gl3w' if not gl.init()
 
-  throw new Error 'Cannot init imgui' if !imgui.init window, false
+  throw new Error 'Cannot init imgui' if not imgui.init window, false
 
   io.displaySize.x = 480
   io.displaySize.y = 320
