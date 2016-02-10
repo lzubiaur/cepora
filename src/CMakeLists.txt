@@ -52,9 +52,13 @@ elseif (BUILD_OSX)
   # Specify linker flags for shared library build
   # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
   # (http://lua-users.org/wiki/BuildingModules)
-  #
-  # `-flat_namespace` is not required
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup -flat_namespace -weak_library ../lib/gl3w.so")
+  # Useful liker options:
+  # -weak_library used with __attribute__((weak_import))
+  # (https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html)
+  # -flat_namespace : the linker does not record which dylib an external symbol
+  # came from, so at runtimedyld again searches all images and uses the first definition it finds.
+  # -bind_at_load : bind all symbols when the binary is loaded, rather than lazily
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WINDOWS)
   set(MODULE_SUFFIX ".dll")
   target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
