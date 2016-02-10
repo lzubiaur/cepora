@@ -35,14 +35,23 @@ void cpr_close_lib(void *handle) {
 
 void *cpr_open_lib(duk_context *ctx, const char *filename) {
   void *handle = NULL;
-  /* From Linux man page:
-  * RTLD_NOW: all undefined symbols in the library are resolved before dlopen returns
-  * RTLD_LOCAL:  Symbols defined in this library are not made available to
-  * resolve references in subsequently loaded libraries
-  * RTLD_LAZY: Each external function reference is bound the first time the function is called */
+  /*
+   * RTLD_NOW: all undefined symbols in the library are resolved before dlopen returns
+   * RTLD_LAZY: Use just-in-time binding (also called lazy binding). Each external
+   * function reference is bound the first time the function is called.
+   * RTLD_GLOBAL: Symbols defined by this library will be made available
+   * for symbol resolution of subsequently loaded libraries.
+   * RTLD_LOCAL: Symbols defined in the library are local and *not* available to
+   * resolve references in subsequently loaded libraries.
+   */
 
-  /* Use just-in-time binding (also called lazy binding) */
-  handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
+  /* RTLD_GLOBAL is required because module/libraries might depend to others
+  * libaries also loaded using dlopen. */
+
+  /* OSX : RTLD_GLOBAL is required for libraries with symbols binded in the flat
+   * namespace. */
+
+  handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
   if (!handle) {
     /* Low level error is logged and a custom error message is returned so we
      * can look for the same message on every platform (mainly for testing purpose). */
