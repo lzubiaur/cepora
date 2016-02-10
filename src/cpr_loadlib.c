@@ -40,6 +40,8 @@ void *cpr_open_lib(duk_context *ctx, const char *filename) {
   * RTLD_LOCAL:  Symbols defined in this library are not made available to
   * resolve references in subsequently loaded libraries
   * RTLD_LAZY: Each external function reference is bound the first time the function is called */
+
+  /* Use just-in-time binding (also called lazy binding) */
   handle = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
     /* Low level error is logged and a custom error message is returned so we
