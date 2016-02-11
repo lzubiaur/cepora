@@ -1,8 +1,5 @@
 ### @test
 480 320
-60
-100.3
-50.9
 ###
 
 glfw  = require 'glfw.so'
