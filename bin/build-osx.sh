@@ -12,11 +12,16 @@ if [ "$1" == "debug" ]; then
   build='Debug'
 fi
 
-if ! [ -d "build/osx" ]
-then
-   mkdir -p "build/osx"
+if ! [ -d "build/osx" ]; then
+  mkdir -p "build/osx"
 fi
 cd build/osx
+
+# C and C++ compiler
+export CC="clang"
+export CXX="clang++"
+
+msg=" --------------------- Build Succeeded ---------------------"
 
 # Generate build system using the "XCode" or "Unix Makefiles" generator.
 # cmake -G "Xcode" \
@@ -26,4 +31,4 @@ cmake -G "Unix Makefiles" \
     ../..
 
 # Build and install the project using the Release config
-cmake --build . --target install --config $build
+cmake --build . --target install --config $build && echo $msg
