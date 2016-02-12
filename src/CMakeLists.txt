@@ -81,7 +81,9 @@ set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX "$
 if (BUILD_LINUX)
   target_compile_options(mod_glfw PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
-target_link_libraries(mod_glfw glfw)
+# If linking against a static GLFW libary GLFW_LIBRARIES must be used to add
+# dependencies (http://www.glfw.org/docs/latest/build.html).
+target_link_libraries(mod_glfw glfw ${GLFW_LIBRARIES})
 # CPR_DEBUG_GLFW_BINDING Enable debugging trace
 target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
 if (CPR_BUILD_DEBUG_INTERNAL)
