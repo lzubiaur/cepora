@@ -9,6 +9,14 @@
 
 #include "duktape.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 duk_ret_t dukopen_gl(duk_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CPR_GL_H */

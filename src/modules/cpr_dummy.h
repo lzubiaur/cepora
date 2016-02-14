@@ -9,6 +9,14 @@
 
 #include "duktape.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 duk_ret_t dukopen_dummy(duk_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CPR_DUMMY_H */
