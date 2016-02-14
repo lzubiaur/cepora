@@ -22,47 +22,55 @@ add_dependencies(${RUNTIME_NAME} duktape)
 
 set(C_FLAGS -std=c99 -pedantic-errors -pedantic)
 
-# Enable debugger support
+# Enable duktape debugger support
 # target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 
+# Compilation definitions
+set(CPR_COMPILE_DEF)
 # Flag to notify that this build is part of the Cepora framework
-target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_COMPILING_CEPORA=1)
-# Enable internal debugging
+list(APPEND CPR_COMPILE_DEF CPR_COMPILING_CEPORA=1)
 # Note that internal debugging must be enable in both runtime and modules to use
 # internal debugging in modules.
 if (CPR_BUILD_DEBUG_INTERNAL)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_DEBUG_INTERNAL=1)
+  list(APPEND CPR_DEBUG_INTERNAL=1)
 endif(CPR_BUILD_DEBUG_INTERNAL)
+
+# Set default symbols visibility to `hidden`
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape dl m)
   target_compile_options(${RUNTIME_NAME} PUBLIC ${C_FLAGS})
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_LINUX=1 CPR_COMPILING_CEPORA=1)
+  list(APPEND CPR_COMPILE_DEF CPR_BUILD_LINUX=1)
   # On linux APP must be set to the executable binary
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/bin/${RUNTIME_NAME}")
 elseif (BUILD_OSX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape)
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_OSX=1)
+  list(APPEND CPR_COMPILE_DEF CPR_BUILD_OSX=1)
   # On OSX APP must be set to the bundle root
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}")
   # MACOSX_BUNDLE can not be used with CPack
   set_target_properties(${RUNTIME_NAME} PROPERTIES MACOSX_BUNDLE true)
   # Specify linker flags for shared library build
-  # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
+  # -undefined : specify how undefined symbols are treated (default is an error).
+  # Since we create shared libraries (modules) we use `dynamic_lookup` to avoid
+  # getting undefined references errors to duktape API.
   # (http://lua-users.org/wiki/BuildingModules)
-  # Useful liker options:
-  # -weak_library used with __attribute__((weak_import))
-  # (https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html)
   # -flat_namespace : the linker does not record which dylib an external symbol
-  # came from, so at runtimedyld again searches all images and uses the first definition it finds.
+  # came from, so at runtime dyld again searches all images and uses the first definition it finds.
   # -bind_at_load : bind all symbols when the binary is loaded, rather than lazily
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WINDOWS)
   set(MODULE_SUFFIX ".dll")
-  target_compile_definitions(${RUNTIME_NAME} PRIVATE CPR_BUILD_WINDOWS=1 CPR_COMPILING_CEPORA=1)
+  # CMAKE_C_VISIBILITY_PRESET
+  # CMAKE_CXX_VISIBILITY_PRESET
+  list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
 endif()
+
+target_compile_definitions(${RUNTIME_NAME} PUBLIC ${CPR_COMPILE_DEF})
 
 ################################################################################
 # Modules
@@ -71,6 +79,7 @@ endif()
 ### DUMMY ######################################################################
 add_library(mod_dummy SHARED modules/cpr_dummy.c)
 set_target_properties(mod_dummy PROPERTIES PREFIX "" OUTPUT_NAME "dummy" SUFFIX "${MODULE_SUFFIX}")
+target_compile_definitions(mod_dummy PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_dummy PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
@@ -78,21 +87,18 @@ endif (BUILD_LINUX)
 ### GLFW #######################################################################
 add_library(mod_glfw SHARED modules/cpr_glfw.c)
 set_target_properties(mod_glfw PROPERTIES PREFIX "" OUTPUT_NAME "glfw" SUFFIX "${MODULE_SUFFIX}")
+target_compile_definitions(mod_glfw PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_glfw PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
 # If linking against a static GLFW libary GLFW_LIBRARIES must be used to add
 # dependencies (http://www.glfw.org/docs/latest/build.html).
 target_link_libraries(mod_glfw glfw ${GLFW_LIBRARIES})
-# CPR_DEBUG_GLFW_BINDING Enable debugging trace
-target_compile_definitions(mod_glfw PRIVATE CPR_COMPILING_CEPORA=1)
-if (CPR_BUILD_DEBUG_INTERNAL)
-  target_compile_definitions(mod_glfw PRIVATE CPR_DEBUG_INTERNAL=1)
-endif(CPR_BUILD_DEBUG_INTERNAL)
 
 ### GL3W #######################################################################
 add_library(mod_gl3w SHARED modules/cpr_gl3w.c modules/cpr_gl.c)
 set_target_properties(mod_gl3w PROPERTIES PREFIX "" OUTPUT_NAME "gl3w" SUFFIX "${MODULE_SUFFIX}")
+target_compile_definitions(mod_gl3w PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_gl3w PUBLIC ${C_FLAGS})
 endif (BUILD_LINUX)
@@ -101,6 +107,7 @@ target_link_libraries(mod_gl3w gl3w)
 ### IMGUI ######################################################################
 add_library(mod_imgui SHARED modules/cpr_imgui.cxx)
 set_target_properties(mod_imgui PROPERTIES PREFIX "" OUTPUT_NAME "imgui" SUFFIX "${MODULE_SUFFIX}")
+target_compile_definitions(mod_imgui PRIVATE ${CPR_COMPILE_DEF})
 if (CPR_BUILD_DEBUG_INTERNAL)
   target_compile_definitions(mod_imgui PRIVATE CPR_DEBUG_INTERNAL=1)
 endif(CPR_BUILD_DEBUG_INTERNAL)

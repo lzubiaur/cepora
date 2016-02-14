@@ -8,6 +8,7 @@
 #define CPR_DUKTAPE_HELPERS_H
 
 #include "duktape.h"
+#include "cpr_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,7 @@ struct cpr_function_list_magic_entry {
 };
 
 typedef struct cpr_function_list_magic_entry cpr_function_list_magic_entry;
-void cpr_put_function_list_magic(duk_context *ctx, duk_idx_t obj_index, const cpr_function_list_magic_entry *funcs);
+CPR_API_EXTERN void cpr_put_function_list_magic(duk_context *ctx, duk_idx_t obj_index, const cpr_function_list_magic_entry *funcs);
 
 #ifdef __cplusplus
 }

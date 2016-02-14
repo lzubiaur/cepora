@@ -79,7 +79,7 @@
   } while(0)
 
 #if defined(CPR_DEBUG_GLFW_BINDING)
-void cpr__log_raw(const char *fmt, ...) {
+CPR_API_INTERN void cpr__log_raw(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -133,30 +133,30 @@ static duk_context *_ctx = NULL;
 
 /* Context handling */
 
-static duk_ret_t glfw_make_context_current(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_make_context_current(duk_context *ctx) {
   GLFWwindow *window = NULL;
   window = duk_require_pointer(ctx, 0);
   glfwMakeContextCurrent(window);
   return 0;
 }
 
-static duk_ret_t glfw_get_current_context(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_current_context(duk_context *ctx) {
   duk_push_pointer(ctx, glfwGetCurrentContext());
   return 1;
 }
 
-static duk_ret_t glfw_swap_interval(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_swap_interval(duk_context *ctx) {
   glfwSwapInterval(duk_require_int(ctx, -1));
   return 0;
 }
 
 #if defined(CPR__GLFW_MANUAL_EXT_LOADING_BIND)
-static duk_ret_t glfw_extension_supported(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_extension_supported(duk_context *ctx) {
   duk_push_boolean(ctx, glfwExtensionSupported(duk_get_string(ctx, 0)));
   return 1;
 }
 
-static duk_ret_t glfw_get_proc_address(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_proc_address(duk_context *ctx) {
 #if defined(__GNUC__)
   duk_push_pointer(ctx, (__extension__ (void *)glfwGetProcAddress(duk_get_string(ctx, 0))));
 #else
@@ -168,18 +168,18 @@ static duk_ret_t glfw_get_proc_address(duk_context *ctx) {
 
 /* Initialization */
 
-static duk_ret_t glfw_init(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_init(duk_context *ctx) {
   duk_push_boolean(ctx, glfwInit());
   return 1;
 }
 
-static duk_ret_t glfw_terminate(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_terminate(duk_context *ctx) {
   glfwTerminate();
   return 0;
 }
 
 #if defined(CPR__GLFW_ERROR_HANDLING_BIND)
-void error_callback(int error, const char* description)
+CPR_API_INTERN void error_callback(int error, const char* description)
 {
   duk_push_global_stash(_ctx);
   duk_get_prop_string(_ctx, -1, GLFW_ERR_CALLBACK_STASH_KEY);
@@ -188,7 +188,7 @@ void error_callback(int error, const char* description)
   duk_call(_ctx, 2);
 }
 
-static duk_ret_t glfw_set_error_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_error_callback(duk_context *ctx) {
   if (duk_is_undefined(ctx, 0)) {
     glfwSetErrorCallback(NULL);
     return 0;
@@ -210,7 +210,7 @@ static duk_ret_t glfw_set_error_callback(duk_context *ctx) {
 
 #if defined(CPR__GLFW_VERSION_BIND)
 /* Returns an array with major, minor and revision */
-static duk_ret_t glfw_get_version(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_version(duk_context *ctx) {
   int major = 0, minor = 0, rev = 0;
   glfwGetVersion(&major, &minor, &rev);
   duk_push_array(ctx);
@@ -223,7 +223,7 @@ static duk_ret_t glfw_get_version(duk_context *ctx) {
   return 1;
 }
 
-static duk_ret_t glfw_get_version_string(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_version_string(duk_context *ctx) {
   duk_push_string(ctx, glfwGetVersionString());
   return 1;
 }
@@ -231,18 +231,18 @@ static duk_ret_t glfw_get_version_string(duk_context *ctx) {
 
 /* Window handling */
 
-duk_ret_t glfw_default_window_hints(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_default_window_hints(duk_context *ctx) {
   glfwDefaultWindowHints();
   return 0;
 }
 
-duk_ret_t glfw_window_hint(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_window_hint(duk_context *ctx) {
   glfwWindowHint(duk_require_int(ctx, 0)/* target */,
                  duk_require_int(ctx, 1)/* hint*/);
   return 0;
 }
 
-static duk_ret_t glfw_create_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_create_window(duk_context *ctx) {
 #if defined(CPR__GLFW_MOUSE_CALLBACK_BIND) || \
     defined(CPR__GLFW_WINDOW_CALLBACKS_BIND) || \
     defined(CPR__GLFW_KEYBOARD_BIND) || \
@@ -290,31 +290,31 @@ static duk_ret_t glfw_create_window(duk_context *ctx) {
   return 1;
 }
 
-static duk_ret_t glfw_destroy_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_destroy_window(duk_context *ctx) {
   free((cpr_user_data *)glfwGetWindowUserPointer(duk_require_pointer(ctx, 0)));
   glfwDestroyWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
-static duk_ret_t glfw_window_should_close(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_window_should_close(duk_context *ctx) {
   int rc = 0;
   rc = glfwWindowShouldClose(duk_require_pointer(ctx ,0));
   duk_push_boolean(ctx, rc);
   return 1;
 }
 
-static duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_should_close(duk_context *ctx) {
   glfwSetWindowShouldClose(duk_require_pointer(ctx, 0), duk_require_boolean(ctx, 1));
   return 0;
 }
 
 #if defined(CPR__GLFW_WINDOW_EXTRA_BIND)
-duk_ret_t glfw_set_window_title(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_title(duk_context *ctx) {
   glfwSetWindowTitle(duk_require_pointer(ctx, 0), duk_require_string(ctx, 1));
   return 0;
 }
 
-duk_ret_t glfw_get_window_pos(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_pos(duk_context *ctx) {
   int xpos = 0, ypos = 0;
   glfwGetWindowPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
   duk_push_array(ctx);
@@ -325,14 +325,14 @@ duk_ret_t glfw_get_window_pos(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_set_window_pos(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_pos(duk_context *ctx) {
   glfwSetWindowPos(duk_require_pointer(ctx, 0),
                    duk_require_int(ctx, 1),
                    duk_require_int(ctx, 2));
   return 0;
 }
 
-duk_ret_t glfw_get_window_size(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_size(duk_context *ctx) {
   int width = 0, height = 0;
   glfwGetWindowSize(duk_require_pointer(ctx, 0), &width, &height);
   duk_push_array(ctx);
@@ -343,14 +343,14 @@ duk_ret_t glfw_get_window_size(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_set_window_size(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_size(duk_context *ctx) {
   glfwSetWindowSize(duk_require_pointer(ctx, 0),
                     duk_require_int(ctx, 1),
                     duk_require_int(ctx, 2));
   return 0;
 }
 
-duk_ret_t glfw_get_framebuffer_size(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_framebuffer_size(duk_context *ctx) {
   int width = 0, height = 0;
   glfwGetFramebufferSize(duk_require_pointer(ctx, 0), &width, &height);
   duk_push_array(ctx);
@@ -361,7 +361,7 @@ duk_ret_t glfw_get_framebuffer_size(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_window_frame_size(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_frame_size(duk_context *ctx) {
   /* void glfwGetWindowFrameSize(GLFWwindow* window, int* left, int* top, int* right, int* bottom); */
   int left, top, right, bottom;
   glfwGetWindowFrameSize(duk_require_pointer(ctx, 0), &left, &top, &right, &bottom);
@@ -377,46 +377,46 @@ duk_ret_t glfw_get_window_frame_size(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_iconify_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_iconify_window(duk_context *ctx) {
   glfwIconifyWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
-duk_ret_t glfw_restore_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_restore_window(duk_context *ctx) {
   glfwRestoreWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
-duk_ret_t glfw_show_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_show_window(duk_context *ctx) {
   glfwShowWindow(duk_require_pointer(ctx ,0));
   return 0;
 }
 
-duk_ret_t glfw_hide_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_hide_window(duk_context *ctx) {
   glfwHideWindow(duk_require_pointer(ctx, 0));
   return 0;
 }
 
-duk_ret_t glfw_get_window_monitor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_monitor(duk_context *ctx) {
   duk_push_pointer(ctx, glfwGetWindowMonitor(duk_require_pointer(ctx, 0)));
   return 1;
 }
 
-duk_ret_t glfw_get_window_attrib(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_attrib(duk_context *ctx) {
   int value = 0;
   value = glfwGetWindowAttrib(duk_require_pointer(ctx, 0), duk_require_int(ctx ,1));
   duk_push_int(ctx, value);
   return 1;
 }
 
-duk_ret_t glfw_set_window_user_pointer(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_user_pointer(duk_context *ctx) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(duk_require_pointer(ctx ,0));
   u->user_ptr = duk_get_heapptr(ctx ,1);
   return 0;
 }
 
-duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(duk_require_pointer(ctx, 0));
   duk_push_heapptr(ctx, u->user_ptr);
@@ -426,7 +426,7 @@ duk_ret_t glfw_get_window_user_pointer(duk_context *ctx) {
 
 #if defined(CPR__GLFW_WINDOW_CALLBACKS_BIND)
 /* FIXME window_pos_callback is not called */
-void cpr__window_pos_callback(GLFWwindow *window, int x, int y) {
+CPR_API_INTERN void cpr__window_pos_callback(GLFWwindow *window, int x, int y) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_pos_callback_ptr);
@@ -436,12 +436,12 @@ void cpr__window_pos_callback(GLFWwindow *window, int x, int y) {
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_pos_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowPosCallback, window_pos_callback_ptr, cpr__window_pos_callback);
   return 1;
 }
 
-void cpr__window_size_callback(GLFWwindow *window, int width, int height) {
+CPR_API_INTERN void cpr__window_size_callback(GLFWwindow *window, int width, int height) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_size_callback_ptr);
@@ -451,12 +451,12 @@ void cpr__window_size_callback(GLFWwindow *window, int width, int height) {
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_size_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowSizeCallback, window_size_callback_ptr, cpr__window_size_callback);
   return 1;
 }
 
-void cpr__window_close_callback(GLFWwindow *window) {
+CPR_API_INTERN void cpr__window_close_callback(GLFWwindow *window) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_close_callback_ptr);
@@ -464,13 +464,13 @@ void cpr__window_close_callback(GLFWwindow *window) {
   duk_call(u->ctx, 1);
 }
 
-duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_close_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowCloseCallback, window_close_callback_ptr, cpr__window_close_callback);
   return 1;
 }
 
 /* TODO check refresh callback is actually called */
-void cpr__window_refresh_callback(GLFWwindow *window) {
+CPR_API_INTERN void cpr__window_refresh_callback(GLFWwindow *window) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_refresh_callback_ptr);
@@ -478,12 +478,12 @@ void cpr__window_refresh_callback(GLFWwindow *window) {
   duk_call(u->ctx, 1);
 }
 
-duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_refresh_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowRefreshCallback, window_refresh_callback_ptr, cpr__window_refresh_callback);
   return 1;
 }
 
-void cpr__window_focus_callback(GLFWwindow *window, int focused) {
+CPR_API_INTERN void cpr__window_focus_callback(GLFWwindow *window, int focused) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_focus_callback_ptr);
@@ -492,12 +492,12 @@ void cpr__window_focus_callback(GLFWwindow *window, int focused) {
   duk_call(u->ctx, 2);
 }
 
-duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_focus_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowFocusCallback, window_focus_callback_ptr, cpr__window_focus_callback);
   return 1;
 }
 
-void cpr__window_iconify_callback(GLFWwindow *window, int iconified) {
+CPR_API_INTERN void cpr__window_iconify_callback(GLFWwindow *window, int iconified) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->window_iconify_callback_ptr);
@@ -506,12 +506,12 @@ void cpr__window_iconify_callback(GLFWwindow *window, int iconified) {
   duk_call(u->ctx, 2);
 }
 
-duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_window_iconify_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetWindowIconifyCallback, window_iconify_callback_ptr, cpr__window_iconify_callback);
   return 1;
 }
 
-void cpr__framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+CPR_API_INTERN void cpr__framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->framebuffer_size_callback_ptr);
@@ -521,28 +521,28 @@ void cpr__framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_framebuffer_size_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetFramebufferSizeCallback, framebuffer_size_callback_ptr, cpr__framebuffer_size_callback);
   return 1;
 }
 #endif /* CPR__GLFW_WINDOW_CALLBACKS_BIND */
 
-static duk_ret_t glfw_poll_events(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_poll_events(duk_context *ctx) {
   glfwPollEvents();
   return 0;
 }
 
-duk_ret_t glfw_wait_events(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_wait_events(duk_context *ctx) {
   glfwWaitEvents();
   return 0;
 }
 
-duk_ret_t glfw_post_empty_event(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_post_empty_event(duk_context *ctx) {
   glfwPostEmptyEvent();
   return 0;
 }
 
-static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_swap_buffers(duk_context *ctx) {
   glfwSwapBuffers(duk_require_pointer(ctx, 0));
   return 0;
 }
@@ -551,7 +551,7 @@ static duk_ret_t glfw_swap_buffers(duk_context *ctx) {
 /* http://www.glfw.org/docs/latest/group__monitor.html */
 
 #if defined(CPR__GLFW_MONITOR_BIND)
-duk_ret_t glfw_get_monitors(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_monitors(duk_context *ctx) {
   int i, count = 0;
   GLFWmonitor **monitors;
   monitors = glfwGetMonitors(&count);
@@ -563,12 +563,12 @@ duk_ret_t glfw_get_monitors(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_primary_monitor(duk_context *ctx) {
   duk_push_pointer(ctx, glfwGetPrimaryMonitor());
   return 1;
 }
 
-duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
   int xpos = 0, ypos = 0;
   glfwGetMonitorPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
   duk_push_array(ctx);
@@ -579,7 +579,7 @@ duk_ret_t glfw_get_monitor_pos(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
   int width = 0, height = 0;
   glfwGetMonitorPhysicalSize(duk_require_pointer(ctx, 0), &width, &height);
   duk_push_array(ctx);
@@ -590,20 +590,20 @@ duk_ret_t glfw_get_monitor_physical_size(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_monitor_name(duk_context *ctx) {
   duk_push_string(ctx, glfwGetMonitorName(duk_require_pointer(ctx, 0)));
   return 1;
 }
 
 /* TODO implement glfw_set_monitor_callback */
-duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_monitor_callback(duk_context *ctx) {
   fprintf(stderr, "FIXME: Not implemented\n");
   return 0;
 }
 #endif /* CPR__GLFW_MONITOR_BIND */
 
 #if defined(CPR__GLFW_MONITOR_MODE_BIND)
-void cpr__push_array_vidmode(duk_context *ctx, const GLFWvidmode *vidmode) {
+CPR_API_INTERN void cpr__push_array_vidmode(duk_context *ctx, const GLFWvidmode *vidmode) {
   duk_push_array(ctx);
   duk_push_int(ctx, vidmode->width);
   duk_put_prop_index(ctx, -2, 0);
@@ -619,7 +619,7 @@ void cpr__push_array_vidmode(duk_context *ctx, const GLFWvidmode *vidmode) {
   duk_put_prop_index(ctx, -2, 5);
 }
 
-duk_ret_t glfw_get_video_modes(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_video_modes(duk_context *ctx) {
   int count = 0, i;
   const GLFWvidmode *modes = NULL;
 
@@ -635,7 +635,7 @@ duk_ret_t glfw_get_video_modes(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_video_mode(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_video_mode(duk_context *ctx) {
   const GLFWvidmode *mode = NULL;
   if ((mode = glfwGetVideoMode(duk_require_pointer(ctx, 0))) != NULL) {
     cpr__push_array_vidmode(ctx, mode);
@@ -645,12 +645,12 @@ duk_ret_t glfw_get_video_mode(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_set_gamma(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_gamma(duk_context *ctx) {
   glfwSetGamma(duk_require_pointer(ctx, 0), duk_require_number(ctx, 1));
   return 0;
 }
 
-void cpr__push_array_gamma_elem(duk_context *ctx, const unsigned short *elem, unsigned int size) {
+CPR_API_INTERN void cpr__push_array_gamma_elem(duk_context *ctx, const unsigned short *elem, unsigned int size) {
   int i;
   duk_push_array(ctx);
   for (i=0; i<size; ++i) {
@@ -659,7 +659,7 @@ void cpr__push_array_gamma_elem(duk_context *ctx, const unsigned short *elem, un
   }
 }
 
-void cpr__push_array_gamma_ramp(duk_context *ctx, const GLFWgammaramp *ramp) {
+CPR_API_INTERN void cpr__push_array_gamma_ramp(duk_context *ctx, const GLFWgammaramp *ramp) {
   duk_push_array(ctx);
   cpr__push_array_gamma_elem(ctx, ramp->red, ramp->size);
   duk_put_prop_index(ctx, -2, 0);
@@ -669,7 +669,7 @@ void cpr__push_array_gamma_ramp(duk_context *ctx, const GLFWgammaramp *ramp) {
   duk_put_prop_index(ctx, -2, 2);
 }
 
-duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
   const GLFWgammaramp *ramp = NULL;
   ramp = glfwGetGammaRamp(duk_require_pointer(ctx,0 ));
   cpr__push_array_gamma_ramp(ctx, ramp);
@@ -679,7 +679,7 @@ duk_ret_t glfw_get_gamma_ramp(duk_context *ctx) {
 /* Return an array of unsigned int at index `idx`. The caller must freed the array
  * Size can be NULL.
  */
-duk_ret_t cpr__get_array_us(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr__get_array_us(duk_context *ctx) {
   duk_size_t size;
   int i;
   unsigned short *ptr = NULL;
@@ -705,7 +705,7 @@ duk_ret_t cpr__get_array_us(duk_context *ctx) {
 }
 
 /* TODO implement setGammaRamp using buffer instead of array */
-duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_gamma_ramp(duk_context *ctx) {
   GLFWgammaramp ramp = {0};
   int i;
   unsigned short **e;
@@ -743,12 +743,12 @@ rethrow:
 /* Input handling */
 
 #if defined(CPR__GLFW_INPUT_MODE_BIND)
-duk_ret_t glfw_get_input_mode(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_input_mode(duk_context *ctx) {
   duk_push_int(ctx, glfwGetInputMode(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
-duk_ret_t glfw_set_input_mode(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_input_mode(duk_context *ctx) {
   glfwSetInputMode(duk_require_pointer(ctx, 0),
                    duk_require_int(ctx, 1),
                    duk_require_int(ctx, 2));
@@ -757,19 +757,19 @@ duk_ret_t glfw_set_input_mode(duk_context *ctx) {
 #endif /* CPR__GLFW_INPUT_MODE_BIND */
 
 #if defined(CPR__GLFW_KEYBOARD_BIND)
-duk_ret_t glfw_get_key(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_key(duk_context *ctx) {
   duk_push_int(ctx, glfwGetKey(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 #endif /* CPR__GLFW_KEYBOARD_BIND */
 
 #if defined(CPR__GLFW_MOUSE_BIND)
-duk_ret_t glfw_get_mouse_button(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_mouse_button(duk_context *ctx) {
   duk_push_int(ctx, glfwGetMouseButton(duk_require_pointer(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
-duk_ret_t glfw_get_cursor_pos(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_cursor_pos(duk_context *ctx) {
   double xpos, ypos;
   glfwGetCursorPos(duk_require_pointer(ctx, 0), &xpos, &ypos);
   duk_push_array(ctx);
@@ -780,7 +780,7 @@ duk_ret_t glfw_get_cursor_pos(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_set_cursor_pos(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_cursor_pos(duk_context *ctx) {
   glfwSetCursorPos(duk_require_pointer(ctx, 0),
                    duk_require_number(ctx ,1),
                    duk_require_number(ctx ,2));
@@ -795,7 +795,7 @@ duk_ret_t glfw_set_cursor_pos(duk_context *ctx) {
  * @param xhot
  * @param yhot
  */
-duk_ret_t glfw_create_cursor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_create_cursor(duk_context *ctx) {
   GLFWimage image;
   duk_size_t len;
 
@@ -808,24 +808,24 @@ duk_ret_t glfw_create_cursor(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_create_standard_cursor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_create_standard_cursor(duk_context *ctx) {
   duk_push_pointer(ctx, glfwCreateStandardCursor(duk_require_int(ctx, 0)));
   return 1;
 }
 
-duk_ret_t glfw_destroy_cursor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_destroy_cursor(duk_context *ctx) {
   glfwDestroyCursor(duk_require_pointer(ctx, 0));
   return 0;
 }
 
-duk_ret_t glfw_set_cursor(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_cursor(duk_context *ctx) {
   glfwSetCursor(duk_require_pointer(ctx, 0), duk_require_pointer(ctx, 1));
   return 0;
 }
 #endif /* CPR__GLFW_CREATE_CURSOR_BIND */
 
 #if defined(CPR__GLFW_KEYBOARD_BIND)
-void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+CPR_API_INTERN void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
@@ -838,12 +838,12 @@ void cpr__key_callback(GLFWwindow* window, int key, int scancode, int action, in
   duk_call(u->ctx, 5);
 }
 
-static duk_ret_t glfw_set_key_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_key_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetKeyCallback, key_callback_ptr, cpr__key_callback);
   return 1;
 }
 
-void cpr__char_callback(GLFWwindow *window, unsigned int character) {
+CPR_API_INTERN void cpr__char_callback(GLFWwindow *window, unsigned int character) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->char_callback_ptr);
@@ -852,12 +852,12 @@ void cpr__char_callback(GLFWwindow *window, unsigned int character) {
   duk_call(u->ctx, 2);
 }
 
-duk_ret_t glfw_set_char_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_char_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetCharCallback, char_callback_ptr, cpr__char_callback);
   return 1;
 }
 
-void cpr__set_char_mods_callback(GLFWwindow *window, unsigned int codepoint, int mods) {
+CPR_API_INTERN void cpr__set_char_mods_callback(GLFWwindow *window, unsigned int codepoint, int mods) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->char_mods_callback_ptr);
@@ -867,14 +867,14 @@ void cpr__set_char_mods_callback(GLFWwindow *window, unsigned int codepoint, int
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_char_mods_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetCharModsCallback, char_mods_callback_ptr, cpr__set_char_mods_callback);
   return 1;
 }
 #endif /* CPR__GLFW_KEYBOARD_BIND */
 
 #if defined(CPR__GLFW_MOUSE_CALLBACK_BIND)
-void cpr__mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+CPR_API_INTERN void cpr__mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->mouse_button_callback_ptr);
@@ -885,12 +885,12 @@ void cpr__mouse_button_callback(GLFWwindow *window, int button, int action, int 
   duk_call(u->ctx, 4);
 }
 
-duk_ret_t glfw_set_mouse_button_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_mouse_button_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetMouseButtonCallback, mouse_button_callback_ptr, cpr__mouse_button_callback);
   return 1;
 }
 
-void cpr__cursor_pos_callback(GLFWwindow *window, double xpos, double ypos) {
+CPR_API_INTERN void cpr__cursor_pos_callback(GLFWwindow *window, double xpos, double ypos) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->cursor_pos_callback_ptr);
@@ -900,12 +900,12 @@ void cpr__cursor_pos_callback(GLFWwindow *window, double xpos, double ypos) {
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_cursor_pos_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_cursor_pos_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetCursorPosCallback, cursor_pos_callback_ptr, cpr__cursor_pos_callback);
   return 1;
 }
 
-void cpr__cursor_enter_callback(GLFWwindow *window, int entered) {
+CPR_API_INTERN void cpr__cursor_enter_callback(GLFWwindow *window, int entered) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->cursor_enter_callback_ptr);
@@ -914,12 +914,12 @@ void cpr__cursor_enter_callback(GLFWwindow *window, int entered) {
   duk_call(u->ctx, 2);
 }
 
-duk_ret_t glfw_set_cursor_enter_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_cursor_enter_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetCursorEnterCallback, cursor_enter_callback_ptr, cpr__cursor_enter_callback);
   return 1;
 }
 
-void cpr__scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+CPR_API_INTERN void cpr__scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
   duk_push_heapptr(u->ctx, u->scroll_callback_ptr);
@@ -929,12 +929,12 @@ void cpr__scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
   duk_call(u->ctx, 3);
 }
 
-duk_ret_t glfw_set_scroll_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_scroll_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetScrollCallback, scroll_callback_ptr, cpr__scroll_callback);
   return 1;
 }
 
-void cpr__drop_callback(GLFWwindow *window, int count, const char **paths) {
+CPR_API_INTERN void cpr__drop_callback(GLFWwindow *window, int count, const char **paths) {
   int i;
   cpr_user_data *u;
   u = glfwGetWindowUserPointer(window);
@@ -948,19 +948,19 @@ void cpr__drop_callback(GLFWwindow *window, int count, const char **paths) {
   duk_call(u->ctx,2);
 }
 
-duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_drop_callback(duk_context *ctx) {
   CPR__REGISTER_CALLBACK(glfwSetDropCallback, drop_callback_ptr, cpr__drop_callback);
   return 1;
 }
 #endif /* CPR__GLFW_MOUSE_CALLBACK_BIND */
 
 #if defined(CPR__GLFW_JOYSTICK_BIND)
-duk_ret_t glfw_joystick_present(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_joystick_present(duk_context *ctx) {
   duk_push_boolean(ctx, glfwJoystickPresent(duk_require_int(ctx, 0)));
   return 1;
 }
 
-duk_ret_t glfw_get_joystick_axes(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_joystick_axes(duk_context *ctx) {
   const float *axes;
   int i, count = 0;
   /* The returned array is allocated and freed by GLFW. */
@@ -973,7 +973,7 @@ duk_ret_t glfw_get_joystick_axes(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_joystick_buttons(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_joystick_buttons(duk_context *ctx) {
   const unsigned char *buttons;
   int i, count = 0;
   /* The returned array is allocated and freed by GLFW. */
@@ -986,7 +986,7 @@ duk_ret_t glfw_get_joystick_buttons(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
   /* The returned string is allocated and freed by GLFW. */
   duk_push_string(ctx, glfwGetJoystickName(duk_get_int(ctx, 0)));
   return 1;
@@ -994,13 +994,13 @@ duk_ret_t glfw_get_joystick_name(duk_context *ctx) {
 #endif /* CPR__GLFW_JOYSTICK_BIND */
 
 #if defined(CPR__GLFW_CLIPBOARD_BIND)
-duk_ret_t glfw_set_clipboard_string(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_clipboard_string(duk_context *ctx) {
   /* The string is copied by GLFW before the function returns. */
   glfwSetClipboardString(duk_get_pointer(ctx, 0), duk_get_string(ctx, 1));
   return 0;
 }
 
-duk_ret_t glfw_get_clipboard_string(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_clipboard_string(duk_context *ctx) {
   /* The returned string is allocated and freed by GLFW. */
   duk_push_string(ctx, glfwGetClipboardString(duk_get_pointer(ctx, 0)));
   return 1;
@@ -1008,18 +1008,18 @@ duk_ret_t glfw_get_clipboard_string(duk_context *ctx) {
 #endif /* CPR__GLFW_CLIPBOARD_BIND */
 
 #if defined(CPR__GLFW_TIME_BIND)
-duk_ret_t glfw_get_time(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_get_time(duk_context *ctx) {
   duk_push_number(ctx, glfwGetTime());
   return 1;
 }
 
-duk_ret_t glfw_set_time(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t glfw_set_time(duk_context *ctx) {
   glfwSetTime(duk_get_number(ctx, 0));
   return 0;
 }
 #endif /* CPR__GLFW_TIME_BIND */
 
-duk_ret_t dukopen_glfw(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_glfw(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
     /* Context handling */
     { "makeContextCurrent",          glfw_make_context_current,          1   },

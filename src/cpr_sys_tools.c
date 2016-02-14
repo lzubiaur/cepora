@@ -11,12 +11,12 @@
 #include <string.h>     /* strdup, _strdup */
 #include <stdlib.h>     /* malloc, free, realpath, _splitpath_s */
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #include <mach-o/dyld.h> /* For _NSGetExecutablePath */
 #include <sys/stat.h>
 #endif
 
-#ifdef __linux__
+#if defined(__linux__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -24,17 +24,17 @@
 #endif
 
 /* GetModuleFileName will link the executable against KERNEL32.DLL */
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <windows.h>
 #else
 #include <libgen.h> /* dirname */
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define chdir(p) (_chdir(p))
 #endif
 
-int cpr_file_is_absolute(const char *path) {
+CPR_API_EXTERN int cpr_file_is_absolute(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   return (path[0] == '/');
 #else
@@ -42,7 +42,7 @@ int cpr_file_is_absolute(const char *path) {
 #endif
 }
 
-int cpr_file_exists(const char *path) {
+CPR_API_EXTERN int cpr_file_exists(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   struct stat st;
   return stat(path, &st) == 0 ? 1 : 0;
@@ -52,9 +52,9 @@ int cpr_file_exists(const char *path) {
 #endif
 }
 
-char *cpr_get_exec_dir() {
+CPR_API_EXTERN char *cpr_get_exec_dir() {
     char *path = NULL, *dir = NULL;
-#ifdef _WIN32
+#if defined(_WIN32)
     char drive_buf[_MAX_DRIVE], dir_buf[_MAX_DIR];
     if ((path = cpr_get_exec_path()) == NULL) goto end;
     if(_splitpath_s(path, drive_buf, _MAX_DRIVE, dir_buf, _MAX_DIR, NULL, 0, NULL, 0) != 0) {
@@ -87,9 +87,9 @@ end:
 /*
  * http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe
  */
-char *cpr_get_exec_path() {
+CPR_API_EXTERN char *cpr_get_exec_path() {
     char *full_path = NULL, *buf = NULL;
-#ifdef __APPLE__
+#if defined(__APPLE__)
     uint32_t size = 0;
     /* First call to get the buffer required size */
     _NSGetExecutablePath(NULL, &size);

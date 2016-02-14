@@ -29,7 +29,7 @@
 /* Look up for a file using the search paths (package.paths). Return `undefined`
  * if the file is not found.
  */
-static duk_ret_t cpr__search_path(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr__search_path(duk_context *ctx) {
   const char *filename = NULL;
   if (duk_is_null_or_undefined(ctx, -1)) {
     duk_push_undefined(ctx);
@@ -71,7 +71,7 @@ static duk_ret_t cpr__search_path(duk_context *ctx) {
 /* Custom package loader
  * @params id, require, exports, module
  */
-static duk_ret_t cpr__require_handler(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr__require_handler(duk_context *ctx) {
   const char *filename = NULL;
   CPR__DLOG("require '%s'", duk_get_string(ctx, 0));
   /* Search for the file in the search paths */
@@ -126,7 +126,7 @@ static duk_ret_t cpr__require_handler(duk_context *ctx) {
  * is not defined, try to figure out the search paths from the process
  * executable path.
  */
-static duk_ret_t cpr__init_search_path(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr__init_search_path(duk_context *ctx) {
   const char *ptr = NULL, *ptr2 = NULL, *path = NULL;
   int i = 0;
   duk_idx_t obj_idx;
@@ -166,7 +166,7 @@ static duk_ret_t cpr__init_search_path(duk_context *ctx) {
   return 0;
 }
 
-duk_ret_t dukopen_package(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_package(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
     { "searchPath", cpr__search_path, 1 },
     { NULL, NULL, 0 }
