@@ -35,6 +35,10 @@ if (CPR_BUILD_DEBUG_INTERNAL)
   list(APPEND CPR_DEBUG_INTERNAL=1)
 endif(CPR_BUILD_DEBUG_INTERNAL)
 
+# Set default symbols visibility to `hidden`
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
   target_link_libraries(${RUNTIME_NAME} duktape dl m)
@@ -51,17 +55,18 @@ elseif (BUILD_OSX)
   # MACOSX_BUNDLE can not be used with CPack
   set_target_properties(${RUNTIME_NAME} PROPERTIES MACOSX_BUNDLE true)
   # Specify linker flags for shared library build
-  # link with the option '-undefined dynamic_lookup' to avoid getting undefined references
+  # -undefined : specify how undefined symbols are treated (default is an error).
+  # Since we create shared libraries (modules) we use `dynamic_lookup` to avoid
+  # getting undefined references errors to duktape API.
   # (http://lua-users.org/wiki/BuildingModules)
-  # Useful liker options:
-  # -weak_library used with __attribute__((weak_import))
-  # (https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html)
   # -flat_namespace : the linker does not record which dylib an external symbol
-  # came from, so at runtimedyld again searches all images and uses the first definition it finds.
+  # came from, so at runtime dyld again searches all images and uses the first definition it finds.
   # -bind_at_load : bind all symbols when the binary is loaded, rather than lazily
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WINDOWS)
   set(MODULE_SUFFIX ".dll")
+  # CMAKE_C_VISIBILITY_PRESET
+  # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
 endif()
 
