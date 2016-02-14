@@ -27,7 +27,9 @@
 /* Forward declarations */
 
 /* Helpers */
+#if 0
 static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx);
+#endif
 static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx);
 
 /* Binding API */
@@ -201,12 +203,14 @@ static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx) {
     duk_require_number(ctx, idx));
 }
 
-/* ImVec4 */
+#if 0
+/* ImVec2 */
 static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx) {
   return ImVec2(
     duk_require_number(ctx, idx - 1),
     duk_require_number(ctx, idx));
 }
+#endif
 
 duk_ret_t dukopen_imgui(duk_context *ctx) {
   const cpr_function_list_magic_entry module_funcs[] = {
