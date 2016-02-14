@@ -19,21 +19,21 @@
 #define CPR_OPEN_PREFIX "dukopen_"
 #define CPR_OPEN_PREFIX_LEN (sizeof(INIT_PREFIX)-1)
 
-static void cpr_close_lib(void *handle);
-static void *cpr_open_lib(duk_context *ctx, const char *filename);
-static duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym);
+CPR_API_INTERN void cpr_close_lib(void *handle);
+CPR_API_INTERN void *cpr_open_lib(duk_context *ctx, const char *filename);
+CPR_API_INTERN duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym);
 
 #if defined(CPR_USE_DLOPEN)
 
 #include <dlfcn.h>
 
-void cpr_close_lib(void *handle) {
+CPR_API_INTERN void cpr_close_lib(void *handle) {
   if (handle) {
     dlclose(handle);
   }
 }
 
-void *cpr_open_lib(duk_context *ctx, const char *filename) {
+CPR_API_INTERN void *cpr_open_lib(duk_context *ctx, const char *filename) {
   void *handle = NULL;
   /*
    * RTLD_NOW: all undefined symbols in the library are resolved before dlopen returns
@@ -62,7 +62,7 @@ void *cpr_open_lib(duk_context *ctx, const char *filename) {
   return handle;
 }
 
-duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
+CPR_API_INTERN duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
   duk_c_function func = NULL;
   char *errmsg = NULL;
 
@@ -94,7 +94,7 @@ duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
 #endif
 
 /* Check if the module `mod_id` is already loaded. */
-static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id) {
+CPR_API_INTERN duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id) {
   duk_ret_t rc = 0;
   duk_get_global_string(ctx, "Duktape");
   duk_get_prop_string(ctx, -1, "modLoaded");
@@ -107,7 +107,7 @@ static duk_ret_t cpr_is_mod_loaded(duk_context *ctx, const char *mod_id) {
 
 /* Low level library loading */
 /* TODO don't prefix the open lib function name */
-duk_ret_t cpr_loadlib(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t cpr_loadlib(duk_context *ctx) {
   void *lib = NULL;
   const char *dot = NULL;
   const char *filename = NULL;
@@ -166,7 +166,7 @@ err_rethrow:
   return 0; /* Not reachable */
 }
 
-duk_ret_t dukopen_loadlib(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_loadlib(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
     { "loadlib", cpr_loadlib, 2 },
     { NULL, NULL, 0 }

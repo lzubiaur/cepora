@@ -8,18 +8,18 @@
 #include "GL/gl3w.h"
 #include "cpr_gl.h"
 
-duk_ret_t cpr_gl3w_init(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl3w_init(duk_context *ctx) {
   duk_push_boolean(ctx, gl3wInit() == 0);
   return 1;
 }
 
-duk_ret_t cpr_gl3w_is_supported(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl3w_is_supported(duk_context *ctx) {
   duk_push_boolean(ctx, gl3wIsSupported(duk_require_int(ctx, 0), duk_require_int(ctx, 1)));
   return 1;
 }
 
 /* Implemented for completeness but not tested */
-duk_ret_t cpr_gl3w_get_proc_address(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl3w_get_proc_address(duk_context *ctx) {
 #if defined(__GNUC__)
   duk_push_pointer(ctx, (__extension__ (void *)gl3wGetProcAddress(duk_require_string(ctx, 0))));
 #else
@@ -28,7 +28,7 @@ duk_ret_t cpr_gl3w_get_proc_address(duk_context *ctx) {
   return 1;
 }
 
-duk_ret_t dukopen_gl3w(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_gl3w(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
     { "init",           cpr_gl3w_init,              0 },
     { "isSupported",    cpr_gl3w_is_supported,      2 },

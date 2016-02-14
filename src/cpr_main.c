@@ -89,7 +89,15 @@ static duk_ret_t cpr__open_core_modules(duk_context *ctx) {
   return 0;
 }
 
+#ifdef _WIN32
+int CALLBACK WinMain(
+   HINSTANCE hInstance,
+   HINSTANCE hPrevInstance,
+   LPSTR     lpCmdLine,
+   int       nCmdShow) {
+#else
 int main(int argc, char *argv[]) {
+#endif
   duk_context *ctx = NULL;
   int i = 0, argsConsumed = 0;
   int  log_level = 4; /* Default log level to ERROR */

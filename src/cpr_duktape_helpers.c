@@ -6,7 +6,7 @@
 
 #include "cpr_duktape_helpers.h"
 
-void cpr_put_function_list_magic(duk_context *ctx, duk_idx_t obj_index, const cpr_function_list_magic_entry *funcs) {
+CPR_API_EXTERN void cpr_put_function_list_magic(duk_context *ctx, duk_idx_t obj_index, const cpr_function_list_magic_entry *funcs) {
   const cpr_function_list_magic_entry *ent = funcs;
 
   obj_index = duk_require_normalize_index(ctx, obj_index);

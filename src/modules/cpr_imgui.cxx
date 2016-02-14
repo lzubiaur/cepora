@@ -28,13 +28,13 @@
 
 /* Helpers */
 #if 0
-static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx);
+CPR_API_INTERN ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx);
 #endif
-static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx);
+CPR_API_INTERN ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx);
 
 /* Binding API */
 
-static duk_ret_t cpr_imgui_io_getter_setter(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_io_getter_setter(duk_context *ctx) {
   duk_int_t magic;
   magic = duk_get_current_magic(ctx);
   CPR__DLOG("Getter/Setter magic : %d", magic);
@@ -76,7 +76,7 @@ static duk_ret_t cpr_imgui_io_getter_setter(duk_context *ctx) {
 } while(0)
 
 /* Bind ImGui::GetIO() to module.getIO(). */
-static duk_ret_t cpr_imgui_get_io(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_get_io(duk_context *ctx) {
   duk_push_this(ctx);
   if (duk_get_prop_string(ctx, -1, "ImGuiIO")) {
     CPR__DLOG("ImGuiIO object exists");
@@ -116,29 +116,29 @@ static duk_ret_t cpr_imgui_get_io(duk_context *ctx) {
   return 1;
 }
 
-static duk_ret_t cpr_imgui_new_frame(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_new_frame(duk_context *ctx) {
   // ImGui::NewFrame();
   ImGui_ImplGlfwGL3_NewFrame();
   return 0;
 }
 
-static duk_ret_t cpr_imgui_shutdown(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_shutdown(duk_context *ctx) {
   // ImGui::Shutdown();
   ImGui_ImplGlfwGL3_Shutdown();
   return 0;
 }
 
-static duk_ret_t cpr_imgui_render(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_render(duk_context *ctx) {
   ImGui::Render();
   return 0;
 }
 
-static duk_ret_t cpr_imgui_begin(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_begin(duk_context *ctx) {
   ImGui::Begin(duk_require_string(ctx, 0));
   return 0;
 }
 
-static duk_ret_t cpr_imgui_text(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_text(duk_context *ctx) {
   /* TODO handle variable arguments */
   int i = 0, args = 0;
   duk_int_t magic, top = 0;
@@ -165,17 +165,17 @@ static duk_ret_t cpr_imgui_text(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t cpr_imgui_end(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_end(duk_context *ctx) {
   ImGui::End();
   return 0;
 }
 
-static duk_ret_t cpr_imgui_show_user_guide(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_show_user_guide(duk_context *ctx) {
   ImGui::ShowUserGuide();
   return 0;
 }
 
-static duk_ret_t cpr_imgui_show_test_window(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_show_test_window(duk_context *ctx) {
   bool opened = true;
   ImGui::ShowTestWindow(&opened);
   duk_push_boolean(ctx, (int)opened);
@@ -186,7 +186,7 @@ static duk_ret_t cpr_imgui_show_test_window(duk_context *ctx) {
  * context is created and current (GLFW) and the OpenGL core profile is loaded (GL3W
  * init).
  */
-static duk_ret_t cpr_imgui_init(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_imgui_init(duk_context *ctx) {
   duk_push_boolean(ctx, ImGui_ImplGlfwGL3_Init(
     (GLFWwindow*)duk_require_pointer(ctx, 0), duk_require_boolean(ctx, 1)));
   return 1;
@@ -195,7 +195,7 @@ static duk_ret_t cpr_imgui_init(duk_context *ctx) {
 /* Helpers */
 
 /* ImVec4 */
-static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx) {
+CPR_API_INTERN ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx) {
   return ImVec4(
     duk_require_number(ctx, idx - 3),
     duk_require_number(ctx, idx - 2),
@@ -205,14 +205,14 @@ static ImVec4 cpr_imgui_imvec4(duk_context *ctx, duk_idx_t idx) {
 
 #if 0
 /* ImVec2 */
-static ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx) {
+CPR_API_INTERN ImVec2 cpr_imgui_imvec2(duk_context *ctx, duk_idx_t idx) {
   return ImVec2(
     duk_require_number(ctx, idx - 1),
     duk_require_number(ctx, idx));
 }
 #endif
 
-duk_ret_t dukopen_imgui(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_imgui(duk_context *ctx) {
   const cpr_function_list_magic_entry module_funcs[] = {
     { "init",                     cpr_imgui_init,                       2, 0 },
     { "shutdown",                 cpr_imgui_shutdown,                   0, 0 },

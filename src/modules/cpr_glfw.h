@@ -8,12 +8,13 @@
 #define CPR_GLFW_H
 
 #include "duktape.h"
+#include "cpr_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-duk_ret_t dukopen_glfw(duk_context *ctx);
+CPR_API_EXTERN duk_ret_t dukopen_glfw(duk_context *ctx);
 
 #ifdef __cplusplus
 }

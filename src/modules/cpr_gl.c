@@ -7,22 +7,22 @@
 #include "cpr_gl.h"
 #include "GL/gl3w.h"
 
-static duk_ret_t cpr_gl_clear(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl_clear(duk_context *ctx) {
   glClear(duk_require_int(ctx, 0));
   return 0;
 }
 
-static duk_ret_t cpr_gl_clear_depth(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl_clear_depth(duk_context *ctx) {
   glClearDepth(duk_require_int(ctx, 0));
   return 0;
 }
 
-static duk_ret_t cpr_gl_enable(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl_enable(duk_context *ctx) {
   glEnable(duk_require_int(ctx, 0));
   return 0;
 }
 
-static duk_ret_t cpr_gl_clear_color(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl_clear_color(duk_context *ctx) {
   glClearColor(duk_require_number(ctx, 0),
                duk_require_number(ctx, 1),
                duk_require_number(ctx, 2),
@@ -30,7 +30,7 @@ static duk_ret_t cpr_gl_clear_color(duk_context *ctx) {
   return 0;
 }
 
-static duk_ret_t cpr_gl_viewport(duk_context *ctx) {
+CPR_API_INTERN duk_ret_t cpr_gl_viewport(duk_context *ctx) {
   glViewport(duk_require_int(ctx, 0),
              duk_require_int(ctx, 1),
              duk_require_int(ctx, 2),
@@ -38,7 +38,7 @@ static duk_ret_t cpr_gl_viewport(duk_context *ctx) {
   return 0;
 }
 
-duk_ret_t dukopen_gl(duk_context *ctx) {
+CPR_API_EXTERN duk_ret_t dukopen_gl(duk_context *ctx) {
   const duk_function_list_entry module_funcs[] = {
     { "clear", cpr_gl_clear, 1 },
     { "enable", cpr_gl_enable, 1 },
