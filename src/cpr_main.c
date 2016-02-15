@@ -14,8 +14,8 @@
 
 #if defined(CPR_BUILD_WINDOWS)
 /* Faster builds with smaller header files */
-#define VC_EXTRALEAN
-#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN 1
+#define WIN32_LEAN_AND_MEAN 1
 /* TODO investigte the "NOapi" symbols */
 /* (https://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx) */
 #include <windows.h> /* WindMain */
