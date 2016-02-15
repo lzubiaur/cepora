@@ -65,6 +65,7 @@ elseif (BUILD_OSX)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WIN)
   set(MODULE_SUFFIX ".dll")
+  target_link_libraries(${RUNTIME_NAME} duktape)
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
