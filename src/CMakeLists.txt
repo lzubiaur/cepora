@@ -63,11 +63,12 @@ elseif (BUILD_OSX)
   # came from, so at runtime dyld again searches all images and uses the first definition it finds.
   # -bind_at_load : bind all symbols when the binary is loaded, rather than lazily
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
-elseif (BUILD_WINDOWS)
+elseif (BUILD_WIN)
   set(MODULE_SUFFIX ".dll")
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
 endif()
 
 target_compile_definitions(${RUNTIME_NAME} PUBLIC ${CPR_COMPILE_DEF})
