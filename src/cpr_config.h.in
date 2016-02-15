@@ -16,7 +16,7 @@
 #define CPR_GIT_COMMIT    "@CPR_GIT_COMMIT@"
 
 /* Check platform is supported */
-#if !defined(CPR_BUILD_OSX) && !defined(CPR_BUILD_OSX) && !defined(CPR_BUILD_WINDOWS)
+#if !defined(CPR_BUILD_OSX) && !defined(CPR_BUILD_LINUX) && !defined(CPR_BUILD_WINDOWS)
 #error Build target platform not supported
 #endif
 
