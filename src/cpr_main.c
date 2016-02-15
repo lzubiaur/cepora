@@ -12,6 +12,10 @@
 #include <errno.h>
 #include <string.h> /* strcmp */
 
+#if defined(CPR_BUILD_WINDOWS)
+#include <windows.h> /* WindMain */
+#endif
+
 #include "duktape.h"
 #include "cpr_debug_internal.h"
 #include "cpr_macros.h"
