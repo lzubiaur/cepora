@@ -89,6 +89,42 @@ CPR_API_INTERN duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const
   return func;
 }
 
+#elif defined(_WIN32)
+
+#define VC_EXTRALEAN 1
+#define WIN32_LEAN_AND_MEAN 1
+#include <windows.h>
+
+CPR_API_INTERN void cpr_close_lib(void *handle) {
+	FreeLibrary((HMODULE)handle);
+}
+
+CPR_API_INTERN void *cpr_open_lib(duk_context *ctx, const char *filename) {
+  HMODULE handle = NULL;
+
+  if ((handle = LoadLibraryA(filename)) == NULL) {
+    /* TODO log system error */
+    duk_push_sprintf(ctx, "Cannot open shared library '%s'", filename);
+  }
+  return handle;
+}
+
+CPR_API_INTERN duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const char *sym) {
+  duk_c_function func = NULL;
+
+  if (handle == NULL) {
+    duk_push_string(ctx, "Invalid library handle (NULL)");
+    return NULL;
+  }
+
+  if ((func = (duk_c_function)GetProcAddress((HMODULE)handle, sym)) == NULL)  {
+    /* TODO log system error */
+    duk_push_sprintf(ctx, "Cannot find symbol '%s'", sym);
+    return NULL;
+  }
+  return func;
+}
+
 #else
 #error Dynamic library loading not supported on this platform
 #endif
