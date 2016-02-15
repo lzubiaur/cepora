@@ -68,7 +68,10 @@ elseif (BUILD_WIN)
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
+  # Linker options
+  # -FORCE : Forces link to complete in spite of unresolved or multiply defined symbols
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
+  set_target_properties(${RUNTIME_NAME} PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
 target_compile_definitions(${RUNTIME_NAME} PUBLIC ${CPR_COMPILE_DEF})
