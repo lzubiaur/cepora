@@ -26,6 +26,7 @@
 /* GetModuleFileName will link the executable against KERNEL32.DLL */
 #if defined(_WIN32)
 #include <windows.h>
+#include <Shlwapi.h> /* PathIsRelative, PathFileExists */
 #else
 #include <libgen.h> /* dirname */
 #endif
@@ -38,7 +39,7 @@ CPR_API_EXTERN int cpr_file_is_absolute(const char *path) {
 #if defined(__linux__) || defined(__APPLE__)
   return (path[0] == '/');
 #else
-#error Not implemented
+  return PathIsRelative(path) == 0;
 #endif
 }
 
@@ -47,8 +48,7 @@ CPR_API_EXTERN int cpr_file_exists(const char *path) {
   struct stat st;
   return stat(path, &st) == 0 ? 1 : 0;
 #elif defined(_WIN32)
-  /* TODO implement windows version */
-#error cpr_file_exists not implemented
+  return PathFileExists(path);
 #endif
 }
 
