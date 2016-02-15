@@ -1,5 +1,11 @@
 @echo off
 
+if not exist lib\gl3w\src\gl3w.c (
+  pushd lib\gl3w
+  .\gl3w_gen.py
+  popd
+)
+
 if not exist build\win (
     mkdir build\win
     )
