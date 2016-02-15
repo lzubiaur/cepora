@@ -13,7 +13,13 @@
 #include <string.h> /* strcmp */
 
 #if defined(CPR_BUILD_WINDOWS)
+/* Faster builds with smaller header files */
+#define VC_EXTRALEAN
+#define WIN32_LEAN_AND_MEAN
+/* TODO investigte the "NOapi" symbols */
+/* (https://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx) */
 #include <windows.h> /* WindMain */
+#include <Shellapi.h> /* CommandLineToArgvW */
 #endif
 
 #include "duktape.h"
@@ -95,10 +101,12 @@ static duk_ret_t cpr__open_core_modules(duk_context *ctx) {
 
 #ifdef _WIN32
 int CALLBACK WinMain(
-   HINSTANCE hInstance,
-   HINSTANCE hPrevInstance,
-   LPSTR     lpCmdLine,
-   int       nCmdShow) {
+  HINSTANCE hInstance,     /* handle to the current instance of the application. */
+  HINSTANCE hPrevInstance, /* handle to the previous instance of the application */
+  LPSTR     lpCmdLine,     /* command line for the application */
+  int       nCmdShow) {    /* controls how the window is to be shown */
+  int argc;
+  char **argv;
 #else
 int main(int argc, char *argv[]) {
 #endif
@@ -106,6 +114,13 @@ int main(int argc, char *argv[]) {
   int i = 0, argsConsumed = 0;
   int  log_level = 4; /* Default log level to ERROR */
   const char *filename = NULL, *log_path = NULL;
+
+#if defined(_WIN32)
+  if ((argv = CommandLineToArgvW(lpCmdLine, &argc)) == NULL) {
+    cpr_log_raw("FATAL: CommandLineToArgvW failed\n");
+    exit(EXIT_FAILURE);
+  }
+#endif
 
   /* Arguments are parsed using a while loop because to "consume" unused options.
    * WARNING: when opening an application on MacOS using the `open` command
@@ -193,6 +208,12 @@ int main(int argc, char *argv[]) {
     duk_push_string(ctx, argv[i]);
     duk_put_prop_index(ctx, arr_idx, i - argsConsumed);
   }
+
+  /* Free argv and should not be used */
+#if defined(_WIN32)
+  LocalFree(argv);
+  argv = NULL;
+#endif
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
