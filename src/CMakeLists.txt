@@ -96,7 +96,8 @@ target_compile_definitions(mod_glfw PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_glfw PUBLIC ${C_FLAGS})
 elseif (BUILD_WIN)
-  set_target_properties(mod_glfw PROPERTIES IMPORT_SUFFIX ".imp")
+  # Must change output name or import library (.lib) will conflict with the glfw static library (.lib too)
+  set_target_properties(mod_glfw PROPERTIES IMPORT_PREFIX "mod_" EXPORT_PREFIX "mod_")
 endif (BUILD_LINUX)
 # If linking against a static GLFW libary GLFW_LIBRARIES must be used to add
 # dependencies (http://www.glfw.org/docs/latest/build.html).
@@ -108,6 +109,8 @@ set_target_properties(mod_gl3w PROPERTIES PREFIX "" OUTPUT_NAME "gl3w" SUFFIX "$
 target_compile_definitions(mod_gl3w PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_gl3w PUBLIC ${C_FLAGS})
+elseif (BUILD_WIN)
+  set_target_properties(mod_gl3w PROPERTIES IMPORT_PREFIX "mod_" EXPORT_PREFIX "mod_")
 endif (BUILD_LINUX)
 target_link_libraries(mod_gl3w gl3w)
 
@@ -117,6 +120,8 @@ set_target_properties(mod_imgui PROPERTIES PREFIX "" OUTPUT_NAME "imgui" SUFFIX 
 target_compile_definitions(mod_imgui PRIVATE ${CPR_COMPILE_DEF})
 if (CPR_BUILD_DEBUG_INTERNAL)
   target_compile_definitions(mod_imgui PRIVATE CPR_DEBUG_INTERNAL=1)
+elseif (BUILD_WIN)
+  set_target_properties(mod_imgui PROPERTIES IMPORT_PREFIX "mod_" EXPORT_PREFIX "mod_")
 endif(CPR_BUILD_DEBUG_INTERNAL)
 target_link_libraries(mod_imgui imgui)
 
