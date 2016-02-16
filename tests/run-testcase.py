@@ -59,7 +59,8 @@ def open_process(cmd):
     output = []
     for line in proc.stdout:
         m.update(line)
-        output.append(line)
+        # stdout is now a bytes sequence (python 3)
+        output.append(line.decode('utf-8'))
     # while proc.poll() is None:
     #     output.append(proc.stdout.readline())
     # proc.stdout.close()
