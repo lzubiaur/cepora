@@ -96,7 +96,7 @@ target_compile_definitions(mod_glfw PRIVATE ${CPR_COMPILE_DEF})
 if (BUILD_LINUX)
   target_compile_options(mod_glfw PUBLIC ${C_FLAGS})
 elseif (BUILD_WIN)
-  set_target_properties(mod_glfw IMPORT_SUFFIX ".imp")
+  set_target_properties(mod_glfw PROPERTIES IMPORT_SUFFIX ".imp")
 endif (BUILD_LINUX)
 # If linking against a static GLFW libary GLFW_LIBRARIES must be used to add
 # dependencies (http://www.glfw.org/docs/latest/build.html).
