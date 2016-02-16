@@ -65,7 +65,7 @@ elseif (BUILD_OSX)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WIN)
   set(MODULE_SUFFIX ".dll")
-  target_link_libraries(${RUNTIME_NAME} duktape)
+  target_link_libraries(${RUNTIME_NAME} duktape Shlwapi)
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
@@ -126,7 +126,8 @@ install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w mod_imgui
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
-    ARCHIVE DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
+    # Don't install static libraries and import lib (windows)
+    # ARCHIVE DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     )
 
 # On Linux and MacOS we use fixup_bundle. On Windows use
