@@ -5,7 +5,8 @@
 # MIT License (http://opensource.org/licenses/MIT)
 from __future__ import print_function
 
-import sys, argparse, subprocess, md5
+import sys, argparse, subprocess
+from hashlib import md5
 from os import path
 from difflib import Differ, unified_diff, SequenceMatcher
 from os import path, environ
@@ -18,7 +19,7 @@ def trace(*arg):
 
 def parse_test_case_coffee(filename):
     data, record = [], False
-    m = md5.new()
+    m = md5()
     with open(filename, 'r') as source:
         for line in source:
             if line.startswith('### @test'):
@@ -26,7 +27,7 @@ def parse_test_case_coffee(filename):
             elif record and line == '###\n':
                 record = False
             elif record:
-                m.update(line)
+                m.update(line.encode('utf-8'))
                 data.append(line)
     trace(*data)
     return {
@@ -54,7 +55,7 @@ def open_process(cmd):
         env=env)
     # proc.stdin.close()
 
-    m = md5.new()
+    m = md5()
     output = []
     for line in proc.stdout:
         m.update(line)
