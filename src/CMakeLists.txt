@@ -32,7 +32,7 @@ list(APPEND CPR_COMPILE_DEF CPR_COMPILING_CEPORA=1)
 # Note that internal debugging must be enable in both runtime and modules to use
 # internal debugging in modules.
 if (CPR_BUILD_DEBUG_INTERNAL)
-  list(APPEND CPR_DEBUG_INTERNAL=1)
+  list(APPEND CPR_COMPILE_DEF CPR_DEBUG_INTERNAL=1)
 endif(CPR_BUILD_DEBUG_INTERNAL)
 
 # Set default symbols visibility to `hidden`
