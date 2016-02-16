@@ -133,7 +133,7 @@ install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w mod_imgui
 # On Linux and MacOS we use fixup_bundle. On Windows use
 # installrequiredsystemlibraries and manually copy plugins
 # directories to search for prerequisites. Libraries are copied automatically
-set(DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE})
+set(DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # Plugins are loadable bundles that extend the basic features of your application
 # On MacOSX it can be frameworks or shared lib not linked with the executable.
@@ -145,9 +145,9 @@ set(DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE})
 
 # DLL shared libraries are build in the runtime directory on Windows
 if(BUILD_WIN)
-   set(LIB_OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}")
+   set(LIB_OUTPUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 else()
-   set(LIB_OUTPUT "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}")
+   set(LIB_OUTPUT "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
 # Use shorter variable for clarity
 set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
