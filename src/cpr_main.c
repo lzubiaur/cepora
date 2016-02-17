@@ -30,7 +30,6 @@
 #include "cpr_loadlib.h"
 
 #define CPR_VERSION_STRING "v0.10.99"
-#define CPR__COFFEE_SCRIPT_PATH "js/lib/coffee-script.js"
 
 /* Helper function to set logging level for both C and Javascript API.
  * Note that this only set the *DEFAULT* javascript logging level and will not
@@ -160,7 +159,7 @@ int main(int argc, char *argv[]) {
     filename = argv[argsConsumed];
     argsConsumed++;
   } else {
-    filename = "js/main.coffee";
+    filename = CPR__MAIN_SCRIPT_PATH;
   }
   CPR__DLOG("main script : '%s'", filename);
 

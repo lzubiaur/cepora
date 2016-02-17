@@ -41,4 +41,13 @@
 /* GLFW binding configuration */
 #define CPR_GLFW_ALL
 
+/* File path configuration */
+#if defined(CPR_BUILD_WINDOWS)
+#define CPR__MAIN_SCRIPT_PATH "js\\main.coffee"
+#define CPR__COFFEE_SCRIPT_PATH "js\\lib\\coffee-script.js"
+#else
+#define CPR__MAIN_SCRIPT_PATH "js/main.coffee"
+#define CPR__COFFEE_SCRIPT_PATH "js/lib/coffee-script.js"
+#endif
+
 #endif /* CPR_CONFIG_H */
