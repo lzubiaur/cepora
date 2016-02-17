@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
   } else {
     filename = "js/main.coffee";
   }
-  CPR__DLOG(filename);
+  CPR__DLOG("main script : '%s'", filename);
 
   /* Create duktape VM heap */
   /* TODO investigate memory management implementations like tcmalloc
@@ -210,12 +210,6 @@ int main(int argc, char *argv[]) {
     duk_push_string(ctx, argv[i]);
     duk_put_prop_index(ctx, arr_idx, i - argsConsumed);
   }
-
-  /* Free argv and should not be used */
-#if defined(_WIN32)
-  LocalFree(argv);
-  argv = NULL;
-#endif
 
   duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE); /* Non writable property */
   duk_pop_2(ctx);
