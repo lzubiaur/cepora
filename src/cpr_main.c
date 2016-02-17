@@ -19,7 +19,6 @@
 /* TODO investigte the "NOapi" symbols */
 /* (https://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx) */
 #include <windows.h> /* WindMain */
-#include <Shellapi.h> /* CommandLineToArgvW */
 #endif
 
 #include "duktape.h"
@@ -105,8 +104,9 @@ int CALLBACK WinMain(
   HINSTANCE hPrevInstance, /* handle to the previous instance of the application */
   LPSTR     lpCmdLine,     /* command line for the application */
   int       nCmdShow) {    /* controls how the window is to be shown */
-  int argc;
-  char **argv;
+  /* Get command line count and string from global variable __argc and __argv */
+  int argc = __argc;
+  char **argv = __argv;
 #else
 int main(int argc, char *argv[]) {
 #endif
@@ -115,10 +115,10 @@ int main(int argc, char *argv[]) {
   int  log_level = 4; /* Default log level to ERROR */
   const char *filename = NULL, *log_path = NULL;
 
-#if defined(_WIN32)
-  if ((argv = CommandLineToArgvW(lpCmdLine, &argc)) == NULL) {
-    cpr_log_raw("FATAL: CommandLineToArgvW failed\n");
-    exit(EXIT_FAILURE);
+#if defined(CPR_DEBUG_INTERNAL)
+  CPR__DLOG("Command line arguments:");
+  for(i=0; i < argc; ++i) {
+    CPR__DLOG("[%d] %s", i, argv[i]);
   }
 #endif
 
@@ -152,6 +152,8 @@ int main(int argc, char *argv[]) {
     ++i;
   }
   argsConsumed = i;
+
+  CPR__DLOG("argc: %d consumed: %d", argc, argsConsumed);
 
   /* Run in CLI mode. First argument is the script file to run. */
   if (argsConsumed < argc) {
