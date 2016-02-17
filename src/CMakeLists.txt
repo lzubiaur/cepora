@@ -65,6 +65,7 @@ elseif (BUILD_OSX)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (BUILD_WIN)
   set(MODULE_SUFFIX ".dll")
+  # Shlwapi.lib : PathIsRelative, PathFileExists
   target_link_libraries(${RUNTIME_NAME} duktape Shlwapi)
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
