@@ -18,12 +18,15 @@
 #if defined(_WIN32)
 #define CPR__FILE_SYSTEM_SEPARATOR "\\"
 #define CPR__RESOURCES_PATH "\\.."
+#define CPR__MODULE_EXT ".dll"
 #elif defined(__APPLE__)
 #define CPR__FILE_SYSTEM_SEPARATOR "/"
 #define CPR__RESOURCES_PATH "/../Resources"
+#define CPR__MODULE_EXT ".so"
 #else /* __linux__ */
 #define CPR__FILE_SYSTEM_SEPARATOR "/"
 #define CPR__RESOURCES_PATH "/.."
+#define CPR__MODULE_EXT ".so"
 #endif
 
 /* Look up for a file using the search paths (package.paths). Return `undefined`
@@ -96,7 +99,7 @@ CPR_API_INTERN duk_ret_t cpr__require_handler(duk_context *ctx) {
     if (duk_pcall_prop(ctx, -3, 1) != DUK_EXEC_SUCCESS) {
       duk_error(ctx, DUK_ERR_SYNTAX_ERROR, "Can't compile CoffeeScript '%s' : %s", filename, duk_safe_to_string(ctx, -1));
     }
-  } else if (dot && strcmp(dot, ".so") == 0) {
+  } else if (dot && strcmp(dot, CPR__MODULE_EXT) == 0) {
     INF(ctx, "Load C module id: '%s' filename:'%s'", duk_get_string(ctx, 0), filename);
     duk_push_c_function(ctx, cpr_loadlib, 2);
     duk_push_string(ctx, filename);
