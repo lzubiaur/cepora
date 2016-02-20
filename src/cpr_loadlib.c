@@ -96,7 +96,9 @@ CPR_API_INTERN duk_c_function cpr_load_sym(duk_context *ctx, void *handle, const
 #include <windows.h>
 
 CPR_API_INTERN void cpr_close_lib(void *handle) {
-	FreeLibrary((HMODULE)handle);
+  if (handle) {
+    FreeLibrary((HMODULE)handle);
+  }
 }
 
 CPR_API_INTERN void *cpr_open_lib(duk_context *ctx, const char *filename) {
