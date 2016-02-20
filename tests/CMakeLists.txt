@@ -14,6 +14,13 @@ set(tests_files
   imgui.coffee
 )
 
+
+if (BUILD_WIN)
+  message(STATUS "Build Windows tests")
+  add_subdirectory(win)
+endif (BUILD_WIN)
+
+
 install(
   FILES ${tests_files}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
