@@ -19,11 +19,21 @@ fi
 unset CPR_PATH
 export CPR_PATH="${exec_dir};${resources};."
 
-# ${cepora_exec} -v
+${cepora_exec} -v
 # ${cepora_exec} -h
 
+# On windows we can use PY_PYTHON to force a version
+export PY_PYTHON=3
+python=python
+
+if command -v python3 >/dev/null 2>&1; then
+  python=python3
+fi
+
+echo "Run tests using `${python} -V`"
+
 function run_test {
-  python run-testcase.py ${python_opts} -s $1 ${cepora_exec} ${cepora_opts} $1 $2
+  ${python} run-testcase.py ${python_opts} -s $1 ${cepora_exec} ${cepora_opts} $1 $2
 }
 
 run_test 'tests/hello.coffee'
