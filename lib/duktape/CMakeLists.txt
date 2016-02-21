@@ -11,7 +11,7 @@ target_include_directories(duktape PUBLIC ${PROJECT_SOURCE_DIR})
 if (BUILD_WIN)
   target_compile_definitions(duktape PRIVATE DUK_OPT_DLL_BUILD=1)
 else()
-  target_compile_options(duktape PUBLIC -std=c99 -Os -fomit-frame-pointer -fstrict-aliasing)
+  target_compile_options(duktape PRIVATE -std=c99 -Os -fomit-frame-pointer -fstrict-aliasing)
 endif(BUILD_WIN)
 
 # target_compile_definitions(duktape PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
