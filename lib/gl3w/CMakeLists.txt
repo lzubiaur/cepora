@@ -15,7 +15,7 @@ if(BUILD_LINUX)
   target_compile_options(gl3w PUBLIC -fPIC)
 elseif(BUILD_OSX)
   # Enable objective-c (doesn't seem to be required though)
-  target_compile_options(gl3w PUBLIC -x objective-c)
+  target_compile_options(gl3w PRIVATE -x objective-c)
   # Setting "-x objective-c" with CMAKE_C_FLAGS doesn't work when building with
   # Makefile generator (though it works when building using the XCode generator)
   # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
