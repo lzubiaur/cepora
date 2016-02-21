@@ -16,7 +16,7 @@ execute_process(COMMAND git rev-parse HEAD OUTPUT_VARIABLE CPR_GIT_COMMIT)
 string(REPLACE "\n" "" CPR_GIT_DESCRIBE ${CPR_GIT_DESCRIBE})
 string(REPLACE "\n" "" CPR_GIT_COMMIT   ${CPR_GIT_COMMIT})
 # Read version from cpr_main.c
-file(STRINGS ${PROJECT_SOURCE_DIR}/src/cpr_main.c CPR_VERSION_STRING REGEX "#define CPR_VERSION_STRING.*")
+file(STRINGS ${PROJECT_SOURCE_DIR}/src/cpr_cepora.c CPR_VERSION_STRING REGEX "#define CPR_VERSION_STRING.*")
 # Extract version string
 string(REGEX MATCHALL "[0-9]+" CPR_VERSION_STRING ${CPR_VERSION_STRING})
 # Get major, minor and patch version

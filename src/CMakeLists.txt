@@ -8,22 +8,8 @@ include_directories(
   ${GLFW_HEADERS}
   ${PROJECT_SOURCE_DIR}/lib/duktape)
 
-set(core
-  cpr_main.c
-  cpr_error.c
-  cpr_sys_tools.c
-  cpr_loadlib.c
-  cpr_package.c
-  cpr_duktape_helpers.c
-  cpr_debug_internal.c)
-
-add_executable(${RUNTIME_NAME} ${core})
-add_dependencies(${RUNTIME_NAME} duktape)
-
+# Custom C flags
 set(C_FLAGS -std=c99 -pedantic-errors -pedantic)
-
-# Enable duktape debugger support
-# target_compile_definitions(${RUNTIME_NAME} PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
 
 # Compilation definitions
 set(CPR_COMPILE_DEF)
@@ -39,21 +25,44 @@ endif(CPR_BUILD_DEBUG_INTERNAL)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+# Cepora core source files
+set(CEPORA_SRC
+  cpr_cepora.c
+  cpr_error.c
+  cpr_sys_tools.c
+  cpr_loadlib.c
+  cpr_package.c
+  cpr_duktape_helpers.c
+  cpr_debug_internal.c)
+
+# Cepora shared library
+add_library(cepora SHARED ${CEPORA_SRC})
+add_dependencies(cepora duktape)
+target_link_libraries(cepora duktape)
+# Enable duktape debugger support
+# target_compile_definitions(cepora PRIVATE DUK_OPT_DEBUGGER_SUPPORT=1 DUK_OPT_INTERRUPT_COUNTER=1 DUK_CMDLINE_DEBUGGER_SUPPORT=1)
+
+# Runtime executable
+add_executable(rt cpr_main.c)
+set_target_properties(rt PROPERTIES OUTPUT_NAME ${RUNTIME_NAME})
+add_dependencies(rt cepora)
+target_link_libraries(rt cepora)
+
 if (BUILD_LINUX)
   set(MODULE_SUFFIX ".so")
-  target_link_libraries(${RUNTIME_NAME} duktape dl m)
-  target_compile_options(${RUNTIME_NAME} PUBLIC ${C_FLAGS})
+  target_link_libraries(cepora dl m)
+  target_compile_options(cepora PUBLIC ${C_FLAGS})
+  target_compile_options(rt PUBLIC ${C_FLAGS})
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_LINUX=1)
   # On linux APP must be set to the executable binary
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/bin/${RUNTIME_NAME}")
 elseif (BUILD_OSX)
   set(MODULE_SUFFIX ".so")
-  target_link_libraries(${RUNTIME_NAME} duktape)
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_OSX=1)
   # On OSX APP must be set to the bundle root
   set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}")
   # MACOSX_BUNDLE can not be used with CPack
-  set_target_properties(${RUNTIME_NAME} PROPERTIES MACOSX_BUNDLE true)
+  set_target_properties(rt PROPERTIES MACOSX_BUNDLE true)
   # Specify linker flags for shared library build
   # -undefined : specify how undefined symbols are treated (default is an error).
   # Since we create shared libraries (modules) we use `dynamic_lookup` to avoid
@@ -66,16 +75,18 @@ elseif (BUILD_OSX)
 elseif (BUILD_WIN)
   set(MODULE_SUFFIX ".dll")
   # Shlwapi.lib : PathIsRelative, PathFileExists
-  target_link_libraries(${RUNTIME_NAME} duktape Shlwapi)
+  target_link_libraries(cepora Shlwapi)
   # CMAKE_C_VISIBILITY_PRESET
   # CMAKE_CXX_VISIBILITY_PRESET
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
   # Linker options
   # -FORCE : Forces link to complete in spite of unresolved or multiply defined symbols
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
+  # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
   set_target_properties(${RUNTIME_NAME} PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
+# Add defines to the runtime and cepora library
+target_compile_definitions(cepora PUBLIC ${CPR_COMPILE_DEF})
 target_compile_definitions(${RUNTIME_NAME} PUBLIC ${CPR_COMPILE_DEF})
 
 ################################################################################
@@ -131,7 +142,7 @@ target_link_libraries(mod_imgui imgui)
 # INSTALL
 ################################################################################
 
-install(TARGETS ${RUNTIME_NAME} mod_dummy mod_glfw mod_gl3w mod_imgui
+install(TARGETS rt cepora mod_dummy mod_glfw mod_gl3w mod_imgui
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
