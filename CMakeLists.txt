@@ -28,8 +28,6 @@ message(STATUS "Building Cepora version ${CPR_VERSION_MAJOR}.${CPR_VERSION_MINOR
 message(STATUS "Git describe ${CPR_GIT_DESCRIBE}")
 message(STATUS "Git commit ${CPR_GIT_COMMIT}")
 
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/products/${CMAKE_BUILD_TYPE})
 
 # Add custom cmake modules
