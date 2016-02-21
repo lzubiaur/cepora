@@ -81,13 +81,13 @@ elseif (BUILD_WIN)
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_WINDOWS=1)
   # Linker options
   # -FORCE : Forces link to complete in spite of unresolved or multiply defined symbols
-  # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
-  set_target_properties(${RUNTIME_NAME} PROPERTIES WIN32_EXECUTABLE true)
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
+  set_target_properties(rt PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
 # Add defines to the runtime and cepora library
 target_compile_definitions(cepora PUBLIC ${CPR_COMPILE_DEF})
-target_compile_definitions(${RUNTIME_NAME} PUBLIC ${CPR_COMPILE_DEF})
+target_compile_definitions(rt PUBLIC ${CPR_COMPILE_DEF})
 
 ################################################################################
 # Modules
