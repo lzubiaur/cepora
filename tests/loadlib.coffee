@@ -1,12 +1,12 @@
 ### @test
-Cannot open shared library 'dummy.so'
+Cannot open shared library '/tmp/dummy.so'
 Cannot find symbol 'dukopen_foo'
 -1
 hello world
 ###
 
 try
-  lib.loadlib 'dummy.so', 'dummy'
+  lib.loadlib '/tmp/dummy.so', 'dummy'
 catch e
   print e.message
 
