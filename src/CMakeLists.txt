@@ -55,7 +55,7 @@ if (BUILD_LINUX)
   target_compile_options(rt PUBLIC ${C_FLAGS})
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_LINUX=1)
   # On linux APP must be set to the executable binary
-  set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}/bin/${RUNTIME_NAME}")
+  set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_RUNTIME_DESTINATION}/${RUNTIME_NAME}")
 elseif (BUILD_OSX)
   set(MODULE_SUFFIX ".so")
   list(APPEND CPR_COMPILE_DEF CPR_BUILD_OSX=1)
@@ -142,7 +142,9 @@ target_link_libraries(mod_imgui imgui)
 # INSTALL
 ################################################################################
 
-install(TARGETS rt cepora mod_dummy mod_glfw mod_gl3w mod_imgui
+# Only install executable target (rt). Dependencies should be copied and installed
+# automatically.
+install(TARGETS rt
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
@@ -179,6 +181,7 @@ set(PLUGINS)
 list(APPEND PLUGINS "${LIB_OUTPUT}/glfw${MODULE_SUFFIX}")
 list(APPEND PLUGINS "${LIB_OUTPUT}/gl3w${MODULE_SUFFIX}")
 list(APPEND PLUGINS "${LIB_OUTPUT}/imgui${MODULE_SUFFIX}")
+list(APPEND PLUGINS "${LIB_OUTPUT}/dummy${MODULE_SUFFIX}")
 
 foreach(plugin IN LISTS PLUGINS)
   message(STATUS "Install plugin: " ${PLUGINS})
