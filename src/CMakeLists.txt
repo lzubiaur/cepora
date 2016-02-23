@@ -83,6 +83,7 @@ elseif (BUILD_WIN)
   # -FORCE : Forces link to complete in spite of unresolved or multiply defined symbols
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE")
   set_target_properties(rt PROPERTIES WIN32_EXECUTABLE true)
+  set(APP "${CMAKE_INSTALL_PREFIX}/${BUNDLE_RUNTIME_DESTINATION}/${RUNTIME_NAME}")
 endif()
 
 # Add defines to the runtime and cepora library
@@ -148,7 +149,7 @@ target_link_libraries(mod_imgui imgui)
 ################################################################################
 
 # Only install executable target (rt). Dependencies should be copied and installed
-# automatically.
+# automatically using install script (see below).
 install(TARGETS rt
     BUNDLE  DESTINATION "." COMPONENT Runtime
     RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
@@ -161,6 +162,9 @@ install(TARGETS rt
 # installrequiredsystemlibraries and manually copy plugins
 # directories to search for prerequisites. Libraries are copied automatically
 set(DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+if (BUILD_WIN)
+  list(APPEND DIRS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif (BUILD_WIN)
 
 # Plugins are loadable bundles that extend the basic features of your application
 # On MacOSX it can be frameworks or shared lib not linked with the executable.
@@ -192,7 +196,8 @@ foreach(plugin IN LISTS PLUGINS)
   message(STATUS "Install plugin: " ${PLUGINS})
 endforeach()
 
-if(BUILD_WIN)
+# Install redistributable runtime
+if(BUILD_WIN AND CPR_WINDOWS_INSTALL_CRT)
    # Check the architecture
    if(CMAKE_CL_64)
       if(MSVC_VERSION GREATER 1599)
