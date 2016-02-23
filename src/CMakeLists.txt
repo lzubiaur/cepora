@@ -158,6 +158,15 @@ install(TARGETS rt
     # ARCHIVE DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
     )
 
+# On Windows we must install DLL dependencies manually
+# XXX automate dependencies installation
+if(BUILD_WIN)
+  install(TARGETS cepora
+    RUNTIME DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
+    LIBRARY DESTINATION ${BUNDLE_RUNTIME_DESTINATION} COMPONENT Runtime
+  )
+endif(BUILD_WIN)
+
 # On Linux and MacOS we use fixup_bundle. On Windows use
 # installrequiredsystemlibraries and manually copy plugins
 # directories to search for prerequisites. Libraries are copied automatically
