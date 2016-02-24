@@ -1,4 +1,4 @@
-Cepora - Experimental 2D game engine
+![Cepora](/docs/logo.png) Cepora - Experimental 2D game engine
 
 * Javascript Engine [Duktape][1]
 * Windows, Linux and Mac OSX
@@ -28,6 +28,8 @@ bin/build-osx.sh
 ```
 
 or `build-linux.sh` on Linux and `build-win.bat` on Windows.
+
+
 
 [1]:(http//duktape.org/)
 [2]:(http://coffeescript.org/)
